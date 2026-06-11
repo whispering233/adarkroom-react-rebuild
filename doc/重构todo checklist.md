@@ -18,88 +18,88 @@
 - [x] 架构分析文档
 - [x] 重构方案文档
 - [x] TODO Checklist（本文件）
-- [ ] Git 初始提交
+- [x] Git 初始提交
 
 ---
 
 ## 阶段 1：状态管理基础
 
-- [ ] **1.1** 定义 TypeScript 接口
-  - [ ] `Stores` — 资源类型（wood, fur, meat, scales, teeth, iron, coal, steel...）
-  - [ ] `Game` — 游戏状态（fire, temperature, builder.level, buildings, population...）
-  - [ ] `Character` — 角色（perks, punches, health...）
-  - [ ] `Income` — 收入配置
-  - [ ] `Config` — 配置项
-  - [ ] `GameState` — 根类型
-- [ ] **1.2** 实现 `GameProvider` + `useGameContext`
-  - [ ] Context 创建
-  - [ ] Provider 组件
-  - [ ] 自定义 hook（`useGameState`, `useGameDispatch`）
-- [ ] **1.3** 实现 Reducer + Actions
-  - [ ] `SET` action（设值）
-  - [ ] `ADD` action（数值增减）
-  - [ ] `SET_M` action（批量设置）
-  - [ ] `ADD_M` action（批量增减）
-  - [ ] `REMOVE` action
-  - [ ] 自动创建缺失路径（类 `createState`）
-  - [ ] 数值上限校验（`MAX_STORE`）
-  - [ ] 负数保护
-- [ ] **1.4** 状态变更通知机制
-  - [ ] `onStateChange` 回调注册
-  - [ ] 按 category 过滤通知
-- [ ] **1.5** 单元测试
-  - [ ] 基本读写
-  - [ ] 路径自动创建
-  - [ ] 批量操作
-  - [ ] 边界值（MAX_STORE、负数）
+- [x] **1.1** 定义 TypeScript 接口
+  - [x] `Stores` — 资源类型（wood, fur, meat, scales, teeth, iron, coal, steel...）
+  - [x] `Game` — 游戏状态（fire, temperature, builder.level, buildings, population...）
+  - [x] `Character` — 角色（perks, punches, health...）
+  - [x] `Income` — 收入配置
+  - [x] `Config` — 配置项
+  - [x] `GameState` — 根类型
+- [x] **1.2** 实现 `GameProvider` + `useGameContext`
+  - [x] Context 创建
+  - [x] Provider 组件
+  - [x] 自定义 hook（`useGameState`, `useGameDispatch`）
+- [x] **1.3** 实现 Reducer + Actions
+  - [x] `SET` action（设值）
+  - [x] `ADD` action（数值增减）
+  - [x] `SET_M` action（批量设置）
+  - [x] `ADD_M` action（批量增减）
+  - [x] `REMOVE` action
+  - [x] 自动创建缺失路径（类 `createState`）
+  - [x] 数值上限校验（`MAX_STORE`）
+  - [x] 负数保护
+- [x] **1.4** 状态变更通知机制
+  - [x] `onStateChange` 回调注册
+  - [x] 按 category 过滤通知
+- [x] **1.5** 单元测试
+  - [x] 基本读写
+  - [x] 路径自动创建
+  - [x] 批量操作
+  - [x] 边界值（MAX_STORE、负数）
 
 ---
 
 ## 阶段 2：房间路由系统
 
-- [ ] **2.1** 场景路由
-  - [ ] `currentRoom` 状态字段
-  - [ ] 场景条件渲染（Room → Outside → Path → ...）
-- [ ] **2.2** Header 标签栏
-  - [ ] `<Header>` 组件
-  - [ ] 标签动态显示/隐藏（基于 features 解锁）
-  - [ ] 当前场景高亮
+- [x] **2.1** 场景路由
+  - [x] `currentRoom` 状态字段
+  - [x] 场景条件渲染（Room → Outside → Path → ...）
+- [x] **2.2** Header 标签栏
+  - [x] `<Header>` 组件
+  - [x] 标签动态显示/隐藏（基于 features 解锁）
+  - [x] 当前场景高亮
 - [ ] **2.3** 场景切换动画
   - [ ] CSS transition 过渡
-- [ ] **2.4** 暗室基础 UI
-  - [ ] 标题动态变化（"A Dark Room" / "A Firelit Room"）
-  - [ ] 火堆状态文字显示
-  - [ ] 温度状态文字显示
-  - [ ] 通知消息区域
-- [ ] **2.5** `<Button>` 通用组件
-  - [ ] 基本渲染（文字、点击）
-  - [ ] 冷却倒计时（进度条动画）
-  - [ ] 消耗提示（tooltip）
-  - [ ] 禁用态（资源不足 / 冷却中）
-  - [ ] `cooldown` / `cost` / `disabled` props
+- [x] **2.4** 暗室基础 UI
+  - [x] 标题动态变化（"A Dark Room" / "A Firelit Room"）
+  - [x] 火堆状态文字显示
+  - [x] 温度状态文字显示
+  - [x] 通知消息区域
+- [x] **2.5** `<Button>` 通用组件
+  - [x] 基本渲染（文字、点击）
+  - [x] 冷却倒计时（进度条动画）
+  - [x] 消耗提示（tooltip）
+  - [x] 禁用态（资源不足 / 冷却中）
+  - [x] `cooldown` / `cost` / `disabled` props
 
 ---
 
 ## 阶段 3：资源系统
 
-- [ ] **3.1** 资源显示面板
-  - [ ] `<StoresPanel>` 组件
-  - [ ] 资源实时数值显示
-  - [ ] 增量/减量数字动画
-- [ ] **3.2** 收入系统
-  - [ ] 定时 tick（1 秒间隔）
-  - [ ] 收入配置（来源、产量、间隔）
-  - [ ] 双倍速支持
-  - [ ] 资源不足时暂停收入
-- [ ] **3.3** 火堆机制
-  - [ ] `lightFire()` — 消耗 5 木材，火堆 → Burning
-  - [ ] `stokeFire()` — 消耗 1 木材，火堆 +1
-  - [ ] `coolFire()` — 每 5 分钟火堆 -1
-  - [ ] 建造者自动添柴（Lv≥4）
-- [ ] **3.4** 建造者 NPC
-  - [ ] 阶段 0-4 状态机
-  - [ ] 阶段推进条件判断
-  - [ ] 通知消息
+- [x] **3.1** 资源显示面板
+  - [x] `<StoresPanel>` 组件
+  - [x] 资源实时数值显示
+  - [x] 增量/减量数字动画
+- [x] **3.2** 收入系统
+  - [x] 定时 tick（1 秒间隔）
+  - [x] 收入配置（来源、产量、间隔）
+  - [x] 双倍速支持
+  - [x] 资源不足时暂停收入
+- [x] **3.3** 火堆机制
+  - [x] `lightFire()` — 消耗 5 木材，火堆 → Burning
+  - [x] `stokeFire()` — 消耗 1 木材，火堆 +1
+  - [x] `coolFire()` — 每 5 分钟火堆 -1
+  - [x] 建造者自动添柴（Lv≥4）
+- [x] **3.4** 建造者 NPC
+  - [x] 阶段 0-4 状态机
+  - [x] 阶段推进条件判断
+  - [x] 通知消息
 - [ ] **3.5** 建造/交易逻辑
   - [ ] 建筑建造（trap, cart, hut, lodge, trading post...）
   - [ ] 工具/武器制作（torch, bone spear, iron sword...）
@@ -188,6 +188,6 @@
 ## 技术备忘
 
 - **构建命令**：`pnpm build`（tsc + vite build）
-- **测试框架**：待定（Vitest 推荐）
+- **测试框架**：Vitest（已集成，`vite.config.ts` 中配置 `globals: true`, `include: ['src/**/*.test.ts']`）
 - **部署目标**：静态 HTML + JS + CSS（可托管到任意静态服务器）
 - **原项目参考**：`origin-adarkroom/`（git 已忽略）
