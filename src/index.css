@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* ===== A Dark Room 主题全局样式 ===== */
+:root {
+  --color-parchment: #f4e4c1;
+  --color-ink: #2c2416;
+  --color-ember: #c94b1a;
+  --color-ash: #5c5c5c;
+  --color-dark-bg: #1a1a2e;
+}
+
+body {
+  margin: 0;
+  background-color: #1a1a2e;
+  color: #c8c8c8;
+  font-family: "Courier New", Courier, monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
