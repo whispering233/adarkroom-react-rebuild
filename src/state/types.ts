@@ -93,6 +93,20 @@ export interface GameData {
   [key: string]: unknown
 }
 
+// ─── 场景路由 ────────────────────────────────────────────
+
+/** 游戏场景名称 */
+export const RoomName = {
+  Room: 'room',
+  Outside: 'outside',
+  Path: 'path',
+  World: 'world',
+  Space: 'space',
+  Fabricator: 'fabricator',
+  Ship: 'ship',
+} as const
+export type RoomName = (typeof RoomName)[keyof typeof RoomName]
+
 // ─── 枚举（const object + type 模式，兼容 erasableSyntaxOnly）───
 
 /** 火堆状态 */
@@ -144,6 +158,8 @@ export interface ConfigData {
 export interface GameState {
   /** 功能解锁标记 */
   features: Record<string, boolean>
+  /** 当前场景 */
+  currentRoom: RoomName
   /** 资源存储 */
   stores: Partial<Stores>
   /** 角色数据 */
@@ -174,6 +190,7 @@ export interface GameState {
 
 export const INITIAL_STATE: GameState = {
   features: {},
+  currentRoom: RoomName.Room,
   stores: {},
   character: {},
   income: {},
@@ -211,3 +228,4 @@ export type CategoryName =
   | 'wait'
   | 'cooldown'
   | 'version'
+  | 'currentRoom'

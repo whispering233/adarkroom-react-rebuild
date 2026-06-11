@@ -25,7 +25,7 @@ export {
 } from './reducer'
 export type { GameAction, UpdateMeta } from './reducer'
 export { parsePath, getPath, setPath, getCategory } from './path'
-export { INITIAL_STATE, FireLevel, TempLevel, FIRE_TEXT, TEMP_TEXT } from './types'
+export { INITIAL_STATE, FireLevel, TempLevel, FIRE_TEXT, TEMP_TEXT, RoomName } from './types'
 export type {
   GameState,
   Stores,

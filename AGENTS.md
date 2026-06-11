@@ -1,0 +1,71 @@
+# A Dark Room — React Rebuild
+
+基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的 React + TypeScript 渐进式重构 **练习学习项目**。
+
+> ⚠️ **重要：这是个人练习学习项目。用户要自己手写核心代码。**
+> 
+> 模型只参与以下辅助工作：
+> - 讨论重构改进方案和架构/接口设计
+> - 环境检查、构建配置、类型系统验证
+> - Bug 分析和修复建议
+> 
+> **禁止**模型直接代写任何核心游戏逻辑代码（场景、事件、战斗、地图等模块的具体实现）。
+
+## Project
+
+- 技术栈：pnpm / React 19 / TypeScript ~6.0 / Vite 8 / Tailwind CSS v4 / CSS Modules / Vitest
+- 入口：`index.html` → `src/main.tsx` → `<GameProvider><App /></GameProvider>`
+- 项目文档在 `doc/`：架构分析、分阶段重构方案、TODO checklist
+- 原始项目参考在 `origin-adarkroom/`（只读，git-ignored）
+
+## Commands
+
+| 命令 | 作用 |
+|------|------|
+| `pnpm install` | 安装依赖 |
+| `pnpm dev` | Vite 开发服务器 |
+| `pnpm build` | `tsc -b && vite build`（类型检查 + 生产构建） |
+| `pnpm preview` | 预览构建产物 |
+| `pnpm test` | `vitest run` |
+| `pnpm test:watch` | `vitest` watch 模式 |
+| `pnpm lint` | `eslint .` |
+
+## Architecture
+
+当前已实现（阶段 1-3）：
+
+- **`src/state/`** — 全局状态管理层，替代原项目 `$SM` + `State`
+  - `types.ts` — 类型定义 + const-object 枚举 + 场景路由常量
+  - `path.ts` — dot/bracket notation 路径工具（替代原项目 `eval()`）
+  - `reducer.ts` — 纯函数 reducer + action creators（`SET`/`ADD`/`SET_M`/`ADD_M`/`REMOVE`/`LOAD`）
+  - `GameContext.tsx` — React Context Provider + hooks（`useGameContext`/`useGameState`/`useGameDispatch`/`useGameValue`/`useOnStateChange`）+ 订阅通知
+  - `index.ts` — barrel export
+  - `state.test.ts` — Vitest 单元测试
+- **`src/components/Button.tsx`** — 通用操作按钮（冷却倒计时、进度条、消耗检查）
+- **`src/components/Header.tsx`** — 场景标签导航（features 驱动显隐 + currentRoom 高亮）
+- **`src/components/StoresPanel.tsx`** — 资源实时显示面板
+- **`src/rooms/Room.tsx`** — 暗室场景（火堆交互、建造者 NPC、收入系统）
+- **`src/App.tsx`** — 根组件，`currentRoom` 状态驱动路由
+- **`src/index.css`** — `@import "tailwindcss"` + 全局主题变量 + 动画关键帧
+
+计划中的后续阶段（详见 `doc/重构各阶段方案.md`）：
+- ⏳ 阶段 4：事件引擎
+- ⏳ 阶段 5：存档系统
+- ⏳ 阶段 6：UI 打磨 & 部署
+- ⏳ 扩展模块：Outside / World / Path / Space / Fabricator
+
+## Conventions
+
+- **枚举风格**：`const X = { ... } as const` + `type X = (typeof X)[keyof typeof X]`（兼容 `erasableSyntaxOnly`）
+- **不可变更新**：reducer / setPath 沿路径浅拷贝，不直接修改 state
+- **函数式风格**：纯函数 + discriminated union action
+- **路径**：dot notation 优先（`stores.wood`），特殊字符用 bracket（`stores["cured meat"]`）
+- **CSS**：Tailwind 原子化 + CSS Modules 组件级 + `index.css` 全局主题变量
+- **导入**：`verbatimModuleSyntax`，显式 `type` 导入
+- **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`）+ 动态 `import()` 模式
+- **Lint**：ESLint flat config（`eslint.config.js`），插件 `typescript-eslint` + `react-hooks` + `react-refresh`
+
+## Notes
+
+- `.reasonix/` — agent 本地状态，git-ignored，可再生
+- `.codegraph/` — Codegraph 缓存索引，git-ignored，可再生
