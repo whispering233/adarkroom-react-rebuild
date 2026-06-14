@@ -28,9 +28,9 @@ export interface ButtonProps {
   className?: string
 }
 
-/** 基础按钮样式（Tailwind） */
+/** 基础按钮样式（CSS Token 引用，自动适配浅色/暗色主题） */
 const BASE_STYLE =
-  'relative cursor-pointer rounded border border-orange-700/50 bg-orange-900/30 px-5 py-2 font-mono text-sm text-orange-300 transition hover:bg-orange-900/50 hover:shadow-[0_0_15px_rgba(201,75,26,0.3)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden'
+  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-[var(--game-btn-hover-bg)] hover:shadow-[var(--game-accent-glow)]'
 
 export function Button({
   id,
@@ -127,12 +127,17 @@ export function Button({
         onClick={handleClick}
         disabled={isDisabled}
         className={`${BASE_STYLE} ${className}`}
+        style={{
+          color: 'var(--game-btn-text)',
+          backgroundColor: 'var(--game-btn-bg)',
+          borderColor: 'var(--game-btn-border)',
+        }}
       >
         {/* 冷却进度条背景 */}
         {cooldownLeft > 0 && (
           <span
-            className="absolute inset-0 bg-orange-900/20 transition-none"
-            style={{ width: `${progressPct}%` }}
+            className="absolute inset-0 transition-none"
+            style={{ width: `${progressPct}%`, backgroundColor: 'var(--game-btn-hover-bg)' }}
           />
         )}
 

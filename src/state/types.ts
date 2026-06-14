@@ -126,23 +126,6 @@ export const TempLevel = {
 } as const
 export type TempLevel = (typeof TempLevel)[keyof typeof TempLevel]
 
-/** 火堆文字描述 */
-export const FIRE_TEXT: Record<number, string> = {
-  [FireLevel.Dead]: 'dead',
-  [FireLevel.Smoldering]: 'smoldering',
-  [FireLevel.Flickering]: 'flickering',
-  [FireLevel.Burning]: 'burning',
-  [FireLevel.Roaring]: 'roaring',
-}
-
-/** 温度文字描述 */
-export const TEMP_TEXT: Record<number, string> = {
-  [TempLevel.Freezing]: 'freezing',
-  [TempLevel.Cold]: 'cold',
-  [TempLevel.Mild]: 'mild',
-  [TempLevel.Warm]: 'warm',
-  [TempLevel.Hot]: 'hot',
-}
 
 // ─── 配置 ────────────────────────────────────────────────
 

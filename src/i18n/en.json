@@ -1,0 +1,75 @@
+{
+  "fire": {
+    "dead": "dead",
+    "smoldering": "smoldering",
+    "flickering": "flickering",
+    "burning": "burning",
+    "roaring": "roaring"
+  },
+  "temp": {
+    "freezing": "freezing",
+    "cold": "cold",
+    "mild": "mild",
+    "warm": "warm",
+    "hot": "hot"
+  },
+  "room": {
+    "title_firelit": "A Firelit Room",
+    "title_dark": "A Dark Room",
+    "fire_is": "the fire is",
+    "dead_icon": "❄️ dead",
+    "room_is": "the room is",
+    "light_fire": "light fire (5 wood)",
+    "stoke_fire": "stoke fire (1 wood)",
+    "gather_wood": "gather wood",
+    "fire_max": "fire is already roaring",
+    "stranger_arrives": "a ragged stranger stumbles through the door...",
+    "stranger_gives_wood": "the stranger gives you 4 wood and points outside",
+    "stranger_shivers": "the stranger shivers...",
+    "stranger_stops": "the stranger stops shivering...",
+    "stranger_helps": "standing by the fire, she says she can help"
+  },
+  "builder": {
+    "huddles": "a stranger huddles near the door",
+    "shivers_by_fire": "the stranger shivers by the fire",
+    "warms_by_fire": "the stranger warms by the fire",
+    "income": "+2 wood / 10s (builder)"
+  },
+  "nav": {
+    "room": "A Dark Room",
+    "outside": "Outside",
+    "path": "Path",
+    "world": "World",
+    "space": "Space",
+    "fabricator": "Fabricator",
+    "ship": "Ship"
+  },
+  "stores": {
+    "cat_basic": "Basic",
+    "cat_minerals": "Minerals",
+    "cat_crafted": "Crafted",
+    "cat_advanced": "Advanced",
+    "cat_other": "Other",
+    "wood": "wood",
+    "fur": "fur",
+    "meat": "meat",
+    "scales": "scales",
+    "teeth": "teeth",
+    "iron": "iron",
+    "coal": "coal",
+    "steel": "steel",
+    "sulphur": "sulphur",
+    "cloth": "cloth",
+    "leather": "leather",
+    "cured_meat": "cured meat",
+    "bullets": "bullets",
+    "energy_cell": "energy cell",
+    "medicine": "medicine",
+    "hypo": "hypo",
+    "stim": "stim"
+  },
+  "toolbar": {
+    "switch_dark": "Switch to Dark Mode",
+    "switch_light": "Switch to Light Mode"
+  }
+}

@@ -1,9 +1,10 @@
 /**
- * Header — 场景标签导航栏
+ * Header — 场景标签导航栏（中栏顶部）
  *
  * 基于 features["location.xxx"] 和 currentRoom 动态渲染标签。
  * Room 始终可见，其余场景在对应 feature 解锁后显示。
  */
+import { useTranslation } from 'react-i18next'
 import { useGameState, useGameDispatch, applyRecipe, RoomName } from '../state'
 
 type RoomNameType = (typeof RoomName)[keyof typeof RoomName]
@@ -18,15 +19,15 @@ const ROOM_ORDER: RoomNameType[] = [
   RoomName.Ship,
 ]
 
-/** 场景标签显示文字 */
-const ROOM_LABELS: Record<RoomNameType, string> = {
-  [RoomName.Room]: 'A Dark Room',
-  [RoomName.Outside]: 'Outside',
-  [RoomName.Path]: 'Path',
-  [RoomName.World]: 'World',
-  [RoomName.Space]: 'Space',
-  [RoomName.Fabricator]: 'Fabricator',
-  [RoomName.Ship]: 'Ship',
+/** 场景名 → i18n key */
+const ROOM_I18N: Record<RoomNameType, string> = {
+  [RoomName.Room]: 'nav.room',
+  [RoomName.Outside]: 'nav.outside',
+  [RoomName.Path]: 'nav.path',
+  [RoomName.World]: 'nav.world',
+  [RoomName.Space]: 'nav.space',
+  [RoomName.Fabricator]: 'nav.fabricator',
+  [RoomName.Ship]: 'nav.ship',
 }
 
 /** 场景对应的 feature key */
@@ -34,7 +35,12 @@ function featureKey(name: RoomNameType): string {
   return `location.${name}`
 }
 
+/** 标签基础样式 */
+const TAB_BASE =
+  'px-4 py-3 font-mono text-sm transition-colors cursor-pointer border-b-2 -mb-[1px]'
+
 export function Header() {
+  const { t } = useTranslation()
   const state = useGameState()
   const dispatch = useGameDispatch()
   const currentRoom = state.currentRoom
@@ -45,9 +51,14 @@ export function Header() {
   }
 
   return (
-    <header className="flex items-center bg-[#0d0d1a] border-b border-gray-800 px-4 py-0">
+    <nav
+      className="flex items-center border-b px-4 py-0"
+      style={{
+        backgroundColor: 'var(--game-bg-header)',
+        borderColor: 'var(--game-border)',
+      }}
+    >
       {ROOM_ORDER.map((room) => {
-        // Room 始终显示，其余按 feature 解锁
         const isUnlocked =
           room === RoomName.Room || features[featureKey(room)] === true
         if (!isUnlocked) return null
@@ -59,19 +70,21 @@ export function Header() {
             key={room}
             type="button"
             onClick={() => handleNavigate(room)}
-            className={`
-              px-4 py-3 font-mono text-sm transition-colors
-              cursor-pointer border-b-2 -mb-[1px]
-              ${isActive
-                ? 'text-orange-400 border-orange-500'
-                : 'text-gray-500 border-transparent hover:text-gray-300 hover:border-gray-600'
-              }
-            `}
+            className={TAB_BASE}
+            style={{
+              color: isActive
+                ? 'var(--game-accent)'
+                : 'var(--game-text-body)',
+              borderColor: isActive
+                ? 'var(--game-accent)'
+                : 'transparent',
+              opacity: isActive ? 1 : 0.5,
+            }}
           >
-            {ROOM_LABELS[room]}
+            {t(ROOM_I18N[room])}
           </button>
         )
       })}
-    </header>
+    </nav>
   )
 }

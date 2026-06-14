@@ -1,19 +1,12 @@
 @import "tailwindcss";
+@import "./styles/tokens.css";
 
-/* ===== A Dark Room 主题全局样式 ===== */
-:root {
-  --color-parchment: #f4e4c1;
-  --color-ink: #2c2416;
-  --color-ember: #c94b1a;
-  --color-ash: #5c5c5c;
-  --color-dark-bg: #1a1a2e;
-}
-
+/* ===== 全局重置 ===== */
 body {
   margin: 0;
-  background-color: #1a1a2e;
-  color: #c8c8c8;
-  font-family: "Courier New", Courier, monospace;
+  background-color: var(--game-bg-primary);
+  color: var(--game-text-body);
+  font-family: var(--game-font);
 }
 
 #root {

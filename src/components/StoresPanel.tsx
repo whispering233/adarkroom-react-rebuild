@@ -1,57 +1,118 @@
 /**
- * StoresPanel — 资源显示面板
+ * StoresPanel — 资源显示面板（右栏）
  *
- * 实时列出 stores 中所有有值（>0）的资源项。
- * 顶部固定半透明条，资源横向排列。
+ * 资源分类后纵向排列，每行类目-数值左右对齐。
+ * 已知资源始终显示（即使为 0），动态资源（后期解锁）只在 > 0 时显示。
+ * 资源名通过 react-i18next 的 t() 查表。
  */
+import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
 
-/** 已知核心资源键列表（用于判断某项是否为"已知"资源） */
-const KNOWN_STORE_KEYS = new Set([
-  'wood',
-  'fur',
-  'meat',
-  'scales',
-  'teeth',
-  'iron',
-  'coal',
-  'steel',
-  'sulphur',
-  'cloth',
-  'leather',
-  'cured meat',
-  'bullets',
-  'energy cell',
-  'medicine',
-  'hypo',
-  'stim',
-])
+/** 资源 key → i18n key 映射（处理含空格的资源名） */
+const RESOURCE_I18N: Record<string, string> = {
+  'cured meat': 'stores.cured_meat',
+  'energy cell': 'stores.energy_cell',
+}
+
+/** 获取资源的 i18n key */
+function resI18nKey(rawKey: string): string {
+  return RESOURCE_I18N[rawKey] ?? `stores.${rawKey}`
+}
+
+/** 资源分类（i18n 标签 key + 资源名列表） */
+const CATEGORIES: { labelKey: string; keys: string[] }[] = [
+  {
+    labelKey: 'stores.cat_basic',
+    keys: ['wood', 'fur', 'meat', 'scales', 'teeth'],
+  },
+  {
+    labelKey: 'stores.cat_minerals',
+    keys: ['iron', 'coal', 'steel', 'sulphur'],
+  },
+  {
+    labelKey: 'stores.cat_crafted',
+    keys: ['cloth', 'leather', 'cured meat', 'bullets'],
+  },
+  {
+    labelKey: 'stores.cat_advanced',
+    keys: ['energy cell', 'medicine', 'hypo', 'stim'],
+  },
+]
+
+const KNOWN_KEYS = new Set(CATEGORIES.flatMap(c => c.keys))
 
 export function StoresPanel() {
+  const { t } = useTranslation()
   const state = useGameState()
   const stores = state.stores
 
-  // 有值的资源项：已知资源即使为 0 也显示，动态资源只在 > 0 时显示
-  const entries = Object.entries(stores).filter(([key, value]) => {
-    if (KNOWN_STORE_KEYS.has(key)) return true // 已知资源始终显示
-    return (value ?? 0) > 0 // 动态资源只在有值时显示
-  })
+  const dynamicKeys = Object.keys(stores).filter(
+    k => !KNOWN_KEYS.has(k) && (stores[k] ?? 0) > 0,
+  )
 
-  if (entries.length === 0) return null
+  const hasData =
+    CATEGORIES.some(c => c.keys.some(k => stores[k] !== undefined)) ||
+    dynamicKeys.length > 0
+
+  if (!hasData) return null
 
   return (
-    <div className="sticky top-0 z-20 bg-black/50 backdrop-blur-sm border-b border-gray-800 px-4 py-2">
-      <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
-        {entries.map(([key, value]) => (
-          <span
-            key={key}
-            className="font-mono text-sm text-gray-400 transition-all duration-300"
+    <div className="flex flex-col gap-4 text-sm">
+      {CATEGORIES.map(cat => {
+        const rows = cat.keys.filter(k => stores[k] !== undefined)
+        if (rows.length === 0) return null
+        return (
+          <div key={cat.labelKey}>
+            <div
+              className="text-xs uppercase tracking-[0.2em] mb-2"
+              style={{ color: 'var(--game-accent)' }}
+            >
+              {t(cat.labelKey)}
+            </div>
+            <div className="flex flex-col gap-1">
+              {rows.map(key => (
+                <div
+                  key={key}
+                  className="flex justify-between"
+                  style={{ color: 'var(--game-text-body)' }}
+                >
+                  <span style={{ color: 'var(--game-text-muted)' }}>
+                    {t(resI18nKey(key))}
+                  </span>
+                  <span style={{ color: 'var(--game-accent)' }}>
+                    {stores[key] ?? 0}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })}
+
+      {dynamicKeys.length > 0 && (
+        <div>
+          <div
+            className="text-xs uppercase tracking-[0.2em] mb-2"
+            style={{ color: 'var(--game-accent)' }}
           >
-            <span className="text-gray-500">{key}:</span>{' '}
-            <span className="text-amber-300">{value ?? 0}</span>
-          </span>
-        ))}
-      </div>
+            {t('stores.cat_other')}
+          </div>
+          <div className="flex flex-col gap-1">
+            {dynamicKeys.map(key => (
+              <div
+                key={key}
+                className="flex justify-between"
+                style={{ color: 'var(--game-text-body)' }}
+              >
+                <span style={{ color: 'var(--game-text-muted)' }}>{key}</span>
+                <span style={{ color: 'var(--game-accent)' }}>
+                  {stores[key] ?? 0}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

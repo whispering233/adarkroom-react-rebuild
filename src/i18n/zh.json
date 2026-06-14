@@ -1,0 +1,75 @@
+{
+  "fire": {
+    "dead": "熄灭",
+    "smoldering": "冒烟",
+    "flickering": "摇曳",
+    "burning": "燃烧",
+    "roaring": "旺盛"
+  },
+  "temp": {
+    "freezing": "冰冷",
+    "cold": "寒冷",
+    "mild": "温和",
+    "warm": "温暖",
+    "hot": "炎热"
+  },
+  "room": {
+    "title_firelit": "燃火的房间",
+    "title_dark": "黑暗的房间",
+    "fire_is": "火堆",
+    "dead_icon": "❄️ 熄灭",
+    "room_is": "房间",
+    "light_fire": "点火（5 木头）",
+    "stoke_fire": "添柴（1 木头）",
+    "gather_wood": "伐木",
+    "fire_max": "火堆已经最旺了",
+    "stranger_arrives": "一个衣衫褴褛的陌生人踉跄着推开门...",
+    "stranger_gives_wood": "陌生人给了你 4 块木头，指向门外",
+    "stranger_shivers": "陌生人瑟瑟发抖...",
+    "stranger_stops": "陌生人不再发抖...",
+    "stranger_helps": "她站在火堆旁，说可以帮忙"
+  },
+  "builder": {
+    "huddles": "一个陌生人蜷缩在门边",
+    "shivers_by_fire": "陌生人在火堆旁瑟瑟发抖",
+    "warms_by_fire": "陌生人在火堆旁取暖",
+    "income": "+2 木头 / 10秒（建造者）"
+  },
+  "nav": {
+    "room": "暗室",
+    "outside": "野外",
+    "path": "小径",
+    "world": "世界",
+    "space": "太空",
+    "fabricator": "工坊",
+    "ship": "飞船"
+  },
+  "stores": {
+    "cat_basic": "基础物资",
+    "cat_minerals": "矿物",
+    "cat_crafted": "制品",
+    "cat_advanced": "高级",
+    "cat_other": "其他",
+    "wood": "木头",
+    "fur": "毛皮",
+    "meat": "肉",
+    "scales": "鳞片",
+    "teeth": "牙齿",
+    "iron": "铁",
+    "coal": "煤",
+    "steel": "钢",
+    "sulphur": "硫磺",
+    "cloth": "布料",
+    "leather": "皮革",
+    "cured_meat": "熏肉",
+    "bullets": "子弹",
+    "energy_cell": "能量元件",
+    "medicine": "药剂",
+    "hypo": "注射剂",
+    "stim": "兴奋剂"
+  },
+  "toolbar": {
+    "switch_dark": "切换暗色模式",
+    "switch_light": "切换浅色模式"
+  }
+}

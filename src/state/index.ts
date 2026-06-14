@@ -23,8 +23,6 @@ export {
   INITIAL_STATE,
   FireLevel,
   TempLevel,
-  FIRE_TEXT,
-  TEMP_TEXT,
   RoomName,
 } from './types'
 export type {

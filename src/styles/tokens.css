@@ -1,0 +1,71 @@
+/**
+ * A Dark Room — 共享 CSS Token
+ *
+ * 默认浅色主题（白底黑字），通过 [data-theme="dark"] 切换到暗色。
+ * 所有颜色/字体/阴影统一在此定义，组件通过 var(--game-*) 引用。
+ */
+
+/* ═══ 浅色主题（默认） ═══ */
+:root {
+  /* 背景 */
+  --game-bg-primary: #ffffff;
+  --game-bg-header: #f5f5f5;
+  --game-bg-panel: rgba(0, 0, 0, 0.03);
+
+  /* 文字 */
+  --game-text-primary: #111111;
+  --game-text-body: #333333;
+  --game-text-muted: #999999;
+
+  /* 强调色（日夜通用） */
+  --game-accent: #c94b1a;
+  --game-accent-soft: rgba(201, 75, 26, 0.15);
+  --game-accent-glow: 0 0 15px rgba(201, 75, 26, 0.2);
+  --game-text-glow: 0 0 20px rgba(201, 75, 26, 0.3);
+  --game-accent-positive: #15803d;
+
+  /* 按钮 */
+  --game-btn-text: #5c1a0a;
+  --game-btn-bg: rgba(201, 75, 26, 0.08);
+  --game-btn-border: rgba(201, 75, 26, 0.3);
+  --game-btn-hover-bg: rgba(201, 75, 26, 0.15);
+
+  /* 边框 */
+  --game-border: rgba(0, 0, 0, 0.1);
+  --game-border-accent: rgba(201, 75, 26, 0.4);
+
+  /* 字体 */
+  --game-font: "Courier New", Courier, monospace;
+  --game-tracking-wide: 0.3em;
+  --game-tracking: 0.15em;
+  --game-tracking-tight: 0.1em;
+
+  /* 尺寸 */
+  --game-header-h: 41px;
+  --game-panel-padding: 1rem;
+  --game-panel-gap: 0.75rem;
+}
+
+/* ═══ 暗色主题 ═══ */
+[data-theme="dark"] {
+  --game-bg-primary: #1a1a2e;
+  --game-bg-header: #0d0d1a;
+  --game-bg-panel: rgba(0, 0, 0, 0.3);
+
+  --game-text-primary: #f4e4c1;
+  --game-text-body: #c8c8c8;
+  --game-text-muted: #5c5c5c;
+
+  --game-accent-soft: rgba(201, 75, 26, 0.3);
+  --game-accent-glow: 0 0 15px rgba(201, 75, 26, 0.3);
+  --game-text-glow: 0 0 20px rgba(201, 75, 26, 0.5);
+
+  /* 按钮 */
+  --game-btn-text: #fdba74;
+  --game-btn-bg: rgba(201, 75, 26, 0.15);
+  --game-btn-border: rgba(201, 75, 26, 0.5);
+  --game-btn-hover-bg: rgba(201, 75, 26, 0.25);
+
+  --game-border: rgba(128, 128, 128, 0.3);
+  --game-border-accent: rgba(201, 75, 26, 0.5);
+}
