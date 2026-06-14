@@ -48,7 +48,7 @@ export function Button({
 
   // 读取当前资源（用于消耗检查）
   const state = useGameState()
-  const stores = state.stores ?? {}
+  const stores = state.stores
 
   // 资源是否足够
   const hasEnoughResources = useCallback(() => {

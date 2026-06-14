@@ -29,7 +29,7 @@ const KNOWN_STORE_KEYS = new Set([
 
 export function StoresPanel() {
   const state = useGameState()
-  const stores = state.stores ?? {}
+  const stores = state.stores
 
   // 有值的资源项：已知资源即使为 0 也显示，动态资源只在 > 0 时显示
   const entries = Object.entries(stores).filter(([key, value]) => {

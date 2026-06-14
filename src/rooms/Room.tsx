@@ -12,10 +12,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   useGameState,
   useGameDispatch,
-  add,
-  set,
-  addM,
-  setIncome,
+  lightFire,
+  stokeFire,
+  fireCool,
+  tempIncrease,
+  tempDecrease,
+  builderAdvance,
+  unlockFeature,
+  incomeTick,
+  applyRecipe,
   FireLevel,
   TempLevel,
   FIRE_TEXT,
@@ -39,7 +44,9 @@ export function Room() {
 
   // ── 状态 ref（供定时器读取最新值） ────────────────────
   const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => {
+    stateRef.current = state
+  })
 
   // ── 通知系统 ────────────────────────────────────────
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -53,26 +60,10 @@ export function Room() {
     }, 4000)
   }, [])
 
-  // ── 从 state 取值 ──────────────────────────────────
-  const fireLevel = (state.game?.fire ?? FireLevel.Dead) as FireLevel
-  const tempLevel = (state.game?.temperature ?? TempLevel.Freezing) as TempLevel
-  const builderLevel = state.game?.builder?.level ?? -1
-
-  // ═══════════════════════════════════════════════════════
-  //  初始化
-  // ═══════════════════════════════════════════════════════
-  useEffect(() => {
-    if (state.game?.fire === undefined) {
-      dispatch(set('game.fire', FireLevel.Dead))
-    }
-    if (state.game?.temperature === undefined) {
-      dispatch(set('game.temperature', TempLevel.Freezing))
-    }
-    if (state.game?.builder === undefined) {
-      dispatch(set('game.builder', { level: -1 }))
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // ── 从 state 取值（全默认初始化，无需 ?? 守卫） ──────
+  const fireLevel = state.game.fire
+  const tempLevel = state.game.temperature
+  const builderLevel = state.game.builder.level
 
   // ═══════════════════════════════════════════════════════
   //  环境定时器 — 火堆冷却 + 温度调节（每 5 秒）
@@ -80,28 +71,27 @@ export function Room() {
   useEffect(() => {
     const id = setInterval(() => {
       const s = stateRef.current
-      const fire = (s.game?.fire ?? FireLevel.Dead) as FireLevel
-      const builderLvl = s.game?.builder?.level ?? -1
-      const wood = s.stores?.wood ?? 0
+      const fire = s.game.fire
+      const builderLvl = s.game.builder.level
+      const wood = s.stores.wood
 
       // 建造者自动添柴（builder level > 3 且火堆不够旺）
       if (fire <= FireLevel.Flickering && builderLvl > 3 && wood > 0) {
-        dispatch(add('stores.wood', -1))
-        dispatch(set('game.fire', Math.min(fire + 1, FireLevel.Roaring)))
+        dispatch(stokeFire())
       } else if (fire > FireLevel.Dead) {
         // 自然冷却
-        dispatch(set('game.fire', fire - 1))
+        dispatch(fireCool())
       }
 
       // 温度向火堆等级靠拢
       const s2 = stateRef.current
-      const newFire = (s2.game?.fire ?? FireLevel.Dead) as FireLevel
-      const newTemp = (s2.game?.temperature ?? TempLevel.Freezing) as TempLevel
+      const newFire = s2.game.fire
+      const newTemp = s2.game.temperature
 
       if (newTemp > TempLevel.Freezing && newTemp > newFire) {
-        dispatch(set('game.temperature', newTemp - 1))
+        dispatch(tempDecrease())
       } else if (newTemp < TempLevel.Hot && newTemp < newFire) {
-        dispatch(set('game.temperature', newTemp + 1))
+        dispatch(tempIncrease())
       }
     }, 5000)
 
@@ -118,25 +108,25 @@ export function Room() {
 
     const id = setInterval(() => {
       const s = stateRef.current
-      const fire = (s.game?.fire ?? FireLevel.Dead) as FireLevel
-      const temp = (s.game?.temperature ?? TempLevel.Freezing) as TempLevel
-      const lvl = s.game?.builder?.level ?? -1
+      const fire = s.game.fire
+      const temp = s.game.temperature
+      const lvl = s.game.builder.level
 
       // Level -1：初始等待，什么都不做
       if (lvl === -1) return
 
       // 0 → 1：火堆亮起
       if (lvl === 0 && fire >= FireLevel.Flickering) {
-        dispatch(set('game.builder.level', 1))
+        dispatch(builderAdvance(1))
         addNotification('a ragged stranger stumbles through the door...')
 
         // 30 秒后解锁森林
         setTimeout(() => {
           const s2 = stateRef.current
-          if (s2.game?.builder?.level === 1 && !forestUnlockedRef.current) {
+          if (s2.game.builder.level === 1 && !forestUnlockedRef.current) {
             forestUnlockedRef.current = true
-            dispatch(set('features["location.outside"]', true))
-            dispatch(add('stores.wood', 4))
+            dispatch(unlockFeature('location.outside'))
+            dispatch(applyRecipe(draft => { draft.stores.wood += 4 }))
             addNotification('the stranger gives you 4 wood and points outside')
           }
         }, 30000)
@@ -145,23 +135,29 @@ export function Room() {
 
       // 1 → 2：温度达到 Warm
       if (lvl === 1 && temp >= TempLevel.Warm) {
-        dispatch(set('game.builder.level', 2))
+        dispatch(builderAdvance(2))
         addNotification('the stranger shivers...')
         return
       }
 
       // 2 → 3：仍然温暖
       if (lvl === 2 && temp >= TempLevel.Warm) {
-        dispatch(set('game.builder.level', 3))
+        dispatch(builderAdvance(3))
         addNotification('the stranger stops shivering...')
         return
       }
 
       // 3 → 4：自动推进
       if (lvl === 3) {
-        dispatch(set('game.builder.level', 4))
+        dispatch(builderAdvance(4))
         addNotification('standing by the fire, she says she can help')
-        dispatch(setIncome('builder', { delay: 10, stores: { wood: 2 } }))
+        dispatch(applyRecipe(draft => {
+          draft.income.builder = {
+            delay: 10,
+            stores: { wood: 2 },
+            timeLeft: 10,
+          }
+        }))
         return
       }
     }, 5000)
@@ -171,50 +167,29 @@ export function Room() {
   }, [])
 
   // ═══════════════════════════════════════════════════════
-  //  收入系统（每秒 tick）
+  //  收入系统（每秒 tick，reducer 统一处理）
   // ═══════════════════════════════════════════════════════
   useEffect(() => {
     const id = setInterval(() => {
-      const s = stateRef.current
-      const income = s.income ?? {}
-
-      for (const [source, config] of Object.entries(income)) {
-        const newTimeLeft = config.timeLeft - 1
-        if (newTimeLeft <= 0) {
-          // 触发收入
-          dispatch(set(`income["${source}"].timeLeft`, config.delay))
-          if (config.stores && Object.keys(config.stores).length > 0) {
-            dispatch(addM('stores', config.stores))
-          }
-        } else {
-          dispatch(set(`income["${source}"].timeLeft`, newTimeLeft))
-        }
-      }
+      dispatch(incomeTick())
     }, 1000)
 
     return () => clearInterval(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [dispatch])
 
   // ═══════════════════════════════════════════════════════
   //  按钮回调
   // ═══════════════════════════════════════════════════════
   const handleLightFire = useCallback(() => {
-    dispatch(add('stores.wood', -5))
-    dispatch(set('game.fire', FireLevel.Burning))
+    dispatch(lightFire())
   }, [dispatch])
 
   const handleStokeFire = useCallback(() => {
-    dispatch(add('stores.wood', -1))
-    const s = stateRef.current
-    const fire = (s.game?.fire ?? FireLevel.Dead) as FireLevel
-    if (fire < FireLevel.Roaring) {
-      dispatch(set('game.fire', fire + 1))
-    }
+    dispatch(stokeFire())
   }, [dispatch])
 
   const handleGatherWood = useCallback(() => {
-    dispatch(add('stores.wood', 1))
+    dispatch(applyRecipe(draft => { draft.stores.wood += 1 }))
   }, [dispatch])
 
   // ═══════════════════════════════════════════════════════

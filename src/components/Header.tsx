@@ -4,7 +4,7 @@
  * 基于 features["location.xxx"] 和 currentRoom 动态渲染标签。
  * Room 始终可见，其余场景在对应 feature 解锁后显示。
  */
-import { useGameState, useGameDispatch, set, RoomName } from '../state'
+import { useGameState, useGameDispatch, applyRecipe, RoomName } from '../state'
 
 type RoomNameType = (typeof RoomName)[keyof typeof RoomName]
 
@@ -38,10 +38,10 @@ export function Header() {
   const state = useGameState()
   const dispatch = useGameDispatch()
   const currentRoom = state.currentRoom
-  const features = state.features ?? {}
+  const features = state.features
 
   const handleNavigate = (room: RoomNameType) => {
-    dispatch(set('currentRoom', room))
+    dispatch(applyRecipe(draft => { draft.currentRoom = room }))
   }
 
   return (

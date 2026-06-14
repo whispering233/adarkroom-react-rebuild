@@ -1,31 +1,32 @@
 /**
- * src/state — 统一导出
+ * src/state — 统一导出（Immer 精简版）
  */
 
-export {
-  GameProvider,
-  useGameContext,
-  useGameState,
-  useGameDispatch,
-  useGameValue,
-  useOnStateChange,
-} from './GameContext'
-export type { StateChangeHandler } from './GameContext'
+export { GameProvider } from './GameContext'
+export { useGameContext, useGameState, useGameDispatch } from './hooks'
 export {
   gameReducer,
-  getUpdateMeta,
-  set,
-  add,
-  setM,
-  addM,
-  remove,
-  load,
-  setIncome,
+  lightFire,
+  stokeFire,
+  fireCool,
+  tempIncrease,
+  tempDecrease,
+  builderAdvance,
+  unlockFeature,
+  incomeTick,
+  loadSave,
+  applyRecipe,
   MAX_STORE,
 } from './reducer'
-export type { GameAction, UpdateMeta } from './reducer'
-export { parsePath, getPath, setPath, getCategory } from './path'
-export { INITIAL_STATE, FireLevel, TempLevel, FIRE_TEXT, TEMP_TEXT, RoomName } from './types'
+export type { GameAction } from './reducer'
+export {
+  INITIAL_STATE,
+  FireLevel,
+  TempLevel,
+  FIRE_TEXT,
+  TEMP_TEXT,
+  RoomName,
+} from './types'
 export type {
   GameState,
   Stores,
@@ -33,6 +34,4 @@ export type {
   IncomeConfig,
   GameData,
   ConfigData,
-  StatePath,
-  CategoryName,
 } from './types'

@@ -4,12 +4,12 @@
  * 基于 currentRoom 状态驱动场景路由。
  * 后续阶段逐步添加 Outside / Path / World / Space / Fabricator / Ship 场景。
  */
-import { useGameValue, RoomName } from './state'
+import { useGameState, RoomName } from './state'
 import { Header } from './components/Header'
 import { Room } from './rooms/Room'
 
 function App() {
-  const currentRoom = useGameValue<string>('currentRoom') ?? RoomName.Room
+  const currentRoom = useGameState().currentRoom
 
   return (
     <div className="flex flex-col min-h-screen bg-[#1a1a2e]">

@@ -12,8 +12,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "immer": "^11.1.8",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "use-immer": "^0.11.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

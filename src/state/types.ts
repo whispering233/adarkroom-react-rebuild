@@ -1,11 +1,12 @@
 /**
  * A Dark Room — 核心状态类型定义
  *
- * 对应原始项目的 State 全局对象，全部强类型化。
- * 使用索引签名 [key: string] 保留动态扩展能力（游戏后期会解锁新资源/建筑）。
+ * Immer 时代：状态全默认值初始化，draft 直接操作，无需路径解析。
+ * 索引签名 [key: string] 仅用于运行时解锁的动态键（资源、建筑、工人等）。
  */
 
 // ─── 资源存储 ────────────────────────────────────────────
+
 /** 已知核心资源。索引签名允许运行时解锁的新资源类型。 */
 export interface Stores {
   wood: number
@@ -30,6 +31,7 @@ export interface Stores {
 }
 
 // ─── 角色 ────────────────────────────────────────────────
+
 export interface CharacterState {
   /** 已获得的 perks */
   perks: Record<string, boolean>
@@ -46,6 +48,7 @@ export interface CharacterState {
 }
 
 // ─── 收入配置 ────────────────────────────────────────────
+
 export interface IncomeConfig {
   /** 收入间隔（秒） */
   delay: number
@@ -55,30 +58,27 @@ export interface IncomeConfig {
   timeLeft: number
 }
 
-// ─── 游戏状态 ────────────────────────────────────────────
+// ─── 游戏核心数据（game 子对象）──────────────────────────
+
 export interface GameData {
   /** 火堆等级 */
-  fire: number // FireLevel
+  fire: FireLevel
   /** 温度等级 */
-  temperature: number // TempLevel
+  temperature: TempLevel
   /** 建造者状态 */
-  builder: {
-    level: number
-  }
-  /** 建筑数量 */
+  builder: { level: number }
+  /** 建筑数量（hut, trap, "sulphur mine" 等 — 运行时解锁） */
   buildings: Record<string, number>
   /** 村庄人口 */
   population: number
-  /** 工人分配 */
+  /** 工人分配（trapper, hunter 等 — 运行时解锁） */
   workers: Record<string, number>
-  /** 盗贼相关 */
+  /** 盗贼数量 */
   thieves?: number
+  /** 被盗资源记录 */
   stolen?: Record<string, number>
   /** 地图数据（后期解锁） */
-  world?: {
-    map: unknown
-    mask: unknown
-  }
+  world?: { map: unknown; mask: unknown }
   /** 飞船数据（后期解锁） */
   spaceShip?: {
     hull: number
@@ -86,11 +86,8 @@ export interface GameData {
     seenWarning?: boolean
     seenShip?: boolean
   }
-  /** Outside 是否见过森林 */
-  outside?: {
-    seenForest?: boolean
-  }
-  [key: string]: unknown
+  /** Outside 探索标记 */
+  outside?: { seenForest?: boolean }
 }
 
 // ─── 场景路由 ────────────────────────────────────────────
@@ -148,6 +145,7 @@ export const TEMP_TEXT: Record<number, string> = {
 }
 
 // ─── 配置 ────────────────────────────────────────────────
+
 export interface ConfigData {
   soundOn: boolean
   lightsOff: boolean
@@ -155,29 +153,30 @@ export interface ConfigData {
 }
 
 // ─── 根状态 ──────────────────────────────────────────────
+
 export interface GameState {
   /** 功能解锁标记 */
   features: Record<string, boolean>
   /** 当前场景 */
   currentRoom: RoomName
-  /** 资源存储 */
-  stores: Partial<Stores>
+  /** 资源存储（17 已知 + 动态扩展） */
+  stores: Stores
   /** 角色数据 */
-  character: Partial<CharacterState>
-  /** 收入配置（builder, hunter, trapper, thieves 等） */
+  character: CharacterState
+  /** 收入配置（builder, hunter, trapper 等 — 运行时注册） */
   income: Record<string, IncomeConfig>
   /** 通用计时器残留值 */
   timers: Record<string, number>
   /** 游戏核心状态（火堆、温度、建筑等） */
-  game: Partial<GameData>
+  game: GameData
   /** 游玩统计 */
   playStats: Record<string, number>
   /** 上一局数据（prestige） */
   previous: Record<string, unknown>
-  /** 出征装备 */
+  /** 出征装备（torch, waterskin 等 — 运行时获取） */
   outfit: Record<string, number>
   /** 用户配置 */
-  config: Partial<ConfigData>
+  config: ConfigData
   /** 延迟事件等待队列 */
   wait: Record<string, number>
   /** 按钮冷却残留值 */
@@ -191,41 +190,49 @@ export interface GameState {
 export const INITIAL_STATE: GameState = {
   features: {},
   currentRoom: RoomName.Room,
-  stores: {},
-  character: {},
+  stores: {
+    wood: 0,
+    fur: 0,
+    meat: 0,
+    scales: 0,
+    teeth: 0,
+    iron: 0,
+    coal: 0,
+    steel: 0,
+    sulphur: 0,
+    cloth: 0,
+    leather: 0,
+    'cured meat': 0,
+    bullets: 0,
+    'energy cell': 0,
+    medicine: 0,
+    hypo: 0,
+    stim: 0,
+  },
+  character: {
+    health: 100,
+    punches: 0,
+    perks: {},
+  },
   income: {},
   timers: {},
-  game: {},
+  game: {
+    fire: FireLevel.Dead,
+    temperature: TempLevel.Freezing,
+    builder: { level: -1 },
+    buildings: {},
+    population: 0,
+    workers: {},
+  },
   playStats: {},
   previous: {},
   outfit: {},
-  config: {},
+  config: {
+    soundOn: true,
+    lightsOff: false,
+    hyperMode: false,
+  },
   wait: {},
   cooldown: {},
   version: 1.3,
 }
-
-// ─── 状态路径工具类型 ────────────────────────────────────
-
-/**
- * 状态路径 —— 支持 dot notation 和 bracket notation
- * 例：'stores.wood', 'game.fire', 'features["location.room"]'
- */
-export type StatePath = string
-
-/** 顶层分类名 */
-export type CategoryName =
-  | 'features'
-  | 'stores'
-  | 'character'
-  | 'income'
-  | 'timers'
-  | 'game'
-  | 'playStats'
-  | 'previous'
-  | 'outfit'
-  | 'config'
-  | 'wait'
-  | 'cooldown'
-  | 'version'
-  | 'currentRoom'
