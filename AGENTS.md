@@ -62,6 +62,7 @@
 - **路径**：dot notation 优先（`stores.wood`），特殊字符用 bracket（`stores["cured meat"]`）
 - **CSS**：Tailwind 原子化 + CSS Modules 组件级 + `index.css` 全局主题变量
 - **导入**：`verbatimModuleSyntax`，显式 `type` 导入
+- **严格模式**：`noUnusedLocals` / `noUnusedParameters` / `noFallthroughCasesInSwitch` / `erasableSyntaxOnly`（tsconfig 全部开启）
 - **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`）+ 动态 `import()` 模式
 - **Lint**：ESLint flat config（`eslint.config.js`），插件 `typescript-eslint` + `react-hooks` + `react-refresh`
 
@@ -69,3 +70,5 @@
 
 - `.reasonix/` — agent 本地状态，git-ignored，可再生
 - `.codegraph/` — Codegraph 缓存索引，git-ignored，可再生
+- `public/` — 静态资源（`favicon.svg`、`icons.svg`），不经构建处理直接复制
+- Vite `base: './'` — 构建产物使用相对路径，支持任意目录静态部署
