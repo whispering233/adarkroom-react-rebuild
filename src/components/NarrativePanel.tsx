@@ -46,14 +46,11 @@ export function NarrativePanel() {
 
   return (
     <div className="flex flex-col h-full gap-0">
-      {/* ── 状态条（紧凑一行） ── */}
-      <div className="shrink-0 mb-2 px-1">
-        <p className="text-sm leading-snug text-(--game-text-body)">
-          {t('room.fire_is')}{' '}
-          {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}
-          {' · '}
-          {t('room.room_is')} {tempText}
-        </p>
+      {/* ── 状态条（flex-col，左对齐） ── */}
+      <div className="shrink-0 mb-2 px-1 flex flex-col gap-0.5 text-xs text-(--game-text-body)">
+        <span>{t('room.fire_is')} {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}</span>
+        <span>{t('room.room_is')} {tempText}</span>
+        <span>tick {state._globalTick}</span>
       </div>
 
       {/* ── 叙事日志（可滚动） ── */}
