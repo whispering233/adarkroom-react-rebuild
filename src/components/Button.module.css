@@ -2,7 +2,7 @@
  * Button — 按钮颜色 CSS Module
  *
  * 颜色通过 CSS Token 引用，自动适配浅色/暗色主题。
- * 进度条宽度由组件通过 --progress CSS 自定义属性注入。
+ * 进度条宽度由组件通过 inline style 注入。
  */
 
 /* 按钮基础色 */
@@ -12,8 +12,9 @@
   border-color: var(--game-btn-border);
 }
 
-/* 冷却进度条 */
+/* 冷却进度条（倒空式：从左向右收缩） */
 .progress {
   background-color: var(--game-btn-hover-bg);
-  width: var(--progress);
+  /* 平滑过渡：宽度每次变化时用 1s linear 插值，与 1s 间隔的 cooldownLeft 更新节奏匹配 */
+  transition: width 1s linear;
 }

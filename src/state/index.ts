@@ -31,6 +31,7 @@ export type {
   Stores,
   CharacterState,
   IncomeConfig,
+  ResourceLogEntry,
   GameData,
   ConfigData,
 } from './types'

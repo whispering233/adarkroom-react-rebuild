@@ -24,6 +24,7 @@ import {
   FireLevel,
   TempLevel,
 } from '../state'
+import { CONFIG } from '../config'
 
 // ─── 通知消息 ─────────────────────────────────────────────
 
@@ -54,7 +55,7 @@ export function GameLoop() {
     setNotifications((prev) => [...prev, { id, text }])
     setTimeout(() => {
       setNotifications((prev) => prev.filter((n) => n.id !== id))
-    }, 4000)
+    }, CONFIG.NOTIFICATION_DURATION)
   }, [])
 
   // ═══════════════════════════════════════════════════════
@@ -85,7 +86,7 @@ export function GameLoop() {
       } else if (newTemp < TempLevel.Hot && newTemp < newFire) {
         dispatch(tempIncrease())
       }
-    }, 5000)
+    }, CONFIG.FIRE_TICK_INTERVAL)
 
     return () => clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,10 +119,10 @@ export function GameLoop() {
           if (s2.game.builder.level === 1 && !forestUnlockedRef.current) {
             forestUnlockedRef.current = true
             dispatch(unlockFeature('location.outside'))
-            dispatch(applyRecipe(draft => { draft.stores.wood += 4 }))
+            dispatch(applyRecipe(draft => { draft.stores.wood += CONFIG.STRANGER_GIFT_WOOD }))
             addNotification(t('room.stranger_gives_wood'))
           }
-        }, 30000)
+        }, CONFIG.FOREST_UNLOCK_DELAY)
         return
       }
 
@@ -143,14 +144,10 @@ export function GameLoop() {
       if (lvl === 3) {
         dispatch(builderAdvance(4))
         addNotification(t('room.stranger_helps'))
-        dispatch(registerIncome('builder', {
-          delay: 10,
-          stores: { wood: 2 },
-          timeLeft: 10,
-        }))
+        dispatch(registerIncome('builder', CONFIG.BUILDER_INCOME))
         return
       }
-    }, 5000)
+    }, CONFIG.BUILDER_TICK_INTERVAL)
 
     return () => clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -162,7 +159,7 @@ export function GameLoop() {
   useEffect(() => {
     const id = setInterval(() => {
       dispatch(incomeTick())
-    }, 1000)
+    }, CONFIG.INCOME_TICK_INTERVAL)
 
     return () => clearInterval(id)
   }, [dispatch])

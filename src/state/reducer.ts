@@ -7,15 +7,46 @@
  * 两种 action 模式：
  *   1. 语义 action — 有明确领域含义（LIGHT_FIRE、BUILDER_ADVANCE 等）
  *   2. 草稿回调 — 组件直接传 (draft) => { draft.xxx = yyy }，用于一次性操作
+ *
+ * 所有 draft.stores 变更统一通过 modifyResource()，自动记录资源变更日志。
  */
-
-import type { GameState, IncomeConfig } from './types'
+import type { GameState, IncomeConfig, ResourceLogEntry } from './types'
 import { FireLevel, TempLevel } from './types'
+import { CONFIG } from '../config'
 
 // ─── 常量 ────────────────────────────────────────────────
 
-/** 数值上限（与原项目一致） */
-export const MAX_STORE = 99999999999999
+export const MAX_STORE = CONFIG.MAX_STORE
+
+// ─── 资源变更统一入口 ────────────────────────────────────
+
+/**
+ * 修改资源值并记录变更日志。
+ * player-initiated actions（applyRecipe）不经过此函数。
+ */
+function modifyResource(
+  draft: GameState,
+  key: string,
+  delta: number,
+  source: string,
+) {
+  const prev = draft.stores[key] ?? 0
+  let next = prev + delta
+  if (next > MAX_STORE) next = MAX_STORE
+  if (next < 0) next = 0
+  draft.stores[key] = next
+
+  const actualDelta = next - prev
+  if (actualDelta !== 0) {
+    const entry: ResourceLogEntry = {
+      key,
+      delta: actualDelta,
+      source,
+      tick: draft._globalTick,
+    }
+    draft.resourceLog.push(entry)
+  }
+}
 
 // ─── Action 类型 ──────────────────────────────────────────
 
@@ -35,7 +66,7 @@ export type GameAction =
   | { type: 'INCOME_TICK' }
   // ── 存档加载 ──
   | { type: 'LOAD_SAVE'; state: GameState }
-  // ── 注册收入来源（幂等：同一 key 只注册一次） ──
+  // ── 注册收入来源 ──
   | { type: 'REGISTER_INCOME'; key: string; config: IncomeConfig }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
@@ -47,15 +78,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 火堆 ──────────────────────────────────────────
 
     case 'LIGHT_FIRE': {
-      draft.stores.wood -= 5
-      if (draft.stores.wood < 0) draft.stores.wood = 0
+      modifyResource(draft, 'wood', -5, 'lightFire')
       draft.game.fire = FireLevel.Burning
       break
     }
 
     case 'STOKE_FIRE': {
-      draft.stores.wood -= 1
-      if (draft.stores.wood < 0) draft.stores.wood = 0
+      modifyResource(draft, 'wood', -1, 'stokeFire')
       const next = draft.game.fire + 1
       draft.game.fire =
         next > FireLevel.Roaring ? FireLevel.Roaring : (next as FireLevel)
@@ -102,20 +131,22 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 收入 Tick ─────────────────────────────────────
 
     case 'INCOME_TICK': {
-      for (const config of Object.values(draft.income)) {
+      draft._globalTick += 1
+
+      for (const [sourceKey, config] of Object.entries(draft.income)) {
         config.timeLeft -= 1
 
         if (config.timeLeft <= 0) {
           for (const [res, delta] of Object.entries(config.stores)) {
-            const current = draft.stores[res] ?? 0
-            let nextVal = current + delta
-            if (nextVal > MAX_STORE) nextVal = MAX_STORE
-            if (nextVal < 0) nextVal = 0
-            draft.stores[res] = nextVal
+            modifyResource(draft, res, delta, sourceKey)
           }
           config.timeLeft = config.delay
         }
       }
+
+      // 裁剪日志：只保留最近 60 tick 的记录
+      const cutoff = draft._globalTick - 60
+      draft.resourceLog = draft.resourceLog.filter(e => e.tick > cutoff)
       break
     }
 
@@ -173,10 +204,6 @@ export const loadSave = (state: GameState): GameAction => ({
 })
 
 /**
- * 通用草稿回调 action — 用于一次性资源/状态修改。
- * 范例：dispatch(applyRecipe(d => { d.stores.wood += 10 }))
- */
-/**
  * 注册收入来源（幂等）。
  * 范例：dispatch(registerIncome('builder', { delay: 10, stores: { wood: 2 }, timeLeft: 10 }))
  */
@@ -189,6 +216,11 @@ export const registerIncome = (
   config,
 })
 
+/**
+ * 通用草稿回调 action — 用于一次性资源/状态修改。
+ * 范例：dispatch(applyRecipe(d => { d.stores.wood += 10 }))
+ * 注意：走此通道的资源变更不会记录到 resourceLog（不参与 delta 计算）。
+ */
 export const applyRecipe = (
   recipe: (draft: GameState) => void,
 ): GameAction => ({

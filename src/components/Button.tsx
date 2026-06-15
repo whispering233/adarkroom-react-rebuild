@@ -2,7 +2,7 @@
  * Button — 通用游戏操作按钮
  *
  * 支持：
- *   - 冷却倒计时 + 进度条动画
+ *   - 冷却倒计时 + 倒空式平滑进度条（100%→0%）
  *   - 资源消耗检查（自动禁用）
  *   - 自定义禁用状态 / 工具提示
  */
@@ -43,7 +43,7 @@ export function Button({
   tooltip,
   className = '',
 }: ButtonProps) {
-  // 冷却计时
+  // 冷却剩余秒数（0 = 未在冷却）
   const [cooldownLeft, setCooldownLeft] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -82,7 +82,7 @@ export function Button({
     }
   }, [isDisabled, onClick, cooldown])
 
-  // 每秒递减冷却
+  // 每秒递减冷却（驱动文字更新 + 进度条动画）
   useEffect(() => {
     if (cooldownLeft <= 0) {
       if (timerRef.current) {
@@ -116,9 +116,9 @@ export function Button({
   const displayText =
     cooldownLeft > 0 ? `${text} (${cooldownLeft}s)` : text
 
-  // 进度条百分比
-  const progressPct =
-    cooldown > 0 ? ((cooldown - cooldownLeft) / cooldown) * 100 : 0
+  // 倒空进度条：100% 起始 → 0% 结束
+  const remainingPct =
+    cooldown > 0 ? (cooldownLeft / cooldown) * 100 : 0
 
   return (
     <div className="relative" title={tooltip}>
@@ -129,11 +129,11 @@ export function Button({
         disabled={isDisabled}
         className={`${BASE_STYLE} ${styles.base} ${className}`}
       >
-        {/* 冷却进度条背景 */}
+        {/* 冷却进度条（倒空式 100%→0%，平滑 transition） */}
         {cooldownLeft > 0 && (
           <span
-            className={`absolute inset-0 transition-none ${styles.progress}`}
-            style={{ '--progress': `${progressPct}%` } as React.CSSProperties}
+            className={`absolute inset-y-0 left-0 ${styles.progress}`}
+            style={{ width: `${remainingPct}%` }}
           />
         )}
 

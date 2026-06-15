@@ -2,7 +2,7 @@
  * Room — 暗室场景（纯 UI）
  *
  * 所有全局定时器（火堆冷却、Builder NPC、收入）已迁移至 GameLoop。
- * 本组件仅负责按钮交互和状态展示。
+ * 本组件仅负责火堆交互按钮。
  */
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,9 +11,9 @@ import {
   useGameDispatch,
   lightFire,
   stokeFire,
-  applyRecipe,
   FireLevel,
 } from '../state'
+import { CONFIG } from '../config'
 import { Button } from '../components/Button'
 
 export function Room() {
@@ -32,10 +32,6 @@ export function Room() {
     dispatch(stokeFire())
   }, [dispatch])
 
-  const handleGatherWood = useCallback(() => {
-    dispatch(applyRecipe(draft => { draft.stores.wood += 1 }))
-  }, [dispatch])
-
   // ── 渲染 ────────────────────────────────────────────
   const isFireDead = fireLevel === FireLevel.Dead
   const isFireMax = fireLevel === FireLevel.Roaring
@@ -48,24 +44,18 @@ export function Room() {
             id="light"
             text={t('room.light_fire')}
             onClick={handleLightFire}
-            cost={{ wood: 5 }}
+            cost={CONFIG.LIGHT_FIRE_COST}
           />
         ) : (
           <Button
             id="stoke"
             text={t('room.stoke_fire')}
             onClick={handleStokeFire}
-            cost={{ wood: 1 }}
+            cost={CONFIG.STOKE_FIRE_COST}
             disabled={isFireMax}
             tooltip={isFireMax ? t('room.fire_max') : undefined}
           />
         )}
-
-        <Button
-          id="gather"
-          text={t('room.gather_wood')}
-          onClick={handleGatherWood}
-        />
       </div>
     </div>
   )

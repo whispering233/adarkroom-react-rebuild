@@ -1,12 +1,13 @@
 /**
- * Outside — 野外场景（最小存根）
+ * Outside — 野外场景
  *
- * 阶段 4：初版仅含伐木按钮 + 场景描述。
+ * 伐木（带冷却）是野外最基础的操作。
  * 后续将逐步添加村庄、工人、陷阱等系统。
  */
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGameDispatch, applyRecipe } from '../state'
+import { CONFIG } from '../config'
 import { Button } from '../components/Button'
 
 export function Outside() {
@@ -14,7 +15,9 @@ export function Outside() {
   const dispatch = useGameDispatch()
 
   const handleGatherWood = useCallback(() => {
-    dispatch(applyRecipe(draft => { draft.stores.wood += 1 }))
+    dispatch(applyRecipe(draft => {
+      draft.stores.wood += CONFIG.GATHER_WOOD_YIELD
+    }))
   }, [dispatch])
 
   return (
@@ -29,6 +32,7 @@ export function Outside() {
         id="gatherOutside"
         text={t('outside.gather_wood')}
         onClick={handleGatherWood}
+        cooldown={CONFIG.GATHER_WOOD_COOLDOWN}
       />
     </div>
   )

@@ -2,12 +2,16 @@
  * StoresPanel — 资源显示面板（右栏）
  *
  * 资源分类后纵向排列，每行显示类目、数值、瞬时变化率。
- * 已知资源始终显示（即使为 0），动态资源（后期解锁）只在 > 0 时显示。
- * 资源名通过 react-i18next 的 t() 查表。
+ * delta 基于 resourceLog 滑动窗口（最近 10s）计算实际发生的变更。
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
-import type { IncomeConfig } from '../state'
+import type { ResourceLogEntry } from '../state'
+
+// ─── 常量 ─────────────────────────────────────────────────
+
+/** delta 滑动窗口大小（秒） */
+const DELTA_WINDOW = 10
 
 // ─── 工具函数 ─────────────────────────────────────────────
 
@@ -17,29 +21,40 @@ const RESOURCE_I18N: Record<string, string> = {
   'energy cell': 'stores.energy_cell',
 }
 
-/** 获取资源的 i18n key */
 function resI18nKey(rawKey: string): string {
   return RESOURCE_I18N[rawKey] ?? `stores.${rawKey}`
 }
 
 /**
- * 从所有收入来源计算每个资源的净变化率（delta/秒）。
- * 正数 = 净产出，负数 = 净消耗。
+ * 基于 resourceLog 滑动窗口计算每个资源的净变化率（delta/秒）。
+ * 只统计最近 DELTA_WINDOW 秒内的变更。
  */
 function computeDeltas(
-  income: Record<string, IncomeConfig>,
+  log: ResourceLogEntry[],
+  currentTick: number,
 ): Record<string, number> {
+  if (log.length === 0) return {}
+
+  const cutoff = currentTick - DELTA_WINDOW
+  const sums: Record<string, number> = {}
+  let actualSpan = 0
+
+  for (const entry of log) {
+    if (entry.tick <= cutoff) continue
+    sums[entry.key] = (sums[entry.key] ?? 0) + entry.delta
+    actualSpan = Math.max(actualSpan, currentTick - entry.tick)
+  }
+
+  // 至少用 1 秒做分母，避免除零
+  const span = Math.max(actualSpan, 1)
+
   const deltas: Record<string, number> = {}
-  for (const config of Object.values(income)) {
-    if (config.delay <= 0) continue
-    for (const [res, amount] of Object.entries(config.stores)) {
-      deltas[res] = (deltas[res] ?? 0) + amount / config.delay
-    }
+  for (const [key, total] of Object.entries(sums)) {
+    deltas[key] = total / span
   }
   return deltas
 }
 
-/** 格式化 delta 值，统一保留 2 位小数 */
 function formatDelta(delta: number): string {
   const sign = delta > 0 ? '+' : ''
   return `${sign}${delta.toFixed(2)}/s`
@@ -74,7 +89,7 @@ export function StoresPanel() {
   const { t } = useTranslation()
   const state = useGameState()
   const stores = state.stores
-  const deltas = computeDeltas(state.income)
+  const deltas = computeDeltas(state.resourceLog, state._globalTick)
 
   const dynamicKeys = Object.keys(stores).filter(
     k => !KNOWN_KEYS.has(k) && (stores[k] ?? 0) > 0,
@@ -86,7 +101,6 @@ export function StoresPanel() {
 
   if (!hasData) return null
 
-  /** 单行渲染：资源名 | 数值 | delta */
   function renderRow(key: string, label: string) {
     const value = stores[key] ?? 0
     const delta = deltas[key]
@@ -143,7 +157,6 @@ export function StoresPanel() {
         </div>
       )}
 
-      {/* 无活跃收入时提示 */}
       {Object.keys(deltas).length === 0 && (
         <p className="text-xs text-(--game-text-muted) italic">
           {t('stores.no_income')}

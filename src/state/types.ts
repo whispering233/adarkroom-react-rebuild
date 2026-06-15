@@ -135,6 +135,20 @@ export interface ConfigData {
   hyperMode: boolean
 }
 
+// ─── 资源变更日志 ────────────────────────────────────────
+
+/** 单条资源变更记录 */
+export interface ResourceLogEntry {
+  /** 资源名 */
+  key: string
+  /** 变化量（正=收入，负=消耗） */
+  delta: number
+  /** 来源标识（builder/fireFuel/gather/light 等） */
+  source: string
+  /** 全局 tick（秒） */
+  tick: number
+}
+
 // ─── 根状态 ──────────────────────────────────────────────
 
 export interface GameState {
@@ -164,6 +178,10 @@ export interface GameState {
   wait: Record<string, number>
   /** 按钮冷却残留值 */
   cooldown: Record<string, number>
+  /** 资源变更日志（滑动窗口，用于计算 delta） */
+  resourceLog: ResourceLogEntry[]
+  /** 全局逻辑 tick 计数器（秒） */
+  _globalTick: number
   /** 存档版本号 */
   version: number
 }
@@ -217,5 +235,7 @@ export const INITIAL_STATE: GameState = {
   },
   wait: {},
   cooldown: {},
+  resourceLog: [],
+  _globalTick: 0,
   version: 1.3,
 }
