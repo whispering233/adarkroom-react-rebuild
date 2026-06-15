@@ -71,5 +71,10 @@
   "toolbar": {
     "switch_dark": "切换暗色模式",
     "switch_light": "切换浅色模式"
+  },
+  "outside": {
+    "title": "寂静的森林",
+    "desc": "枯枝和落叶铺满森林地面。",
+    "gather_wood": "伐木"
   }
 }

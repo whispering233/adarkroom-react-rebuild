@@ -57,7 +57,7 @@ export function Header() {
     >
       {ROOM_ORDER.map((room) => {
         const isUnlocked =
-          room === RoomName.Room || features[featureKey(room)] === true
+          room === RoomName.Room || room === RoomName.Outside || features[featureKey(room)] === true
         if (!isUnlocked) return null
 
         const isActive = currentRoom === room

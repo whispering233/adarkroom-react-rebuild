@@ -71,5 +71,10 @@
   "toolbar": {
     "switch_dark": "Switch to Dark Mode",
     "switch_light": "Switch to Light Mode"
+  },
+  "outside": {
+    "title": "A Silent Forest",
+    "desc": "dry brush and dead branches litter the forest floor.",
+    "gather_wood": "gather wood"
   }
 }
