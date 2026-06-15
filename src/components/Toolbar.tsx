@@ -2,11 +2,13 @@
  * Toolbar — 右下角工具栏
  *
  * 固定定位，横向排列工具按钮：
- *   - 夜间/浅色模式切换（持久化 localStorage）
+ *   - 游戏速度 1×/2×/3×（持久化 localStorage）
  *   - 字体缩放 A⁺ / A⁻（持久化 localStorage，范围 12–24px）
+ *   - 夜间/浅色模式切换（持久化 localStorage）
  */
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSpeed, type SpeedMultiplier } from '../system/gameSpeed'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
@@ -16,6 +18,8 @@ const FONT_SIZE_MIN = 12
 const FONT_SIZE_MAX = 24
 const FONT_SIZE_STEP = 1
 const FONT_SIZE_DEFAULT = 16
+
+const SPEED_OPTIONS: SpeedMultiplier[] = [1, 2, 3]
 
 // ─── 工具函数 ─────────────────────────────────────────────
 
@@ -55,10 +59,14 @@ function applyFontSize(px: number) {
 const BTN_STYLE =
   'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
 
+const BTN_ACTIVE =
+  'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-accent-soft) border-(--game-border-accent) text-(--game-accent)'
+
 export function Toolbar() {
   const { t } = useTranslation()
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
   const [fontSize, setFontSize] = useState<number>(getInitialFontSize)
+  const [speed, setSpeed] = useSpeed()
 
   // 应用主题
   useEffect(() => {
@@ -99,6 +107,24 @@ export function Toolbar() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex gap-1.5">
+      {/* 游戏速度 */}
+      <div className="flex gap-0.5">
+        {SPEED_OPTIONS.map(s => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setSpeed(s)}
+            title={t('toolbar.speed', { speed: s })}
+            className={s === speed ? BTN_ACTIVE : BTN_STYLE}
+          >
+            {s}×
+          </button>
+        ))}
+      </div>
+
+      {/* 分隔 */}
+      <span className="w-px bg-(--game-border)" />
+
       {/* 字体缩小 */}
       <button
         type="button"

@@ -147,6 +147,16 @@ export interface NarrativeEntry {
   tick: number
 }
 
+// ─── 延迟奖励 ────────────────────────────────────────────
+
+/** 冷却结束后发放的资源奖励 */
+export interface PendingReward {
+  /** 归属的 cooldown key */
+  cooldownKey: string
+  /** 资源变更（正=收入） */
+  stores: Record<string, number>
+}
+
 // ─── 资源变更日志 ────────────────────────────────────────
 
 /** 单 tick 内所有资源的净变化 */
@@ -184,8 +194,10 @@ export interface GameState {
   config: ConfigData
   /** 延迟事件等待队列 */
   wait: Record<string, number>
-  /** 按钮冷却残留值 */
+  /** 按钮冷却残留值（game-seconds） */
   cooldown: Record<string, number>
+  /** 冷却结束待发放的奖励 */
+  pendingRewards: Record<string, PendingReward>
   /** 每个 tick 的净资源日志（滑动窗口，用于计算 delta 面板） */
   resourceLog: ResourceTickLog[]
   /** 叙事日志（上限 50 条，新条目在前） */
@@ -249,6 +261,7 @@ export const INITIAL_STATE: GameState = {
   },
   wait: {},
   cooldown: {},
+  pendingRewards: {},
   resourceLog: [],
   _pendingDeltas: {},
   narrativeLog: [],

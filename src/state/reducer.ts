@@ -64,6 +64,8 @@ export type GameAction =
   | { type: 'REGISTER_INCOME'; key: string; config: IncomeConfig }
   // ── 叙事推送 ──
   | { type: 'PUSH_NARRATIVE'; text: string }
+  // ── 冷却控制 ──
+  | { type: 'START_COOLDOWN'; id: string; seconds: number; reward?: { stores: Record<string, number> } }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
 
@@ -140,6 +142,24 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       // ② 推进全局时钟
       draft._globalTick += 1
 
+      // ②.5 冷却递减 + 延迟奖励发放
+      for (const [key, remaining] of Object.entries(draft.cooldown)) {
+        const next = remaining - 1
+        if (next <= 0) {
+          delete draft.cooldown[key]
+          // 发放关联的延迟奖励
+          const reward = draft.pendingRewards[key]
+          if (reward) {
+            for (const [res, delta] of Object.entries(reward.stores)) {
+              modifyResource(draft, res, delta)
+            }
+            delete draft.pendingRewards[key]
+          }
+        } else {
+          draft.cooldown[key] = next
+        }
+      }
+
       // ③ 处理收入（内部调用 modifyResource → 累加到新的 _pendingDeltas）
       for (const [, config] of Object.entries(draft.income)) {
         config.timeLeft -= 1
@@ -186,6 +206,19 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       // 保留最近 50 条
       if (draft.narrativeLog.length > 50) {
         draft.narrativeLog = draft.narrativeLog.slice(0, 50)
+      }
+      break
+    }
+
+    // ── 冷却控制 ──────────────────────────────────
+
+    case 'START_COOLDOWN': {
+      draft.cooldown[action.id] = action.seconds
+      if (action.reward) {
+        draft.pendingRewards[action.id] = {
+          cooldownKey: action.id,
+          stores: { ...action.reward.stores },
+        }
       }
       break
     }
@@ -247,6 +280,21 @@ export const registerIncome = (
 export const pushNarrative = (text: string): GameAction => ({
   type: 'PUSH_NARRATIVE',
   text,
+})
+
+/**
+ * 启动冷却并可选附加延迟奖励。
+ * 冷却在 INCOME_TICK 中每秒递减；归零时自动发放 reward 并清理。
+ */
+export const startCooldown = (
+  id: string,
+  seconds: number,
+  reward?: { stores: Record<string, number> },
+): GameAction => ({
+  type: 'START_COOLDOWN',
+  id,
+  seconds,
+  reward,
 })
 
 /**

@@ -67,7 +67,8 @@
     "switch_dark": "Switch to Dark Mode",
     "switch_light": "Switch to Light Mode",
     "font_larger": "Increase font size ({{size}}px)",
-    "font_smaller": "Decrease font size ({{size}}px)"
+    "font_smaller": "Decrease font size ({{size}}px)",
+    "speed": "Game speed {{speed}}×"
   },
   "outside": {
     "title": "A Silent Forest",

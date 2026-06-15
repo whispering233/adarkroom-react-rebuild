@@ -67,7 +67,8 @@
     "switch_dark": "切换暗色模式",
     "switch_light": "切换浅色模式",
     "font_larger": "增大字体（当前 {{size}}px）",
-    "font_smaller": "减小字体（当前 {{size}}px）"
+    "font_smaller": "减小字体（当前 {{size}}px）",
+    "speed": "游戏速度 {{speed}}×"
   },
   "outside": {
     "title": "寂静的森林",

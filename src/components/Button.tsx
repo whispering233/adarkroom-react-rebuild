@@ -1,21 +1,24 @@
 /**
  * Button — 通用游戏操作按钮
  *
+ * 冷却由 GameState.cooldown 驱动（INCOME_TICK 每秒递减），
+ * 不再使用本地 setInterval，与游戏主循环、加速系统同步。
+ *
  * 支持：
- *   - 冷却倒计时 + 倒空式平滑进度条（100%→0%）
+ *   - 倒空式平滑进度条（100%→0%，CSS transition）
  *   - 资源消耗检查（自动禁用）
- *   - 自定义禁用状态 / 工具提示
+ *   - 延迟奖励（冷却结束后由 reducer 自动发放）
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useGameState } from '../state'
 import styles from './Button.module.css'
 
 export interface ButtonProps {
-  /** 按钮唯一标识（用于冷却状态追踪） */
+  /** 按钮唯一标识（用于冷却状态追踪，对应 cooldown[id]） */
   id: string
   /** 按钮文字 */
   text: string
-  /** 点击回调 */
+  /** 点击回调（注意：延迟奖励模式下，此回调应只做资源消耗，奖励走 startCooldown reward） */
   onClick: () => void
   /** 冷却秒数（默认 0 = 无冷却） */
   cooldown?: number
@@ -43,73 +46,33 @@ export function Button({
   tooltip,
   className = '',
 }: ButtonProps) {
-  // 冷却剩余秒数（0 = 未在冷却）
-  const [cooldownLeft, setCooldownLeft] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  // 读取当前资源（用于消耗检查）
   const state = useGameState()
   const stores = state.stores
 
+  // 冷却剩余（由 reducer INCOME_TICK 驱动）
+  const cooldownLeft = state.cooldown[id] ?? 0
+
   // 资源是否足够
-  const hasEnoughResources = useCallback(() => {
-    if (!cost) return true
-    return Object.entries(cost).every(
+  const hasEnoughResources =
+    !cost || Object.entries(cost).every(
       ([resource, needed]) => (stores[resource] ?? 0) >= needed,
     )
-  }, [cost, stores])
 
-  const insufficientResources = !hasEnoughResources()
+  const insufficientResources = !hasEnoughResources
 
   // 真正禁用
   const isDisabled = disabled || insufficientResources || cooldownLeft > 0
 
   const handleClick = useCallback(() => {
     if (isDisabled) return
-
     onClick()
-
-    // 启动冷却
-    if (cooldown > 0) {
-      setCooldownLeft(cooldown)
-    }
-  }, [isDisabled, onClick, cooldown])
-
-  // 每秒递减冷却（驱动文字更新 + 进度条动画）
-  useEffect(() => {
-    if (cooldownLeft <= 0) {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-      return
-    }
-
-    timerRef.current = setInterval(() => {
-      setCooldownLeft((prev) => {
-        const next = prev - 1
-        if (next <= 0) {
-          if (timerRef.current) clearInterval(timerRef.current)
-          timerRef.current = null
-          return 0
-        }
-        return next
-      })
-    }, 1000)
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-    }
-  }, [cooldownLeft > 0]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isDisabled, onClick])
 
   // 显示文字：冷却时附加秒数
   const displayText =
     cooldownLeft > 0 ? `${text} (${cooldownLeft}s)` : text
 
-  // 倒空进度条：100% 起始 → 0% 结束
+  // 倒空进度条：剩余百分比
   const remainingPct =
     cooldown > 0 ? (cooldownLeft / cooldown) * 100 : 0
 
@@ -122,7 +85,7 @@ export function Button({
         disabled={isDisabled}
         className={`${BASE_STYLE} ${styles.base} ${className}`}
       >
-        {/* 冷却进度条（倒空式 100%→0%，平滑 transition） */}
+        {/* 冷却进度条（倒空式 100%→0%，transition: width 1s linear） */}
         {cooldownLeft > 0 && (
           <span
             className={`absolute inset-y-0 left-0 ${styles.progress}`}

@@ -1,12 +1,12 @@
 /**
  * Outside — 野外场景
  *
- * 伐木（带冷却）是野外最基础的操作。
+ * 伐木：点击后启动冷却，冷却结束由 reducer 自动发放木头。
  * 后续将逐步添加村庄、工人、陷阱等系统。
  */
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useGameDispatch, applyRecipe } from '../state'
+import { useGameDispatch, startCooldown } from '../state'
 import { CONFIG } from '../config'
 import { Button } from '../components/Button'
 
@@ -14,10 +14,13 @@ export function Outside() {
   const { t } = useTranslation()
   const dispatch = useGameDispatch()
 
+  // 伐木：启动冷却 + 延迟奖励（冷却结束 reducer 自动发放木头）
   const handleGatherWood = useCallback(() => {
-    dispatch(applyRecipe(draft => {
-      draft.stores.wood += CONFIG.GATHER_WOOD_YIELD
-    }))
+    dispatch(startCooldown(
+      'gatherOutside',
+      CONFIG.GATHER_WOOD_COOLDOWN,
+      { stores: { wood: CONFIG.GATHER_WOOD_YIELD } },
+    ))
   }, [dispatch])
 
   return (
