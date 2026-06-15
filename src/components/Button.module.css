@@ -16,5 +16,5 @@
 .progress {
   background-color: var(--game-btn-hover-bg);
   /* 平滑过渡：宽度每次变化时用 1s linear 插值，与 1s 间隔的 cooldownLeft 更新节奏匹配 */
-  transition: width 1s ease-in-out;
+  transition: width var(--game-cooldown-step) ease-in-out;
 }

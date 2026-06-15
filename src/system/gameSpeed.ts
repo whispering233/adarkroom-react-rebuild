@@ -35,6 +35,17 @@ function notify() {
 
 // 模块加载时初始化
 current = load()
+syncCooldownStep()
+
+// ─── 内部辅助 ────────────────────────────────────────────
+
+/** 同步 CSS 变量 --game-cooldown-step（进度条 transition 时长） */
+function syncCooldownStep() {
+  if (typeof document !== 'undefined') {
+    const ms = Math.round(1000 / current)
+    document.documentElement.style.setProperty('--game-cooldown-step', `${ms}ms`)
+  }
+}
 
 // ─── 公开 API ────────────────────────────────────────────
 
@@ -48,6 +59,7 @@ export function setSpeed(speed: SpeedMultiplier) {
   if (speed === current) return
   current = speed
   localStorage.setItem(SPEED_KEY, String(speed))
+  syncCooldownStep()
   notify()
 }
 
