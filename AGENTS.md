@@ -2,15 +2,6 @@
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的 React + TypeScript 渐进式重构 **练习学习项目**。
 
-> ⚠️ **重要：这是个人练习学习项目。用户要自己手写核心代码。**
-> 
-> 模型只参与以下辅助工作：
-> - 讨论重构改进方案和架构/接口设计
-> - 环境检查、构建配置、类型系统验证
-> - Bug 分析和修复建议
-> 
-> **禁止**模型直接代写任何核心游戏逻辑代码（场景、事件、战斗、地图等模块的具体实现）。
-
 ## Project
 
 - 技术栈：pnpm / React 19 / TypeScript ~6.0 / Vite 8 / Tailwind CSS v4 / CSS Modules / Vitest / Immer / i18next
@@ -51,12 +42,6 @@
 - **`src/App.tsx`** — 根组件，三栏布局（NarrativePanel | 场景路由 | StoresPanel）+ Toolbar
 - **`src/index.css`** — `@import "tailwindcss"` + `@import "./styles/tokens.css"` + 动画关键帧
 - **`src/styles/tokens.css`** — CSS 设计 Token（`var(--game-*)`），浅色/暗色主题通过 `[data-theme="dark"]` 切换
-
-计划中的后续阶段（详见 `doc/重构各阶段方案.md`）：
-- ⏳ 阶段 4：事件引擎
-- ⏳ 阶段 5：存档系统
-- ⏳ 阶段 6：UI 打磨 & 部署
-- ⏳ 扩展模块：Outside / World / Path / Space / Fabricator
 
 ## Conventions
 
