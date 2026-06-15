@@ -2,11 +2,11 @@
  * StoresPanel — 资源显示面板（右栏）
  *
  * 资源分类后纵向排列，每行显示类目、数值、瞬时变化率。
- * delta 基于 resourceLog 滑动窗口（最近 10s）计算实际发生的变更。
+ * delta 基于 resourceLog 滑动窗口（最近 10s）计算，每 tick 一条 entry。
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
-import type { ResourceLogEntry } from '../state'
+import type { ResourceTickLog } from '../state'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
@@ -26,27 +26,29 @@ function resI18nKey(rawKey: string): string {
 }
 
 /**
- * 基于 resourceLog 滑动窗口计算每个资源的净变化率（delta/秒）。
- * 只统计最近 DELTA_WINDOW 秒内的变更。
+ * 基于 resourceLog（per-tick）滑动窗口计算每个资源的净变化率（delta/秒）。
+ * 窗口内各 tick entry 的 deltas.* 直接求和后归一化。
  */
 function computeDeltas(
-  log: ResourceLogEntry[],
+  log: ResourceTickLog[],
   currentTick: number,
 ): Record<string, number> {
   if (log.length === 0) return {}
 
   const cutoff = currentTick - DELTA_WINDOW
   const sums: Record<string, number> = {}
-  let actualSpan = 0
+  let ticksInWindow = 0
 
   for (const entry of log) {
     if (entry.tick <= cutoff) continue
-    sums[entry.key] = (sums[entry.key] ?? 0) + entry.delta
-    actualSpan = Math.max(actualSpan, currentTick - entry.tick)
+    ticksInWindow++
+    for (const [key, d] of Object.entries(entry.deltas)) {
+      sums[key] = (sums[key] ?? 0) + d
+    }
   }
 
-  // 至少用 1 秒做分母，避免除零
-  const span = Math.max(actualSpan, 1)
+  // 用实际窗口 tick 数做分母（至少 1，避免除零）
+  const span = Math.max(ticksInWindow, 1)
 
   const deltas: Record<string, number> = {}
   for (const [key, total] of Object.entries(sums)) {

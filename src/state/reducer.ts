@@ -8,9 +8,10 @@
  *   1. 语义 action — 有明确领域含义（LIGHT_FIRE、BUILDER_ADVANCE 等）
  *   2. 草稿回调 — 组件直接传 (draft) => { draft.xxx = yyy }，用于一次性操作
  *
- * 所有 draft.stores 变更统一通过 modifyResource()，自动记录资源变更日志。
+ * 所有 draft.stores 变更统一通过 modifyResource()，累加到 _pendingDeltas；
+ * INCOME_TICK 时 flush 为单条 ResourceTickLog（每个 tick 一条，避免高频 key 挤占）。
  */
-import type { GameState, IncomeConfig, ResourceLogEntry } from './types'
+import type { GameState, IncomeConfig } from './types'
 import { FireLevel, TempLevel } from './types'
 import { CONFIG } from '../config'
 
@@ -21,14 +22,13 @@ export const MAX_STORE = CONFIG.MAX_STORE
 // ─── 资源变更统一入口 ────────────────────────────────────
 
 /**
- * 修改资源值并记录变更日志。
- * player-initiated actions（applyRecipe）不经过此函数。
+ * 修改资源值并累加到当前 tick 的 _pendingDeltas。
+ * 实际的 ResourceTickLog 由 INCOME_TICK 统一 flush。
  */
 function modifyResource(
   draft: GameState,
   key: string,
   delta: number,
-  source: string,
 ) {
   const prev = draft.stores[key] ?? 0
   let next = prev + delta
@@ -38,13 +38,7 @@ function modifyResource(
 
   const actualDelta = next - prev
   if (actualDelta !== 0) {
-    const entry: ResourceLogEntry = {
-      key,
-      delta: actualDelta,
-      source,
-      tick: draft._globalTick,
-    }
-    draft.resourceLog.push(entry)
+    draft._pendingDeltas[key] = (draft._pendingDeltas[key] ?? 0) + actualDelta
   }
 }
 
@@ -78,13 +72,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 火堆 ──────────────────────────────────────────
 
     case 'LIGHT_FIRE': {
-      modifyResource(draft, 'wood', -5, 'lightFire')
+      modifyResource(draft, 'wood', -5)
       draft.game.fire = FireLevel.Burning
       break
     }
 
     case 'STOKE_FIRE': {
-      modifyResource(draft, 'wood', -1, 'stokeFire')
+      modifyResource(draft, 'wood', -1)
       const next = draft.game.fire + 1
       draft.game.fire =
         next > FireLevel.Roaring ? FireLevel.Roaring : (next as FireLevel)
@@ -131,22 +125,35 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 收入 Tick ─────────────────────────────────────
 
     case 'INCOME_TICK': {
+      // ① flush 上一 tick 的累加结果 → 一条 ResourceTickLog
+      const pendingKeys = Object.keys(draft._pendingDeltas)
+      if (pendingKeys.length > 0) {
+        draft.resourceLog.push({
+          tick: draft._globalTick,
+          deltas: { ...draft._pendingDeltas },
+        })
+        draft._pendingDeltas = {}
+      }
+
+      // ② 推进全局时钟
       draft._globalTick += 1
 
-      for (const [sourceKey, config] of Object.entries(draft.income)) {
+      // ③ 处理收入（内部调用 modifyResource → 累加到新的 _pendingDeltas）
+      for (const [, config] of Object.entries(draft.income)) {
         config.timeLeft -= 1
 
         if (config.timeLeft <= 0) {
           for (const [res, delta] of Object.entries(config.stores)) {
-            modifyResource(draft, res, delta, sourceKey)
+            modifyResource(draft, res, delta)
           }
           config.timeLeft = config.delay
         }
       }
 
-      // 裁剪日志：只保留最近 60 tick 的记录
-      const cutoff = draft._globalTick - 60
-      draft.resourceLog = draft.resourceLog.filter(e => e.tick > cutoff)
+      // ④ 裁剪日志：保留最近 60 tick（60 条 entry，每条 1 tick）
+      if (draft.resourceLog.length > 60) {
+        draft.resourceLog = draft.resourceLog.slice(-60)
+      }
       break
     }
 
