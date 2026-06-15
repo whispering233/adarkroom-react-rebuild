@@ -6,6 +6,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState, FireLevel } from '../state'
+import styles from './NarrativePanel.module.css'
 
 /** 火堆等级 → i18n key */
 const FIRE_KEYS = [
@@ -40,12 +41,7 @@ export function NarrativePanel() {
     <div className="flex flex-col gap-6">
       {/* 场景标题 */}
       <h1
-        className="text-2xl tracking-[var(--game-tracking-wide)]"
-        style={{
-          color: 'var(--game-text-primary)',
-          textShadow: 'var(--game-text-glow)',
-          animation: 'roomFlicker 3s infinite alternate',
-        }}
+        className={`text-2xl tracking-(--game-tracking-wide) ${styles.title}`}
       >
         {fireLevel >= FireLevel.Flickering
           ? t('room.title_firelit')
@@ -54,11 +50,7 @@ export function NarrativePanel() {
 
       {/* 火堆状态 */}
       <p
-        className="text-sm"
-        style={{
-          color: 'var(--game-text-body)',
-          letterSpacing: 'var(--game-tracking)',
-        }}
+        className="text-sm text-(--game-text-body) tracking-(--game-tracking)"
       >
         {t('room.fire_is')}{' '}
         {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}
@@ -66,12 +58,7 @@ export function NarrativePanel() {
 
       {/* 温度描述 */}
       <p
-        className="text-xs"
-        style={{
-          color: 'var(--game-text-body)',
-          letterSpacing: 'var(--game-tracking-tight)',
-          opacity: 0.6,
-        }}
+        className="text-xs text-(--game-text-body) tracking-(--game-tracking-tight) opacity-60"
       >
         {t('room.room_is')} {tempText}
       </p>
@@ -79,8 +66,7 @@ export function NarrativePanel() {
       {/* 建造者叙事文本 */}
       {builderLevel >= 1 && builderLevel < 4 && (
         <p
-          className="text-xs italic"
-          style={{ color: 'var(--game-text-body)', opacity: 0.5 }}
+          className="text-xs italic text-(--game-text-body) opacity-50"
         >
           {builderLevel === 1 && t('builder.huddles')}
           {builderLevel === 2 && t('builder.shivers_by_fire')}
@@ -89,7 +75,7 @@ export function NarrativePanel() {
       )}
 
       {builderLevel >= 4 && (
-        <p className="text-xs" style={{ color: 'var(--game-accent-positive)' }}>
+        <p className="text-xs text-(--game-accent-positive)">
           {t('builder.income')}
         </p>
       )}

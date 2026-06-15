@@ -8,6 +8,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useGameState } from '../state'
+import styles from './Button.module.css'
 
 export interface ButtonProps {
   /** 按钮唯一标识（用于冷却状态追踪） */
@@ -30,7 +31,7 @@ export interface ButtonProps {
 
 /** 基础按钮样式（CSS Token 引用，自动适配浅色/暗色主题） */
 const BASE_STYLE =
-  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-[var(--game-btn-hover-bg)] hover:shadow-[var(--game-accent-glow)]'
+  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-(--game-btn-hover-bg) hover:shadow-(--game-accent-glow)'
 
 export function Button({
   id,
@@ -126,18 +127,13 @@ export function Button({
         id={`btn-${id}`}
         onClick={handleClick}
         disabled={isDisabled}
-        className={`${BASE_STYLE} ${className}`}
-        style={{
-          color: 'var(--game-btn-text)',
-          backgroundColor: 'var(--game-btn-bg)',
-          borderColor: 'var(--game-btn-border)',
-        }}
+        className={`${BASE_STYLE} ${styles.base} ${className}`}
       >
         {/* 冷却进度条背景 */}
         {cooldownLeft > 0 && (
           <span
-            className="absolute inset-0 transition-none"
-            style={{ width: `${progressPct}%`, backgroundColor: 'var(--game-btn-hover-bg)' }}
+            className={`absolute inset-0 transition-none ${styles.progress}`}
+            style={{ '--progress': `${progressPct}%` } as React.CSSProperties}
           />
         )}
 

@@ -6,6 +6,7 @@
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState, useGameDispatch, applyRecipe, RoomName } from '../state'
+import styles from './Header.module.css'
 
 type RoomNameType = (typeof RoomName)[keyof typeof RoomName]
 
@@ -52,11 +53,7 @@ export function Header() {
 
   return (
     <nav
-      className="flex items-center border-b px-4 py-0"
-      style={{
-        backgroundColor: 'var(--game-bg-header)',
-        borderColor: 'var(--game-border)',
-      }}
+      className="flex items-center border-b px-4 py-0 bg-(--game-bg-header) border-(--game-border)"
     >
       {ROOM_ORDER.map((room) => {
         const isUnlocked =
@@ -70,16 +67,7 @@ export function Header() {
             key={room}
             type="button"
             onClick={() => handleNavigate(room)}
-            className={TAB_BASE}
-            style={{
-              color: isActive
-                ? 'var(--game-accent)'
-                : 'var(--game-text-body)',
-              borderColor: isActive
-                ? 'var(--game-accent)'
-                : 'transparent',
-              opacity: isActive ? 1 : 0.5,
-            }}
+            className={`${TAB_BASE} ${isActive ? styles.tabActive : styles.tabInactive}`}
           >
             {t(ROOM_I18N[room])}
           </button>

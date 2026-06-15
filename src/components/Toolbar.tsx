@@ -45,12 +45,7 @@ export function Toolbar() {
       <button
         type="button"
         onClick={toggle}
-        className="rounded border px-3 py-1.5 font-mono text-xs transition cursor-pointer"
-        style={{
-          backgroundColor: 'var(--game-bg-header)',
-          borderColor: 'var(--game-border)',
-          color: 'var(--game-text-body)',
-        }}
+        className="rounded border px-3 py-1.5 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body)"
         title={theme === 'light' ? t('toolbar.switch_dark') : t('toolbar.switch_light')}
       >
         {theme === 'light' ? '🌙' : '☀️'}

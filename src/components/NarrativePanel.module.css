@@ -1,0 +1,12 @@
+/**
+ * NarrativePanel — 剧情面板 CSS Module
+ *
+ * 通过 CSS Token 引用颜色，自动适配浅色/暗色主题。
+ */
+
+/* 场景标题 — 闪烁辉光文本 */
+.title {
+  color: var(--game-text-primary);
+  text-shadow: var(--game-text-glow);
+  animation: roomFlicker 3s infinite alternate;
+}

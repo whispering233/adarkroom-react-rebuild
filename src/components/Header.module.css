@@ -1,0 +1,19 @@
+/**
+ * Header — 标签页导航 CSS Module
+ *
+ * 通过 CSS Token 引用颜色，自动适配浅色/暗色主题。
+ */
+
+/* 激活标签 */
+.tabActive {
+  color: var(--game-accent);
+  border-color: var(--game-accent);
+  opacity: 1;
+}
+
+/* 非激活标签 */
+.tabInactive {
+  color: var(--game-text-body);
+  border-color: transparent;
+  opacity: 0.5;
+}

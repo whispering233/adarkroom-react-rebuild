@@ -64,8 +64,7 @@ export function StoresPanel() {
         return (
           <div key={cat.labelKey}>
             <div
-              className="text-xs uppercase tracking-[0.2em] mb-2"
-              style={{ color: 'var(--game-accent)' }}
+              className="text-xs uppercase tracking-[0.2em] mb-2 text-(--game-accent)"
             >
               {t(cat.labelKey)}
             </div>
@@ -73,13 +72,12 @@ export function StoresPanel() {
               {rows.map(key => (
                 <div
                   key={key}
-                  className="flex justify-between"
-                  style={{ color: 'var(--game-text-body)' }}
+                  className="flex justify-between text-(--game-text-body)"
                 >
-                  <span style={{ color: 'var(--game-text-muted)' }}>
+                  <span className="text-(--game-text-muted)">
                     {t(resI18nKey(key))}
                   </span>
-                  <span style={{ color: 'var(--game-accent)' }}>
+                  <span className="text-(--game-accent)">
                     {stores[key] ?? 0}
                   </span>
                 </div>
@@ -92,8 +90,7 @@ export function StoresPanel() {
       {dynamicKeys.length > 0 && (
         <div>
           <div
-            className="text-xs uppercase tracking-[0.2em] mb-2"
-            style={{ color: 'var(--game-accent)' }}
+            className="text-xs uppercase tracking-[0.2em] mb-2 text-(--game-accent)"
           >
             {t('stores.cat_other')}
           </div>
@@ -101,11 +98,10 @@ export function StoresPanel() {
             {dynamicKeys.map(key => (
               <div
                 key={key}
-                className="flex justify-between"
-                style={{ color: 'var(--game-text-body)' }}
+                className="flex justify-between text-(--game-text-body)"
               >
-                <span style={{ color: 'var(--game-text-muted)' }}>{key}</span>
-                <span style={{ color: 'var(--game-accent)' }}>
+                <span className="text-(--game-text-muted)">{key}</span>
+                <span className="text-(--game-accent)">
                   {stores[key] ?? 0}
                 </span>
               </div>

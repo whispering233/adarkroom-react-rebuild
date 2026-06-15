@@ -230,8 +230,7 @@ export function Room() {
           {notifications.map((n) => (
             <div
               key={n.id}
-              className="rounded border border-gray-700/50 bg-gray-900/60 px-4 py-2 font-mono text-sm text-gray-300"
-              style={{ animation: 'notifFadeIn 0.3s ease-out' }}
+              className="rounded border border-gray-700/50 bg-gray-900/60 px-4 py-2 font-mono text-sm text-gray-300 animate-[notifFadeIn_0.3s_ease-out]"
             >
               {n.text}
             </div>

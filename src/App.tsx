@@ -15,12 +15,9 @@ function App() {
   const currentRoom = useGameState().currentRoom
 
   return (
-    <div
-      className="grid min-h-screen"
-      style={{ gridTemplateColumns: '280px 1fr 280px' }}
-    >
+    <div className="grid min-h-screen grid-cols-[280px_1fr_280px]">
       {/* 左栏 — 剧情文本 */}
-      <aside className="border-r p-4 overflow-y-auto" style={{ borderColor: 'var(--game-border)' }}>
+      <aside className="border-r p-4 overflow-y-auto border-(--game-border)">
         <NarrativePanel />
       </aside>
 
@@ -34,7 +31,7 @@ function App() {
       </div>
 
       {/* 右栏 — 游戏数据 */}
-      <aside className="border-l p-4 overflow-y-auto" style={{ borderColor: 'var(--game-border)' }}>
+      <aside className="border-l p-4 overflow-y-auto border-(--game-border)">
         <StoresPanel />
       </aside>
       <Toolbar />
