@@ -62,6 +62,8 @@ export type GameAction =
   | { type: 'LOAD_SAVE'; state: GameState }
   // ── 注册收入来源 ──
   | { type: 'REGISTER_INCOME'; key: string; config: IncomeConfig }
+  // ── 叙事推送 ──
+  | { type: 'PUSH_NARRATIVE'; text: string }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
 
@@ -173,6 +175,21 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       break
     }
 
+    // ── 叙事推送 ──────────────────────────────────
+
+    case 'PUSH_NARRATIVE': {
+      draft.narrativeLog.unshift({
+        id: draft._nextNarrativeId++,
+        text: action.text,
+        tick: draft._globalTick,
+      })
+      // 保留最近 50 条
+      if (draft.narrativeLog.length > 50) {
+        draft.narrativeLog = draft.narrativeLog.slice(0, 50)
+      }
+      break
+    }
+
     // ── 通用草稿回调 ──────────────────────────────────
 
     case 'APPLY_RECIPE': {
@@ -221,6 +238,15 @@ export const registerIncome = (
   type: 'REGISTER_INCOME',
   key,
   config,
+})
+
+/**
+ * 推送一条叙事文本到叙事日志。
+ * 文本应为已解析的 i18n 字符串（在调用处用 t() 转换）。
+ */
+export const pushNarrative = (text: string): GameAction => ({
+  type: 'PUSH_NARRATIVE',
+  text,
 })
 
 /**

@@ -41,6 +41,7 @@
   --game-tracking-tight: 0.1em;
 
   /* 尺寸 */
+  --game-font-size: 16px;
   --game-header-h: 41px;
   --game-panel-padding: 1rem;
   --game-panel-gap: 0.75rem;
@@ -68,4 +69,6 @@
 
   --game-border: rgba(128, 128, 128, 0.3);
   --game-border-accent: rgba(201, 75, 26, 0.5);
+
+  --game-font-size: 16px;
 }

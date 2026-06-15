@@ -64,13 +64,6 @@ export function Button({
   // 真正禁用
   const isDisabled = disabled || insufficientResources || cooldownLeft > 0
 
-  // 消耗不足的资源列表（用于显示）
-  const missingResources = cost
-    ? Object.entries(cost)
-        .filter(([r, n]) => (stores[r] ?? 0) < n)
-        .map(([r, n]) => `${r}(${(stores[r] ?? 0)}/${n})`)
-    : []
-
   const handleClick = useCallback(() => {
     if (isDisabled) return
 
@@ -140,13 +133,6 @@ export function Button({
         {/* 按钮文字 */}
         <span className="relative z-10">{displayText}</span>
       </button>
-
-      {/* 资源不足提示 */}
-      {insufficientResources && missingResources.length > 0 && (
-        <div className="absolute left-0 top-full mt-1 whitespace-nowrap rounded bg-red-900/80 px-2 py-0.5 font-mono text-xs text-red-300">
-          need {missingResources.join(', ')}
-        </div>
-      )}
     </div>
   )
 }

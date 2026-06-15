@@ -29,12 +29,6 @@
     "stranger_stops": "the stranger stops shivering...",
     "stranger_helps": "standing by the fire, she says she can help"
   },
-  "builder": {
-    "huddles": "a stranger huddles near the door",
-    "shivers_by_fire": "the stranger shivers by the fire",
-    "warms_by_fire": "the stranger warms by the fire",
-    "income": "+2 wood / 10s (builder)"
-  },
   "nav": {
     "room": "A Dark Room",
     "outside": "Outside",
@@ -71,7 +65,9 @@
   },
   "toolbar": {
     "switch_dark": "Switch to Dark Mode",
-    "switch_light": "Switch to Light Mode"
+    "switch_light": "Switch to Light Mode",
+    "font_larger": "Increase font size ({{size}}px)",
+    "font_smaller": "Decrease font size ({{size}}px)"
   },
   "outside": {
     "title": "A Silent Forest",

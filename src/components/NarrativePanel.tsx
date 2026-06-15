@@ -1,14 +1,15 @@
 /**
- * NarrativePanel — 左栏剧情文本区
+ * NarrativePanel — 左栏叙事区
  *
- * 根据当前游戏状态渲染叙事文本：场景标题、火堆状态、建造者剧情。
- * 文本通过 react-i18next 的 t() 查表，支持中/英文切换。
+ * 双区布局：
+ *   1. 顶部状态栏 — 紧凑显示火堆 + 温度
+ *   2. 叙事日志 — 新条目在上，旧条目渐隐，可滚动回溯
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState, FireLevel } from '../state'
-import styles from './NarrativePanel.module.css'
 
-/** 火堆等级 → i18n key */
+// ─── i18n 查表 ────────────────────────────────────────────
+
 const FIRE_KEYS = [
   'fire.dead',
   'fire.smoldering',
@@ -17,7 +18,6 @@ const FIRE_KEYS = [
   'fire.roaring',
 ] as const
 
-/** 温度等级 → i18n key */
 const TEMP_KEYS = [
   'temp.freezing',
   'temp.cold',
@@ -26,57 +26,59 @@ const TEMP_KEYS = [
   'temp.hot',
 ] as const
 
+/** 单条叙事衰减：最新条目 opacity=1，每条递减 0.08，最低 0.15 */
+function fadeOpacity(index: number): number {
+  return Math.max(1 - index * 0.08, 0.15)
+}
+
+// ─── 组件 ─────────────────────────────────────────────────
+
 export function NarrativePanel() {
   const { t } = useTranslation()
   const state = useGameState()
   const fireLevel = state.game.fire
   const tempLevel = state.game.temperature
-  const builderLevel = state.game.builder.level
-  const isFireDead = fireLevel === FireLevel.Dead
+  const narrativeLog = state.narrativeLog
 
   const fireText = t(FIRE_KEYS[fireLevel])
   const tempText = t(TEMP_KEYS[tempLevel])
+  const isFireDead = fireLevel === FireLevel.Dead
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* 场景标题 */}
-      <h1
-        className={`text-2xl tracking-(--game-tracking-wide) ${styles.title}`}
-      >
-        {fireLevel >= FireLevel.Flickering
-          ? t('room.title_firelit')
-          : t('room.title_dark')}
-      </h1>
-
-      {/* 火堆状态 */}
-      <p
-        className="text-sm text-(--game-text-body) tracking-(--game-tracking)"
-      >
-        {t('room.fire_is')}{' '}
-        {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}
-      </p>
-
-      {/* 温度描述 */}
-      <p
-        className="text-xs text-(--game-text-body) tracking-(--game-tracking-tight) opacity-60"
-      >
-        {t('room.room_is')} {tempText}
-      </p>
-
-      {/* 建造者叙事文本 */}
-      {builderLevel >= 1 && builderLevel < 4 && (
-        <p
-          className="text-xs italic text-(--game-text-body) opacity-50"
-        >
-          {builderLevel === 1 && t('builder.huddles')}
-          {builderLevel === 2 && t('builder.shivers_by_fire')}
-          {builderLevel === 3 && t('builder.warms_by_fire')}
+    <div className="flex flex-col h-full gap-0">
+      {/* ── 状态条（紧凑一行） ── */}
+      <div className="shrink-0 mb-2 px-1">
+        <p className="text-sm leading-snug text-(--game-text-body)">
+          {t('room.fire_is')}{' '}
+          {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}
+          {' · '}
+          {t('room.room_is')} {tempText}
         </p>
-      )}
+      </div>
 
-      {builderLevel >= 4 && (
-        <p className="text-xs text-(--game-accent-positive)">
-          {t('builder.income')}
+      {/* ── 叙事日志（可滚动） ── */}
+      {narrativeLog.length > 0 ? (
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+          <div className="flex flex-col gap-1.5">
+            {narrativeLog.map((entry, i) => (
+              <p
+                key={entry.id}
+                className="text-xs text-(--game-text-body) leading-relaxed transition-opacity duration-1000"
+                style={{
+                  opacity: fadeOpacity(i),
+                  animation: i === 0
+                    ? 'narrSlideIn 0.4s ease-out'
+                    : undefined,
+                }}
+              >
+                {entry.text}
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-(--game-text-muted) italic px-1">
+          {t('room.title_dark')}
         </p>
       )}
     </div>

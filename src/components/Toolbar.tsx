@@ -1,13 +1,23 @@
 /**
  * Toolbar — 右下角工具栏
  *
- * 固定定位，横向排列工具按钮。当前提供夜间模式切换。
- * 主题偏好持久化到 localStorage。
+ * 固定定位，横向排列工具按钮：
+ *   - 夜间/浅色模式切换（持久化 localStorage）
+ *   - 字体缩放 A⁺ / A⁻（持久化 localStorage，范围 12–24px）
  */
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+// ─── 常量 ─────────────────────────────────────────────────
+
 const THEME_KEY = 'adr-theme'
+const FONT_SIZE_KEY = 'adr-font-size'
+const FONT_SIZE_MIN = 12
+const FONT_SIZE_MAX = 24
+const FONT_SIZE_STEP = 1
+const FONT_SIZE_DEFAULT = 16
+
+// ─── 工具函数 ─────────────────────────────────────────────
 
 function getInitialTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'light'
@@ -24,15 +34,43 @@ function applyTheme(theme: 'light' | 'dark') {
   }
 }
 
+function getInitialFontSize(): number {
+  if (typeof window === 'undefined') return FONT_SIZE_DEFAULT
+  const stored = localStorage.getItem(FONT_SIZE_KEY)
+  if (stored) {
+    const parsed = parseInt(stored, 10)
+    if (!isNaN(parsed) && parsed >= FONT_SIZE_MIN && parsed <= FONT_SIZE_MAX) {
+      return parsed
+    }
+  }
+  return FONT_SIZE_DEFAULT
+}
+
+function applyFontSize(px: number) {
+  document.documentElement.style.setProperty('--game-font-size', `${px}px`)
+}
+
+// ─── 组件 ─────────────────────────────────────────────────
+
+const BTN_STYLE =
+  'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
+
 export function Toolbar() {
   const { t } = useTranslation()
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
+  const [fontSize, setFontSize] = useState<number>(getInitialFontSize)
 
+  // 应用主题
   useEffect(() => {
     applyTheme(theme)
   }, [theme])
 
-  const toggle = useCallback(() => {
+  // 应用字体大小
+  useEffect(() => {
+    applyFontSize(fontSize)
+  }, [fontSize])
+
+  const toggleTheme = useCallback(() => {
     setTheme(prev => {
       const next = prev === 'light' ? 'dark' : 'light'
       localStorage.setItem(THEME_KEY, next)
@@ -40,13 +78,55 @@ export function Toolbar() {
     })
   }, [])
 
+  const increaseFont = useCallback(() => {
+    setFontSize(prev => {
+      const next = Math.min(prev + FONT_SIZE_STEP, FONT_SIZE_MAX)
+      localStorage.setItem(FONT_SIZE_KEY, String(next))
+      return next
+    })
+  }, [])
+
+  const decreaseFont = useCallback(() => {
+    setFontSize(prev => {
+      const next = Math.max(prev - FONT_SIZE_STEP, FONT_SIZE_MIN)
+      localStorage.setItem(FONT_SIZE_KEY, String(next))
+      return next
+    })
+  }, [])
+
+  const atMin = fontSize <= FONT_SIZE_MIN
+  const atMax = fontSize >= FONT_SIZE_MAX
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex gap-2">
+    <div className="fixed bottom-4 right-4 z-50 flex gap-1.5">
+      {/* 字体缩小 */}
       <button
         type="button"
-        onClick={toggle}
-        className="rounded border px-3 py-1.5 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body)"
+        onClick={decreaseFont}
+        disabled={atMin}
+        title={t('toolbar.font_smaller', { size: fontSize })}
+        className={BTN_STYLE}
+      >
+        A⁻
+      </button>
+
+      {/* 字体放大 */}
+      <button
+        type="button"
+        onClick={increaseFont}
+        disabled={atMax}
+        title={t('toolbar.font_larger', { size: fontSize })}
+        className={BTN_STYLE}
+      >
+        A⁺
+      </button>
+
+      {/* 主题切换 */}
+      <button
+        type="button"
+        onClick={toggleTheme}
         title={theme === 'light' ? t('toolbar.switch_dark') : t('toolbar.switch_light')}
+        className={BTN_STYLE}
       >
         {theme === 'light' ? '🌙' : '☀️'}
       </button>

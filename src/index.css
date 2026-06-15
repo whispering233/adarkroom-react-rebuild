@@ -2,6 +2,9 @@
 @import "./styles/tokens.css";
 
 /* ===== 全局重置 ===== */
+html {
+  font-size: var(--game-font-size);
+}
 body {
   margin: 0;
   background-color: var(--game-bg-primary);
@@ -21,5 +24,10 @@ body {
 
 @keyframes notifFadeIn {
   from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes narrSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }

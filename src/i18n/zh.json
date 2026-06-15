@@ -29,12 +29,6 @@
     "stranger_stops": "陌生人不再发抖...",
     "stranger_helps": "她站在火堆旁，说可以帮忙"
   },
-  "builder": {
-    "huddles": "一个陌生人蜷缩在门边",
-    "shivers_by_fire": "陌生人在火堆旁瑟瑟发抖",
-    "warms_by_fire": "陌生人在火堆旁取暖",
-    "income": "+2 木头 / 10秒（建造者）"
-  },
   "nav": {
     "room": "生火间",
     "outside": "野外",
@@ -71,7 +65,9 @@
   },
   "toolbar": {
     "switch_dark": "切换暗色模式",
-    "switch_light": "切换浅色模式"
+    "switch_light": "切换浅色模式",
+    "font_larger": "增大字体（当前 {{size}}px）",
+    "font_smaller": "减小字体（当前 {{size}}px）"
   },
   "outside": {
     "title": "寂静的森林",

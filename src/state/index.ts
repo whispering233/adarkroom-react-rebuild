@@ -16,6 +16,7 @@ export {
   incomeTick,
   loadSave,
   registerIncome,
+  pushNarrative,
   applyRecipe,
   MAX_STORE,
 } from './reducer'
@@ -32,6 +33,7 @@ export type {
   CharacterState,
   IncomeConfig,
   ResourceTickLog,
+  NarrativeEntry,
   GameData,
   ConfigData,
 } from './types'

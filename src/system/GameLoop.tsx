@@ -5,9 +5,10 @@
  *   - 火堆冷却 + 温度调节（5s）
  *   - 建造者 NPC 状态机（5s）
  *   - 收入系统 tick（1s）
- *   - 全局通知消息
+ *
+ * 叙事推送走 dispatch(pushNarrative(...))，渲染在左栏 NarrativePanel。
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useGameState,
@@ -20,18 +21,12 @@ import {
   unlockFeature,
   incomeTick,
   registerIncome,
+  pushNarrative,
   applyRecipe,
   FireLevel,
   TempLevel,
 } from '../state'
 import { CONFIG } from '../config'
-
-// ─── 通知消息 ─────────────────────────────────────────────
-
-interface Notification {
-  id: number
-  text: string
-}
 
 // ─── 组件 ─────────────────────────────────────────────────
 
@@ -45,18 +40,6 @@ export function GameLoop() {
   useEffect(() => {
     stateRef.current = state
   })
-
-  // ── 通知系统 ────────────────────────────────────────
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const notifIdRef = useRef(0)
-
-  const addNotification = useCallback((text: string) => {
-    const id = ++notifIdRef.current
-    setNotifications((prev) => [...prev, { id, text }])
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id))
-    }, CONFIG.NOTIFICATION_DURATION)
-  }, [])
 
   // ═══════════════════════════════════════════════════════
   //  环境定时器 — 火堆冷却 + 温度调节（每 5 秒）
@@ -111,7 +94,7 @@ export function GameLoop() {
       // 0 → 1：火堆亮起
       if (lvl === 0 && fire >= FireLevel.Flickering) {
         dispatch(builderAdvance(1))
-        addNotification(t('room.stranger_arrives'))
+        dispatch(pushNarrative(t('room.stranger_arrives')))
 
         // 30 秒后解锁森林
         setTimeout(() => {
@@ -120,7 +103,7 @@ export function GameLoop() {
             forestUnlockedRef.current = true
             dispatch(unlockFeature('location.outside'))
             dispatch(applyRecipe(draft => { draft.stores.wood += CONFIG.STRANGER_GIFT_WOOD }))
-            addNotification(t('room.stranger_gives_wood'))
+            dispatch(pushNarrative(t('room.stranger_gives_wood')))
           }
         }, CONFIG.FOREST_UNLOCK_DELAY)
         return
@@ -129,21 +112,21 @@ export function GameLoop() {
       // 1 → 2：温度达到 Warm
       if (lvl === 1 && temp >= TempLevel.Warm) {
         dispatch(builderAdvance(2))
-        addNotification(t('room.stranger_shivers'))
+        dispatch(pushNarrative(t('room.stranger_shivers')))
         return
       }
 
       // 2 → 3：仍然温暖
       if (lvl === 2 && temp >= TempLevel.Warm) {
         dispatch(builderAdvance(3))
-        addNotification(t('room.stranger_stops'))
+        dispatch(pushNarrative(t('room.stranger_stops')))
         return
       }
 
       // 3 → 4：自动推进
       if (lvl === 3) {
         dispatch(builderAdvance(4))
-        addNotification(t('room.stranger_helps'))
+        dispatch(pushNarrative(t('room.stranger_helps')))
         dispatch(registerIncome('builder', CONFIG.BUILDER_INCOME))
         return
       }
@@ -164,21 +147,6 @@ export function GameLoop() {
     return () => clearInterval(id)
   }, [dispatch])
 
-  // ═══════════════════════════════════════════════════════
-  //  渲染：通知栏
-  // ═══════════════════════════════════════════════════════
-  if (notifications.length === 0) return null
-
-  return (
-    <div className="px-4 pt-3 space-y-2 w-full max-w-sm mx-auto">
-      {notifications.map((n) => (
-        <div
-          key={n.id}
-          className="rounded border border-gray-700/50 bg-gray-900/60 px-4 py-2 font-mono text-sm text-gray-300 animate-[notifFadeIn_0.3s_ease-out]"
-        >
-          {n.text}
-        </div>
-      ))}
-    </div>
-  )
+  // GameLoop 不渲染 UI — 叙事由 NarrativePanel 负责
+  return null
 }

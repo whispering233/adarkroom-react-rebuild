@@ -135,6 +135,18 @@ export interface ConfigData {
   hyperMode: boolean
 }
 
+// ─── 叙事日志 ────────────────────────────────────────────
+
+/** 单条叙事文本 */
+export interface NarrativeEntry {
+  /** 自增 ID（用于 React key） */
+  id: number
+  /** 已解析的 i18n 文本 */
+  text: string
+  /** 产生时的 tick */
+  tick: number
+}
+
 // ─── 资源变更日志 ────────────────────────────────────────
 
 /** 单 tick 内所有资源的净变化 */
@@ -176,6 +188,10 @@ export interface GameState {
   cooldown: Record<string, number>
   /** 每个 tick 的净资源日志（滑动窗口，用于计算 delta 面板） */
   resourceLog: ResourceTickLog[]
+  /** 叙事日志（上限 50 条，新条目在前） */
+  narrativeLog: NarrativeEntry[]
+  /** 叙事自增 ID */
+  _nextNarrativeId: number
   /** 当前 tick 内尚未 flush 的累加 delta */
   _pendingDeltas: Record<string, number>
   /** 全局逻辑 tick 计数器（秒） */
@@ -235,6 +251,8 @@ export const INITIAL_STATE: GameState = {
   cooldown: {},
   resourceLog: [],
   _pendingDeltas: {},
+  narrativeLog: [],
+  _nextNarrativeId: 1,
   _globalTick: 0,
   version: 1.3,
 }
