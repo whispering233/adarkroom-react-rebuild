@@ -230,7 +230,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
     expect(INITIAL_STATE.stores.wood).toBe(0)
     expect(INITIAL_STATE.game.fire).toBe(FireLevel.Dead)
     expect(INITIAL_STATE.game.temperature).toBe(TempLevel.Freezing)
-    expect(INITIAL_STATE.game.builder.level).toBe(-1)
+    expect(INITIAL_STATE.game.builder.level).toBe(0)
     expect(INITIAL_STATE.character.health).toBe(100)
     expect(INITIAL_STATE.config.soundOn).toBe(true)
   })

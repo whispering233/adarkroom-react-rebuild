@@ -202,7 +202,7 @@ export const INITIAL_STATE: GameState = {
   game: {
     fire: FireLevel.Dead,
     temperature: TempLevel.Freezing,
-    builder: { level: -1 },
+    builder: { level: 0 },
     buildings: {},
     population: 0,
     workers: {},

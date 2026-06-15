@@ -66,7 +66,8 @@
     "energy_cell": "energy cell",
     "medicine": "medicine",
     "hypo": "hypo",
-    "stim": "stim"
+    "stim": "stim",
+    "no_income": "no active income sources"
   },
   "toolbar": {
     "switch_dark": "Switch to Dark Mode",

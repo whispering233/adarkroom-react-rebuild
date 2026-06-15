@@ -19,6 +19,7 @@ import {
   builderAdvance,
   unlockFeature,
   incomeTick,
+  registerIncome,
   applyRecipe,
   FireLevel,
   TempLevel,
@@ -103,8 +104,8 @@ export function GameLoop() {
       const temp = s.game.temperature
       const lvl = s.game.builder.level
 
-      // Level -1：初始等待，什么都不做
-      if (lvl === -1) return
+      // Level 0：等待火堆亮起，什么都不做
+      if (lvl === 0 && fire < FireLevel.Flickering) return
 
       // 0 → 1：火堆亮起
       if (lvl === 0 && fire >= FireLevel.Flickering) {
@@ -142,12 +143,10 @@ export function GameLoop() {
       if (lvl === 3) {
         dispatch(builderAdvance(4))
         addNotification(t('room.stranger_helps'))
-        dispatch(applyRecipe(draft => {
-          draft.income.builder = {
-            delay: 10,
-            stores: { wood: 2 },
-            timeLeft: 10,
-          }
+        dispatch(registerIncome('builder', {
+          delay: 10,
+          stores: { wood: 2 },
+          timeLeft: 10,
         }))
         return
       }

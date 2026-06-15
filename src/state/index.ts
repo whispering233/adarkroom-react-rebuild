@@ -15,6 +15,7 @@ export {
   unlockFeature,
   incomeTick,
   loadSave,
+  registerIncome,
   applyRecipe,
   MAX_STORE,
 } from './reducer'

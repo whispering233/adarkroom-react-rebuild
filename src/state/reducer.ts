@@ -9,7 +9,7 @@
  *   2. 草稿回调 — 组件直接传 (draft) => { draft.xxx = yyy }，用于一次性操作
  */
 
-import type { GameState } from './types'
+import type { GameState, IncomeConfig } from './types'
 import { FireLevel, TempLevel } from './types'
 
 // ─── 常量 ────────────────────────────────────────────────
@@ -35,6 +35,8 @@ export type GameAction =
   | { type: 'INCOME_TICK' }
   // ── 存档加载 ──
   | { type: 'LOAD_SAVE'; state: GameState }
+  // ── 注册收入来源（幂等：同一 key 只注册一次） ──
+  | { type: 'REGISTER_INCOME'; key: string; config: IncomeConfig }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
 
@@ -123,6 +125,16 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       return action.state
     }
 
+    // ── 注册收入来源 ──────────────────────────────
+
+    case 'REGISTER_INCOME': {
+      // 幂等：key 不存在才注册，避免覆盖已有配置
+      if (!(action.key in draft.income)) {
+        draft.income[action.key] = action.config
+      }
+      break
+    }
+
     // ── 通用草稿回调 ──────────────────────────────────
 
     case 'APPLY_RECIPE': {
@@ -164,6 +176,19 @@ export const loadSave = (state: GameState): GameAction => ({
  * 通用草稿回调 action — 用于一次性资源/状态修改。
  * 范例：dispatch(applyRecipe(d => { d.stores.wood += 10 }))
  */
+/**
+ * 注册收入来源（幂等）。
+ * 范例：dispatch(registerIncome('builder', { delay: 10, stores: { wood: 2 }, timeLeft: 10 }))
+ */
+export const registerIncome = (
+  key: string,
+  config: IncomeConfig,
+): GameAction => ({
+  type: 'REGISTER_INCOME',
+  key,
+  config,
+})
+
 export const applyRecipe = (
   recipe: (draft: GameState) => void,
 ): GameAction => ({
