@@ -51,6 +51,7 @@ export function Button({
 
   // 冷却剩余（由 reducer INCOME_TICK 驱动）
   const cooldownLeft = state.cooldown[id] ?? 0
+  const cooldownActive = id in state.cooldown && cooldown > 0
 
   // 资源是否足够
   const hasEnoughResources =
@@ -82,7 +83,7 @@ export function Button({
         className={`${BASE_STYLE} ${styles.base} ${className}`}
       >
         {/* 冷却进度条（倒空式 100%→0%，transition: width 1s linear） */}
-        {cooldownLeft > 0 && (
+        {cooldownActive && (
           <span
             className={`absolute inset-y-0 left-0 ${styles.progress}`}
             style={{ width: `${remainingPct}%` }}

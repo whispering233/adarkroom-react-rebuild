@@ -145,9 +145,12 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       // ②.5 冷却递减 + 延迟奖励发放
       for (const [key, remaining] of Object.entries(draft.cooldown)) {
         const next = remaining - 1
-        if (next <= 0) {
+        if (next < 0) {
+          // 已经归零过，清理
           delete draft.cooldown[key]
-          // 发放关联的延迟奖励
+        } else if (next === 0) {
+          // 刚好归零：设为 0（进度条 CSS 过渡到 0%）+ 发放奖励
+          draft.cooldown[key] = 0
           const reward = draft.pendingRewards[key]
           if (reward) {
             for (const [res, delta] of Object.entries(reward.stores)) {
