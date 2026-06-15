@@ -34,7 +34,7 @@ export interface ButtonProps {
 
 /** 基础按钮样式（CSS Token 引用，自动适配浅色/暗色主题） */
 const BASE_STYLE =
-  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-(--game-btn-hover-bg) hover:shadow-(--game-accent-glow)'
+  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm min-w-[160px] text-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-(--game-btn-hover-bg) hover:shadow-(--game-accent-glow)'
 
 export function Button({
   id,
@@ -68,10 +68,6 @@ export function Button({
     onClick()
   }, [isDisabled, onClick])
 
-  // 显示文字：冷却时附加秒数
-  const displayText =
-    cooldownLeft > 0 ? `${text} (${cooldownLeft}s)` : text
-
   // 倒空进度条：剩余百分比
   const remainingPct =
     cooldown > 0 ? (cooldownLeft / cooldown) * 100 : 0
@@ -94,7 +90,7 @@ export function Button({
         )}
 
         {/* 按钮文字 */}
-        <span className="relative z-10">{displayText}</span>
+        <span className="relative z-10">{text}</span>
       </button>
     </div>
   )

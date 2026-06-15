@@ -1,8 +1,8 @@
 /**
  * StoresPanel — 资源显示面板（右栏）
  *
- * 资源分类后纵向排列，每行显示类目、数值、瞬时变化率。
- * delta 基于 resourceLog 滑动窗口（最近 10s）计算，每 tick 一条 entry。
+ * 资源分类后纵向排列，每行显示类目、数值、趋势箭头。
+ * 趋势基于 resourceLog 滑动窗口（最近 10 tick）的总变化量。
  */
 import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
@@ -10,7 +10,7 @@ import type { ResourceTickLog } from '../state'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
-/** delta 滑动窗口大小（秒） */
+/** 趋势滑动窗口大小（tick 数） */
 const DELTA_WINDOW = 10
 
 // ─── 工具函数 ─────────────────────────────────────────────
@@ -26,10 +26,10 @@ function resI18nKey(rawKey: string): string {
 }
 
 /**
- * 基于 resourceLog（per-tick）滑动窗口计算每个资源的净变化率（delta/秒）。
- * 窗口内各 tick entry 的 deltas.* 直接求和后归一化。
+ * 基于 resourceLog（per-tick）滑动窗口计算每个资源的净变化趋势。
+ * 返回窗口内的总变化量（非速率），配合方向箭头 ↑/↓ 显示。
  */
-function computeDeltas(
+function computeTrends(
   log: ResourceTickLog[],
   currentTick: number,
 ): Record<string, number> {
@@ -37,29 +37,21 @@ function computeDeltas(
 
   const cutoff = currentTick - DELTA_WINDOW
   const sums: Record<string, number> = {}
-  let ticksInWindow = 0
 
   for (const entry of log) {
     if (entry.tick <= cutoff) continue
-    ticksInWindow++
     for (const [key, d] of Object.entries(entry.deltas)) {
       sums[key] = (sums[key] ?? 0) + d
     }
   }
 
-  // 用实际窗口 tick 数做分母（至少 1，避免除零）
-  const span = Math.max(ticksInWindow, 1)
-
-  const deltas: Record<string, number> = {}
-  for (const [key, total] of Object.entries(sums)) {
-    deltas[key] = total / span
-  }
-  return deltas
+  return sums
 }
 
-function formatDelta(delta: number): string {
-  const sign = delta > 0 ? '+' : ''
-  return `${sign}${delta.toFixed(2)}/s`
+function formatTrend(total: number): string {
+  const arrow = total > 0 ? '↑' : '↓'
+  const sign = total > 0 ? '+' : ''
+  return `${sign}${total.toFixed(1)} ${arrow}`
 }
 
 // ─── 资源分类 ─────────────────────────────────────────────
@@ -91,7 +83,7 @@ export function StoresPanel() {
   const { t } = useTranslation()
   const state = useGameState()
   const stores = state.stores
-  const deltas = computeDeltas(state.resourceLog, state._globalTick)
+  const trends = computeTrends(state.resourceLog, state._globalTick)
 
   const dynamicKeys = Object.keys(stores).filter(
     k => !KNOWN_KEYS.has(k) && (stores[k] ?? 0) > 0,
@@ -105,7 +97,7 @@ export function StoresPanel() {
 
   function renderRow(key: string, label: string) {
     const value = stores[key] ?? 0
-    const delta = deltas[key]
+    const trend = trends[key]
 
     return (
       <div
@@ -117,13 +109,13 @@ export function StoresPanel() {
           <span className="text-(--game-accent) text-right min-w-[3ch]">
             {value}
           </span>
-          {delta !== undefined && delta !== 0 && (
+          {trend !== undefined && trend !== 0 && (
             <span
               className={`text-xs ${
-                delta > 0 ? 'text-blue-500' : 'text-red-500'
+                trend > 0 ? 'text-blue-500' : 'text-red-500'
               }`}
             >
-              {formatDelta(delta)}
+              {formatTrend(trend)}
             </span>
           )}
         </span>
@@ -159,7 +151,7 @@ export function StoresPanel() {
         </div>
       )}
 
-      {Object.keys(deltas).length === 0 && (
+      {Object.keys(trends).length === 0 && (
         <p className="text-xs text-(--game-text-muted) italic">
           {t('stores.no_income')}
         </p>
