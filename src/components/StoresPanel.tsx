@@ -50,9 +50,9 @@ function computeTrends(
 }
 
 function formatTrend(total: number): string {
-  const arrow = total > 0 ? '↑' : '↓'
+  const arrow = total > 0 ? '↑' : total < 0 ? '↓' : ''
   const sign = total > 0 ? '+' : ''
-  return `${sign}${total.toFixed(1)} ${arrow}`
+  return `${sign}${total.toFixed(1)}${arrow} ${DELTA_WINDOW}t`
 }
 
 // ─── 资源分类 ─────────────────────────────────────────────
@@ -83,7 +83,9 @@ export function StoresPanel() {
 
   function renderRow(key: string, label: string) {
     const value = stores[key] ?? 0
-    const trend = trends[key]
+    const trend = trends[key] ?? 0
+    const isPositive = trend > 0
+    const isNegative = trend < 0
 
     return (
       <div
@@ -95,15 +97,13 @@ export function StoresPanel() {
           <span className="text-(--game-accent) text-right min-w-[3ch]">
             {value}
           </span>
-          {trend !== undefined && trend !== 0 && (
-            <span
-              className={`text-xs ${
-                trend > 0 ? 'text-blue-500' : 'text-red-500'
-              }`}
-            >
-              {formatTrend(trend)}
-            </span>
-          )}
+          <span
+            className={`text-xs min-w-[6em] text-right ${
+              isPositive ? 'text-blue-500' : isNegative ? 'text-red-500' : 'text-(--game-text-muted)'
+            }`}
+          >
+            {formatTrend(trend)}
+          </span>
         </span>
       </div>
     )
@@ -135,12 +135,6 @@ export function StoresPanel() {
             {dynamicKeys.map(key => renderRow(key, key))}
           </div>
         </div>
-      )}
-
-      {Object.keys(trends).length === 0 && (
-        <p className="text-xs text-(--game-text-muted) italic">
-          {t('stores.no_income')}
-        </p>
       )}
     </div>
   )
