@@ -23,7 +23,7 @@
 
 ## Architecture
 
-当前已实现（阶段 1-4）：
+当前已实现：
 
 - **`src/state/`** — 全局状态管理层，替代原项目 `$SM` + `State`
   - `types.ts` — 类型定义 + const-object 枚举（`FireLevel`/`TempLevel`/`RoomName`）+ `INITIAL_STATE`；`Stores` 接口从 `RESOURCES` 配置派生（`extends Record<ResourceId, number>`，新增资源只需在 config.ts 加一行）；`ResourceTickLog`（per-tick 聚合日志）、`NarrativeEntry`（叙事日志条目）、`PendingReward`（延迟奖励）、`IncomeConfig`、`CharacterState`、`GameData`
@@ -32,13 +32,14 @@
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（20 条，含叙事生成验证）
+  - `craftables/__tests__/craftables.test.ts` — 解锁评估 + 建造 action 单元测试（11 条）
 - **`src/config.ts`** — 游戏数值统一配置 + `RESOURCES` 资源注册表（17 项，4 分类）+ `NARRATIVE_LOG_MAX` / `RESOURCE_LOG_MAX` 裁剪窗口 + `getResourceCategories()` / `getInitialStores()` 辅助函数
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统。`dt = 100ms × speed`，倍速加速
   - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`，订阅通知。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
 - **`src/i18n/`** — i18next 国际化（`zh.json`/`en.json`），默认中文，`LanguageDetector` 自动匹配浏览器语言；`index.ts` 初始化 i18next + react-i18next
 - **`src/components/`** — 通用 UI 组件
-  - `Button.tsx` — 通用操作按钮：冷却由 `state.cooldown[id]` 驱动，倒空式进度条（CSS transition），hover 时按钮下方弹出结构化成本浮层（资源│数量），label/count 左右对齐，纯文字居中。复杂样式提取到 `Button.module.css`
+  - `Button.tsx` — 通用操作按钮：冷却由 `state.cooldown[id]` 驱动，倒空式进度条（CSS transition），hover 时弹出成本浮层（资源│数量）。样式提取到 `Button.module.css`
   - `CollapsibleSection.tsx` — 可折叠区块（▶/▼ 箭头，默认折叠）
   - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
   - `NarrativePanel.tsx` — 左栏叙事区：顶部状态条 + 双区固定 grid（手动叙事 / 资源变化），各区独立滚动 + 旧条目渐隐。delta 由 `formatDelta()` 用 i18n 模板渲染，样式提纯到 `NarrativePanel.module.css`
@@ -83,3 +84,5 @@
 - `.codegraph/` — Codegraph 缓存索引，git-ignored，可再生
 - `public/` — 静态资源（`favicon.svg`、`icons.svg`），不经构建处理直接复制
 - Vite `base: './'` — 构建产物使用相对路径，支持任意目录静态部署
+- `pnpm-workspace.yaml` — `allowBuilds: { esbuild: true }`，允许为 esbuild 原生依赖启用构建
+- `src/assets/` — 资产预留目录（当前为空）
