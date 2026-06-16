@@ -19,7 +19,9 @@ export const CRAFTABLES: Record<string, CraftableDef> = {
 export type { CraftableDef, CraftableType, UnlockCondition } from './types'
 export { Effects } from './effects'
 export { evaluateUnlock } from './unlock'
+export { computeButtonState } from './buttonState'
 export type { UnlockState } from './unlock'
+export type { ButtonState } from './buttonState'
 
 /**
  * 创建建造 action — 扣除资源 + 增加建筑 + 触发 onBuild 副作用。

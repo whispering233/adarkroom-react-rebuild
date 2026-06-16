@@ -1,20 +1,97 @@
 /**
- * Button — 按钮颜色 CSS Module
+ * Button — 按钮样式 CSS Module
  *
  * 颜色通过 CSS Token 引用，自动适配浅色/暗色主题。
- * 进度条宽度由组件通过 inline style 注入。
+ * 复杂样式从此提取，避免组件中长 className。
  */
 
-/* 按钮基础色 */
+/* ── 按钮基础 ──────────────────────────────────────────── */
+
 .base {
   color: var(--game-btn-text);
   background-color: var(--game-btn-bg);
   border-color: var(--game-btn-border);
 }
 
-/* 冷却进度条（倒空式：从左向右收缩） */
+/* ── 冷却进度条（倒空式：从左向右收缩） ──────────────── */
+
 .progress {
   background-color: var(--game-btn-hover-bg);
-  /* 平滑过渡：宽度每次变化时用 1s linear 插值，与 1s 间隔的 cooldownLeft 更新节奏匹配 */
   transition: width var(--game-cooldown-step) ease-in-out;
+}
+
+/* ── 按钮内部文本（左右对齐） ─────────────────────────── */
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.labelName {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.labelCount {
+  text-align: right;
+  opacity: 0.7;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
+.centerText {
+  position: relative;
+  z-index: 10;
+}
+
+/* ── hover 工具浮层 ───────────────────────────────────── */
+
+.tooltip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 0.25rem;
+  z-index: 20;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  background-color: var(--game-bg-primary);
+  border: 1px solid var(--game-border);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--game-text-muted);
+}
+
+.tooltipVisible {
+  opacity: 1;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tooltipName {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tooltipAmount {
+  text-align: right;
+  color: var(--game-accent);
+  white-space: nowrap;
+}
+
+/* Tailwind 无法直接表达的：group hover 触发 tooltip */
+.wrapper:hover .tooltip {
+  opacity: 1;
 }

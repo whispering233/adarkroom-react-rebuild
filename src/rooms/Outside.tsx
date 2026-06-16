@@ -24,7 +24,7 @@ export function Outside() {
   }, [dispatch])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full text-center px-4 gap-6">
+    <div className="flex flex-col items-start justify-start text-left px-4 gap-6 py-8">
       {/* 场景描述 */}
       <p className="font-mono text-sm text-gray-500 max-w-md">
         {t('outside.desc')}

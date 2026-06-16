@@ -27,6 +27,14 @@ export function evaluateUnlock(
   const { unlock } = craftable
   const cost = craftable.cost(state)
 
+  // 已建造过至少一次 → 永不隐藏，只区分能否再建
+  if ((state.game.buildings[craftable.id] ?? 0) > 0) {
+    for (const [key, amount] of Object.entries(cost)) {
+      if ((state.stores[key] ?? 0) < amount) return 'locked'
+    }
+    return 'available'
+  }
+
   // ① 建造者等级
   const minBuilder = unlock.builderLevel ?? 4
   if (state.game.builder.level < minBuilder) return 'hidden'

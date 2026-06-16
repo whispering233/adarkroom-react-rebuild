@@ -19,8 +19,8 @@
     "fire_is": "火堆",
     "dead_icon": "❄️ 熄灭",
     "room_is": "房间",
-    "light_fire": "点火（5 木头）",
-    "stoke_fire": "添柴（1 木头）",
+    "light_fire": "点火",
+    "stoke_fire": "添柴",
     "gather_wood": "伐木",
     "fire_max": "火堆已经最旺了",
     "stranger_arrives": "一个衣衫褴褛的陌生人踉跄着推开门...",
@@ -61,7 +61,13 @@
     "medicine": "药剂",
     "hypo": "注射剂",
     "stim": "兴奋剂",
+    "population": "人口",
     "no_income": "暂无明显收入来源"
+  },
+  "panel": {
+    "buildings": "建筑物",
+    "stores": "库存",
+    "weapons": "武器"
   },
   "toolbar": {
     "switch_dark": "切换暗色模式",

@@ -1,3 +1,8 @@
 /**
- * NarrativePanel — 剧情面板 CSS Module
+ * NarrativePanel — 叙事条目样式
  */
+.entry {
+  font-size: 0.7rem;
+  line-height: 1.6;
+  transition: opacity 1s;
+}

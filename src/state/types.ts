@@ -201,8 +201,10 @@ export interface GameState {
   pendingRewards: Record<string, PendingReward>
   /** 每个 tick 的净资源日志（滑动窗口，用于计算 delta 面板） */
   resourceLog: ResourceTickLog[]
-  /** 叙事日志（上限 50 条，新条目在前） */
+  /** 叙事日志（手动推送，上限 50 条，新条目在前） */
   narrativeLog: NarrativeEntry[]
+  /** 资源变更日志（自动生成，上限 50 条，新条目在前） */
+  deltaLog: NarrativeEntry[]
   /** 叙事自增 ID */
   _nextNarrativeId: number
   /** 当前 tick 内尚未 flush 的累加 delta */
@@ -251,6 +253,7 @@ export const INITIAL_STATE: GameState = {
   _pendingDeltas: {},
   _pendingSources: [],
   narrativeLog: [],
+  deltaLog: [],
   _nextNarrativeId: 1,
   _globalTick: 0,
   version: 1.3,

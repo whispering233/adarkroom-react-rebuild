@@ -19,8 +19,8 @@
     "fire_is": "the fire is",
     "dead_icon": "❄️ dead",
     "room_is": "the room is",
-    "light_fire": "light fire (5 wood)",
-    "stoke_fire": "stoke fire (1 wood)",
+    "light_fire": "light fire",
+    "stoke_fire": "stoke fire",
     "gather_wood": "gather wood",
     "fire_max": "fire is already roaring",
     "stranger_arrives": "a ragged stranger stumbles through the door...",
@@ -61,7 +61,13 @@
     "medicine": "medicine",
     "hypo": "hypo",
     "stim": "stim",
+    "population": "population",
     "no_income": "no active income sources"
+  },
+  "panel": {
+    "buildings": "Buildings",
+    "stores": "Stores",
+    "weapons": "Weapons"
   },
   "toolbar": {
     "switch_dark": "Switch to Dark Mode",

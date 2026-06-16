@@ -31,3 +31,31 @@ body {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== 滚动条 — 默认隐藏，hover 时显示（含侧栏内层滚动元素） ===== */
+aside,
+aside * {
+  scrollbar-width: none;
+}
+aside::-webkit-scrollbar,
+aside *::-webkit-scrollbar {
+  width: 0;
+}
+aside:hover,
+aside:hover * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--game-text-muted) transparent;
+}
+aside:hover::-webkit-scrollbar,
+aside:hover *::-webkit-scrollbar {
+  width: 4px;
+}
+aside:hover::-webkit-scrollbar-thumb,
+aside:hover *::-webkit-scrollbar-thumb {
+  background: var(--game-text-muted);
+  border-radius: 2px;
+}
+aside:hover::-webkit-scrollbar-track,
+aside:hover *::-webkit-scrollbar-track {
+  background: transparent;
+}

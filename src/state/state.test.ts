@@ -272,7 +272,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
 
     const s1 = await runReducer(s0, incomeTick())
     // 应生成一条叙事
-    const latest = s1.narrativeLog[0]
+    const latest = s1.deltaLog[0]
     expect(latest).toBeDefined()
     expect(latest.delta).toBeDefined()
     expect(latest.delta!.source).toBe('income.builder')
@@ -289,10 +289,10 @@ describe('state 模块 (useImmerReducer 版)', () => {
         d.stores.wood = 100
       }),
     )
-    const before = s0.narrativeLog.length
+    const before = s0.deltaLog.length
     const s1 = await runReducer(s0, incomeTick())
     // 叙条目数不应因纯 _pendingDeltas 而增加（只有 _pendingSources 才生成叙事）
-    expect(s1.narrativeLog.length).toBe(before)
+    expect(s1.deltaLog.length).toBe(before)
   })
 
   it('INCOME_TICK 清空 _pendingSources', async () => {

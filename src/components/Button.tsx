@@ -1,43 +1,39 @@
 /**
  * Button — 通用游戏操作按钮
  *
- * 冷却由 GameState.cooldown 驱动（INCOME_TICK 每秒递减），
- * 不再使用本地 setInterval，与游戏主循环、加速系统同步。
+ * 冷却由 GameState.cooldown 驱动（INCOME_TICK 每秒递减）。
  *
  * 支持：
- *   - 倒空式平滑进度条（100%→0%，CSS transition）
- *   - 资源消耗检查（自动禁用）
- *   - 延迟奖励（冷却结束后由 reducer 自动发放）
+ *   - label + count 左右对齐布局（用于建造按钮）
+ *   - cost 自动生成结构化 hover tooltip（资源名│数量，一行一项）
+ *   - 倒空式平滑进度条（CSS transition）
+ *   - 复杂样式提取到 Button.module.css
  */
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
 import styles from './Button.module.css'
 
 export interface ButtonProps {
-  /** 按钮唯一标识（用于冷却状态追踪，对应 cooldown[id]） */
   id: string
-  /** 按钮文字 */
-  text: string
-  /** 点击回调（注意：延迟奖励模式下，此回调应只做资源消耗，奖励走 startCooldown reward） */
+  /** 按钮名称（左对齐，优先于 text） */
+  label?: string
+  /** 数量显示（右对齐，如 "2/10"） */
+  count?: string
+  /** 按钮文字（无 label 时的备选，居中） */
+  text?: string
   onClick: () => void
-  /** 冷却秒数（默认 0 = 无冷却） */
   cooldown?: number
-  /** 消耗资源表（如 { wood: 5 }），不足时按钮自动禁用 */
   cost?: Record<string, number>
-  /** 强制禁用 */
   disabled?: boolean
-  /** 悬停提示文字 */
   tooltip?: string
-  /** 额外 CSS class */
   className?: string
 }
 
-/** 基础按钮样式（CSS Token 引用，自动适配浅色/暗色主题） */
-const BASE_STYLE =
-  'relative cursor-pointer rounded border px-5 py-2 font-mono text-sm min-w-[160px] text-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden hover:bg-(--game-btn-hover-bg) hover:shadow-(--game-accent-glow)'
-
 export function Button({
   id,
+  label,
+  count,
   text,
   onClick,
   cooldown = 0,
@@ -46,43 +42,48 @@ export function Button({
   tooltip,
   className = '',
 }: ButtonProps) {
+  const { t } = useTranslation()
   const state = useGameState()
   const stores = state.stores
 
-  // 冷却剩余（由 reducer INCOME_TICK 驱动）
   const cooldownLeft = state.cooldown[id] ?? 0
   const cooldownActive = id in state.cooldown && cooldown > 0
 
-  // 资源是否足够
   const hasEnoughResources =
     !cost || Object.entries(cost).every(
       ([resource, needed]) => (stores[resource] ?? 0) >= needed,
     )
 
-  const insufficientResources = !hasEnoughResources
-
-  // 真正禁用
-  const isDisabled = disabled || insufficientResources || cooldownLeft > 0
+  const isDisabled = disabled || !hasEnoughResources || cooldownLeft > 0
 
   const handleClick = useCallback(() => {
     if (isDisabled) return
     onClick()
   }, [isDisabled, onClick])
 
-  // 倒空进度条：剩余百分比
-  const remainingPct =
-    cooldown > 0 ? (cooldownLeft / cooldown) * 100 : 0
+  const remainingPct = cooldown > 0 ? (cooldownLeft / cooldown) * 100 : 0
+
+  // tooltip 显示逻辑：显式 tooltip > cost 结构化列表
+  const hasTextTooltip = !!tooltip
+  const hasCostTooltip = !hasTextTooltip && cost && Object.keys(cost).length > 0
+
+  const alignClass = label != null ? 'text-left' : 'text-center'
 
   return (
-    <div className="relative" title={tooltip}>
+    <div className={`${styles.wrapper} relative group inline-block`}>
       <button
         type="button"
         id={`btn-${id}`}
         onClick={handleClick}
         disabled={isDisabled}
-        className={`${BASE_STYLE} ${styles.base} ${className}`}
+        className={`
+          relative cursor-pointer rounded border px-5 py-2 font-mono text-sm ${alignClass}
+          min-w-[172px] transition active:scale-95
+          disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden
+          ${styles.base} ${className}
+        `}
       >
-        {/* 冷却进度条（倒空式 100%→0%，transition: width 1s linear） */}
+        {/* 冷却进度条 */}
         {cooldownActive && (
           <span
             className={`absolute inset-y-0 left-0 ${styles.progress}`}
@@ -91,8 +92,40 @@ export function Button({
         )}
 
         {/* 按钮文字 */}
-        <span className="relative z-10">{text}</span>
+        {label != null ? (
+          <span className={styles.labelRow}>
+            <span className={styles.labelName}>{label}</span>
+            {count != null && (
+              <span className={styles.labelCount}>{count}</span>
+            )}
+          </span>
+        ) : (
+          <span className={styles.centerText}>{text}</span>
+        )}
       </button>
+
+      {/* cost 结构化 tooltip */}
+      {hasCostTooltip && (
+        <div className={styles.tooltip}>
+          {Object.entries(cost!).map(([key, amount]) => {
+            const nameKey = `stores.${key.replace(/ /g, '_')}`
+            const name = t(nameKey)
+            return (
+              <div key={key} className={styles.tooltipRow}>
+                <span className={styles.tooltipName}>{name}</span>
+                <span className={styles.tooltipAmount}>{amount}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 纯文本 tooltip（非 cost 场景） */}
+      {hasTextTooltip && (
+        <div className={styles.tooltip}>
+          <span>{tooltip}</span>
+        </div>
+      )}
     </div>
   )
 }

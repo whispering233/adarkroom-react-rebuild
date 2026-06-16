@@ -156,19 +156,18 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         draft._pendingDeltas = {}
       }
 
-      // ①.5 flush _pendingSources → 叙事条目（每条一个来源）
+      // ①.5 flush _pendingSources → delta 叙事条目
       for (const ds of draft._pendingSources) {
-        draft.narrativeLog.unshift({
+        draft.deltaLog.unshift({
           id: draft._nextNarrativeId++,
-          text: '', // 由 NarrativePanel 根据 delta 格式化
+          text: '',
           tick: draft._globalTick,
           delta: { source: ds.source, stores: { ...ds.stores } },
         })
       }
       draft._pendingSources = []
-      // 裁剪叙事日志
-      if (draft.narrativeLog.length > 50) {
-        draft.narrativeLog = draft.narrativeLog.slice(0, 50)
+      if (draft.deltaLog.length > CONFIG.NARRATIVE_LOG_MAX) {
+        draft.deltaLog = draft.deltaLog.slice(0, CONFIG.NARRATIVE_LOG_MAX)
       }
 
       // ② 推进全局时钟
@@ -206,8 +205,8 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       }
 
       // ④ 裁剪资源日志：保留最近 60 tick
-      if (draft.resourceLog.length > 60) {
-        draft.resourceLog = draft.resourceLog.slice(-60)
+      if (draft.resourceLog.length > CONFIG.RESOURCE_LOG_MAX) {
+        draft.resourceLog = draft.resourceLog.slice(-CONFIG.RESOURCE_LOG_MAX)
       }
       break
     }
@@ -237,8 +236,8 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         tick: draft._globalTick,
       })
       // 保留最近 50 条
-      if (draft.narrativeLog.length > 50) {
-        draft.narrativeLog = draft.narrativeLog.slice(0, 50)
+      if (draft.narrativeLog.length > CONFIG.NARRATIVE_LOG_MAX) {
+        draft.narrativeLog = draft.narrativeLog.slice(0, CONFIG.NARRATIVE_LOG_MAX)
       }
       break
     }

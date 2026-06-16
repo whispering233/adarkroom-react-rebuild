@@ -26,20 +26,20 @@ function App() {
   const Scene = SCENES[currentRoom]
 
   return (
-    <div className="grid min-h-screen grid-cols-[280px_1fr_280px]">
+    <div className="grid h-screen overflow-hidden grid-cols-[280px_1fr_280px]">
       {/* 左栏 — 剧情文本 */}
       <aside className="border-r p-4 overflow-y-auto border-(--game-border)">
         <NarrativePanel />
       </aside>
 
       {/* 中栏 — 交互操作 */}
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col h-full overflow-y-auto">
         <Header />
         <main className="flex-1 flex flex-col">
           {/* 全局游戏循环（始终挂载：定时器 + 通知） */}
           <GameLoop />
           {/* 场景区域 */}
-          <div className="flex-1 flex flex-col justify-center">
+          <div className="flex-1 flex flex-col justify-start">
             {Scene && <Scene />}
           </div>
         </main>
