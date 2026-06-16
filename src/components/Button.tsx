@@ -78,7 +78,7 @@ export function Button({
         disabled={isDisabled}
         className={`
           relative cursor-pointer rounded border px-5 py-2 font-mono text-sm ${alignClass}
-          min-w-[172px] transition active:scale-95
+          min-w-43 transition active:scale-95
           disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden
           ${styles.base} ${className}
         `}
