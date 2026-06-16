@@ -45,7 +45,7 @@ pnpm test
 │   ├── main.tsx              # React 挂载入口
 │   ├── index.css             # 全局样式 & Tailwind 指令 & 动画关键帧
 │   ├── App.tsx               # 根组件（三栏布局 + GameLoop + Toolbar）
-│   ├── config.ts             # 游戏数值集中配置
+│   ├── config.ts             # 游戏数值集中配置 + RESOURCES 资源注册表
 │   ├── state/                # 全局状态管理（Immer + Context）
 │   │   ├── types.ts          # 类型定义 + 枚举 + INITIAL_STATE
 │   │   ├── reducer.ts        # Immer reducer（modifyResource + 语义 action）
@@ -63,8 +63,15 @@ pnpm test
 │   │   ├── StoresPanel.tsx    # 右栏资源面板（趋势箭头 ↑/↓）
 │   │   └── Toolbar.tsx        # 右下角工具栏（速度/字体/主题）
 │   ├── rooms/                # 场景组件
-│   │   ├── Room.tsx           # 暗室（点火/添柴）
-│   │   └── Outside.tsx        # 野外（伐木 + 延迟奖励）
+│   │   ├── Room.tsx           # 暗室（点火/添柴 + 建造系统）
+│   │   ├── Outside.tsx        # 野外（伐木 + 延迟奖励）
+│   │   └── craftables/        # 制造系统（纯数据配置）
+│   │       ├── index.ts        # 合并导出 + buildCraftable action
+│   │       ├── types.ts        # CraftableDef / UnlockCondition 接口
+│   │       ├── buildings.ts    # 10 栋建筑配置
+│   │       ├── effects.ts      # 副作用模板（income / unlockFeature / chain）
+│   │       ├── unlock.ts       # evaluateUnlock 解锁评估器
+│   │       └── __tests__/      # 11 项单元测试
 │   ├── i18n/                 # 国际化
 │   │   ├── zh.json            # 中文翻译
 │   │   └── en.json            # 英文翻译
@@ -85,7 +92,8 @@ pnpm test
 
 - 🏠 **暗室**：点火/添柴，火堆冷却 + 温度调节
 - 🌲 **野外**：伐木（冷却 + 延迟奖励，倍速加速）
-- 👤 **建造者 NPC**：5 阶段状态机，自动添柴，解锁野外
+- 🏗️ **建造系统**：10 栋建筑（trap → armoury），动态解锁 + 成本递增 + 收入注册，纯数据驱动可扩展
+- 👤 **建造者 NPC**：5 阶段状态机，自动添柴，解锁野外和建造能力
 - ⏱ **游戏加速**：1×/2×/3× 倍速，冷却进度条动画自适应
 - 📜 **叙事日志**：事件文本时间线，新条目在上，可滚动回溯
 - 📊 **趋势面板**：资源分类显示 + 趋势箭头（滑动窗口）
@@ -100,6 +108,7 @@ pnpm test
 - 组件化的 React 架构
 - 类型安全的 TypeScript
 - 函数式状态管理（Immer + useReducer）
+- **声明式数据驱动**（RESOURCES / Craftables 配置表，新增资源/建筑只需加一行）
 - 可静态部署的 SPA
 - 响应式 UI（Tailwind + CSS Modules）
 

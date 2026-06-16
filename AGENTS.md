@@ -26,13 +26,13 @@
 当前已实现（阶段 1-4）：
 
 - **`src/state/`** — 全局状态管理层，替代原项目 `$SM` + `State`
-  - `types.ts` — 类型定义 + const-object 枚举（`FireLevel`/`TempLevel`/`RoomName`）+ `INITIAL_STATE`；`ResourceTickLog`（per-tick 聚合日志）、`NarrativeEntry`（叙事日志条目）、`PendingReward`（延迟奖励）、`IncomeConfig`、`CharacterState`、`GameData`
+  - `types.ts` — 类型定义 + const-object 枚举（`FireLevel`/`TempLevel`/`RoomName`）+ `INITIAL_STATE`；`Stores` 接口从 `RESOURCES` 配置派生（`extends Record<ResourceId, number>`，新增资源只需在 config.ts 加一行）；`ResourceTickLog`（per-tick 聚合日志）、`NarrativeEntry`（叙事日志条目）、`PendingReward`（延迟奖励）、`IncomeConfig`、`CharacterState`、`GameData`
   - `reducer.ts` — Immer draft-recipe reducer（`gameReducer(draft, action) => void`），`useImmerReducer` 驱动。`modifyResource()` 统一资源变更入口 → `_pendingDeltas` 累加 → `INCOME_TICK` 时 flush 为单条 `ResourceTickLog`。语义 action（`LIGHT_FIRE`/`STOKE_FIRE`/`BUILDER_ADVANCE`/`PUSH_NARRATIVE`/`START_COOLDOWN` 等）+ 通用 `APPLY_RECIPE` 草稿回调
   - `GameContext.tsx` — React Context + `<GameProvider>`（接受可选 `initialState`）
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（16 条）
-- **`src/config.ts`** — 游戏数值统一配置（火堆消耗、伐木产出/冷却、建造者收入、通知时长、资源上限等）
+- **`src/config.ts`** — 游戏数值统一配置（火堆消耗、伐木产出/冷却、建造者收入、通知时长、资源上限等）+ `RESOURCES` 资源注册表（17 项资源，4 分类，一处定义多处消费，`getResourceCategories()` / `getInitialStores()` 辅助函数）
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统。`dt = 100ms × speed`，倍速加速
   - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`，订阅通知。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
@@ -41,11 +41,17 @@
   - `Button.tsx` — 通用操作按钮：冷却由 `state.cooldown[id]` 驱动（无本地定时器），倒空式进度条（CSS transition `var(--game-cooldown-step)`），资源消耗自动禁用，`min-w-[160px]` 固定宽度
   - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
   - `NarrativePanel.tsx` — 左栏叙事区：顶部状态条（火堆/温度/tick 三行 flex-col）+ 叙事日志（新条目在上，旧条目渐隐，`overflow-y: auto` 可滚动）
-  - `StoresPanel.tsx` — 右栏资源面板：分类排列，趋势基于 `resourceLog` 滑动窗口（10 tick），显示绝对值 `+2.0 ↑`/`-1.0 ↓`
+  - `StoresPanel.tsx` — 右栏资源面板：分类从 `RESOURCES` 自动分组（`getResourceCategories()`），趋势基于 `resourceLog` 滑动窗口（10 tick），显示绝对值 `+2.0 ↑`/`-1.0 ↓`
   - `Toolbar.tsx` — 右下角工具栏：1×/2×/3× 速度切换、A⁻/A⁺ 字体缩放、🌙/☀️ 主题切换，均 `localStorage` 持久化
 - **`src/rooms/`** — 场景组件
-  - `Room.tsx` — 暗室场景（点火/添柴，消耗检查，火堆交互）
+  - `Room.tsx` — 暗室场景（点火/添柴 + 建造区块：builder Lv≥4 后显示，遍历 `CRAFTABLES` 调用 `evaluateUnlock` 筛选，动态渲染 `<Button>`）
   - `Outside.tsx` — 野外场景（伐木 `startCooldown` + 延迟奖励，冷却结束才到账）
+  - `craftables/` — 制造系统（纯数据配置，零组件改动可扩展）
+    - `types.ts` — `CraftableDef` 接口 + `UnlockCondition`（可组合条件：builderLevel / building / minResources / seenAllOf）
+    - `effects.ts` — 预制副作用模板：`Effects.income()` / `Effects.unlockFeature()` / `Effects.chain()`
+    - `buildings.ts` — 10 栋建筑（trap → armoury），含动态成本函数 + onBuild 副作用
+    - `unlock.ts` — `evaluateUnlock()` 纯函数，返回 `'hidden' | 'locked' | 'available'` 三态
+    - `index.ts` — 合并导出 + `buildCraftable(id)` action creator（扣资源 + 增建筑 + 跑 onBuild）
 - **`src/App.tsx`** — 根组件，三栏布局（NarrativePanel | 场景路由 `SCENES[currentRoom]` | StoresPanel）+ `<GameLoop/>`（return null，不渲染 UI）+ `<Toolbar/>`
 - **`src/index.css`** — `@import "tailwindcss"` + `@import "./styles/tokens.css"` + 动画关键帧（`roomFlicker`/`notifFadeIn`/`narrSlideIn`）+ `html { font-size: var(--game-font-size) }`
 - **`src/styles/tokens.css`** — CSS 设计 Token（`var(--game-*)`），浅色/暗色主题通过 `[data-theme="dark"]` 切换，含 `--game-font-size`/`--game-cooldown-step`
@@ -63,7 +69,7 @@
 - **主题**：浅色默认，`[data-theme="dark"]` 暗色，偏好存 `localStorage` key `adr-theme`
 - **速度**：`localStorage` key `adr-speed`，`--game-cooldown-step` CSS 变量同步更新
 - **字体**：`localStorage` key `adr-font-size`，`--game-font-size` CSS 变量驱动，步长 1px，范围 12-24px
-- **i18n**：`useTranslation()` + `t('namespace.key')` 查表，fallback `zh`
+- **数据驱动**：资源和制造物均走纯数据配置 — `RESOURCES` 注册表（新增资源加一行 → 类型/初始值/UI 分类自动生效）、`CRAFTABLES` 配置表（新增建筑/武器加一条 → Room UI 自动渲染）。`evaluateUnlock()` 声明式解锁条件评估
 - **导入**：`verbatimModuleSyntax`，显式 `type` 导入
 - **严格模式**：`noUnusedLocals` / `noUnusedParameters` / `noFallthroughCasesInSwitch` / `erasableSyntaxOnly`（tsconfig 全部开启）
 - **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`）
