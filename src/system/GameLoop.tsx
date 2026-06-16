@@ -72,27 +72,31 @@ export function GameLoop() {
 
       // ── 收入 tick（每 1000 game-ms） ──
       accum.income += dt
+      let incomeTicks = 0
       while (accum.income >= CONFIG.INCOME_TICK_INTERVAL) {
         accum.income -= CONFIG.INCOME_TICK_INTERVAL
         dispatch(incomeTick())
+        incomeTicks += 1
+      }
 
-        // ── 人口增长倒计时 ──
+      // ── 人口增长倒计时（在 income ticks 批量处理完后统一推进）──
+      if (incomeTicks > 0) {
         const s0 = stateRef.current
         const huts = s0.game.buildings['hut'] ?? 0
         if (huts > 0) {
-          if (popTimer <= 0) {
-            // 首次或重新调度：随机 30~180 秒
-            const [min, max] = CONFIG.POP_INCREASE_INTERVAL
-            popTimer = Math.floor(Math.random() * (max - min)) + min
+          for (let i = 0; i < incomeTicks; i++) {
+            if (popTimer <= 0) {
+              const [min, max] = CONFIG.POP_INCREASE_INTERVAL
+              popTimer = Math.floor(Math.random() * (max - min)) + min
+            }
+            popTimer -= 1
           }
-          popTimer -= 1
           if (popTimer <= 0) {
             const maxPop = huts * CONFIG.HUT_ROOM
             const space = maxPop - s0.game.population
             if (space > 0) {
               const num = Math.max(1, Math.floor(Math.random() * (space / 2) + space / 2))
               dispatch(increasePopulation(num))
-              // 根据人数推送不同叙事
               if (num === 1) {
                 dispatch(pushNarrative(t('outside.pop_increase_1')))
               } else if (num < 5) {

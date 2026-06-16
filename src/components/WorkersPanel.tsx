@@ -22,10 +22,6 @@ export function WorkersPanel() {
   const { population, workers } = state.game
   const gatherers = getNumGatherers(state)
   const workerEntries = Object.entries(workers)
-
-  // 无人口 → 不渲染（采集者行也无需显示）
-  if (population <= 0) return null
-
   const hasGatherers = gatherers > 0
 
   const handleAssign = useCallback((role: string, count: number) => {
@@ -35,6 +31,9 @@ export function WorkersPanel() {
   const handleUnassign = useCallback((role: string, count: number) => {
     dispatch(unassignWorker(role, count))
   }, [dispatch])
+
+  // 无人口 → 不渲染（采集者行也无需显示）
+  if (population <= 0) return null
 
   return (
     <div className={styles.panel}>

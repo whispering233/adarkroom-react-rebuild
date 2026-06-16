@@ -26,7 +26,7 @@ function App() {
   const Scene = SCENES[currentRoom]
 
   return (
-    <div className="grid h-screen overflow-hidden grid-cols-[280px_1fr_280px]">
+    <div className="grid h-screen overflow-hidden grid-cols-[1fr_3fr_1fr]">
       {/* 左栏 — 剧情文本 */}
       <aside className="border-r p-4 overflow-y-auto border-(--game-border)">
         <NarrativePanel />
