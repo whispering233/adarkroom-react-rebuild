@@ -5,28 +5,17 @@
  * 索引签名 [key: string] 仅用于运行时解锁的动态键（资源、建筑、工人等）。
  */
 
+import type { ResourceId } from '../config'
+import { getInitialStores } from '../config'
+
 // ─── 资源存储 ────────────────────────────────────────────
 
-/** 已知核心资源。索引签名允许运行时解锁的新资源类型。 */
-export interface Stores {
-  wood: number
-  fur: number
-  meat: number
-  scales: number
-  teeth: number
-  iron: number
-  coal: number
-  steel: number
-  sulphur: number
-  cloth: number
-  leather: number
-  'cured meat': number
-  bullets: number
-  'energy cell': number
-  medicine: number
-  hypo: number
-  stim: number
-  /** 动态解锁的资源（如 blueprint、alien alloy、grenade 等） */
+/**
+ * 资源存储：已知资源 extends ResourceId 提供类型安全，
+ * 索引签名允许运行时解锁的动态资源（如 blueprint、alien alloy 等）。
+ * 新增资源只需在 config.ts 的 RESOURCES 表中加一行。
+ */
+export interface Stores extends Record<ResourceId, number> {
   [key: string]: number
 }
 
@@ -217,25 +206,7 @@ export interface GameState {
 export const INITIAL_STATE: GameState = {
   features: {},
   currentRoom: RoomName.Room,
-  stores: {
-    wood: 0,
-    fur: 0,
-    meat: 0,
-    scales: 0,
-    teeth: 0,
-    iron: 0,
-    coal: 0,
-    steel: 0,
-    sulphur: 0,
-    cloth: 0,
-    leather: 0,
-    'cured meat': 0,
-    bullets: 0,
-    'energy cell': 0,
-    medicine: 0,
-    hypo: 0,
-    stim: 0,
-  },
+  stores: getInitialStores(),
   character: {
     health: 100,
     punches: 0,

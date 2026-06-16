@@ -7,6 +7,7 @@
 import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
 import type { ResourceTickLog } from '../state'
+import { RESOURCES, getResourceCategories } from '../config'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
@@ -56,26 +57,11 @@ function formatTrend(total: number): string {
 
 // ─── 资源分类 ─────────────────────────────────────────────
 
-const CATEGORIES: { labelKey: string; keys: string[] }[] = [
-  {
-    labelKey: 'stores.cat_basic',
-    keys: ['wood', 'fur', 'meat', 'scales', 'teeth'],
-  },
-  {
-    labelKey: 'stores.cat_minerals',
-    keys: ['iron', 'coal', 'steel', 'sulphur'],
-  },
-  {
-    labelKey: 'stores.cat_crafted',
-    keys: ['cloth', 'leather', 'cured meat', 'bullets'],
-  },
-  {
-    labelKey: 'stores.cat_advanced',
-    keys: ['energy cell', 'medicine', 'hypo', 'stim'],
-  },
-]
+/** 从 RESOURCES 配置自动生成，新增资源只需在 config.ts 加一行 */
+const CATEGORIES = getResourceCategories()
 
-const KNOWN_KEYS = new Set(CATEGORIES.flatMap(c => c.keys))
+/** 已知资源 key 集合（用于区分动态资源） */
+const KNOWN_KEYS = new Set(Object.keys(RESOURCES))
 
 // ─── 组件 ─────────────────────────────────────────────────
 

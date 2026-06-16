@@ -25,7 +25,7 @@ export const MAX_STORE = CONFIG.MAX_STORE
  * 修改资源值并累加到当前 tick 的 _pendingDeltas。
  * 实际的 ResourceTickLog 由 INCOME_TICK 统一 flush。
  */
-function modifyResource(
+export function modifyResource(
   draft: GameState,
   key: string,
   delta: number,

@@ -6,6 +6,7 @@ export { GameProvider } from './GameContext'
 export { useGameContext, useGameState, useGameDispatch } from './hooks'
 export {
   gameReducer,
+  modifyResource,
   lightFire,
   stokeFire,
   fireCool,
