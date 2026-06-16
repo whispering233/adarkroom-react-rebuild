@@ -25,7 +25,7 @@ function workerI18nKey(role: string): string {
 function formatRate(value: number, delay: number, count: number): string {
   const total = value * count
   const sign = total > 0 ? '+' : ''
-  return `${sign}${total} / ${delay}s`
+  return `${sign}${total} / ${delay}t`
 }
 
 export function WorkersPanel() {

@@ -45,7 +45,7 @@ pnpm test
 │   ├── main.tsx              # React 挂载入口
 │   ├── index.css             # 全局样式 & Tailwind 指令 & 动画关键帧
 │   ├── App.tsx               # 根组件（三栏布局 + GameLoop + Toolbar）
-│   ├── config.ts             # 游戏数值集中配置 + RESOURCES 资源注册表
+│   ├── config.ts             # 游戏数值集中配置 + RESOURCES(18项) + WORKER_INCOME + TRAP_DROPS
 │   ├── state/                # 全局状态管理（Immer + Context）
 │   │   ├── types.ts          # 类型定义 + 枚举 + INITIAL_STATE
 │   │   ├── reducer.ts        # Immer reducer（modifyResource + 语义 action）
@@ -57,15 +57,20 @@ pnpm test
 │   │   ├── GameLoop.tsx       # 单主循环（100ms 驱动火堆/建造者/收入）
 │   │   └── gameSpeed.ts       # 倍速模块（1×/2×/3×，localStorage 持久化）
 │   ├── components/           # 通用 UI 组件
-│   │   ├── Button.tsx         # 操作按钮（冷却驱动 + hover 成本浮层 + label/count 左右对齐）
-│   │   ├── CollapsibleSection.tsx # 可折叠区块（▶/▼）
+│   │   ├── Button.tsx         # 操作按钮（冷却驱动 + hover 成本浮层）
+│   │   ├── Button.module.css
+│   │   ├── CollapsibleSection.tsx # 可折叠区块
+│   │   ├── ErrorBoundary.tsx   # 顶层错误边界
 │   │   ├── Header.tsx         # 场景导航标签
-│   │   ├── NarrativePanel.tsx # 左栏双区叙事（手动 + 资源变化，grid 固定分栏）
-│   │   ├── StoresPanel.tsx    # 右栏三块折叠面板（建筑物/库存/武器 + 趋势）
-│   │   └── Toolbar.tsx        # 右下角工具栏（速度/字体/主题）
+│   │   ├── NarrativePanel.tsx # 左栏双区叙事
+│   │   ├── NarrativePanel.module.css
+│   │   ├── StoresPanel.tsx    # 右栏折叠面板（建筑/库存/武器 + 趋势 + 人口）
+│   │   ├── Toolbar.tsx        # 右下角工具栏（1×–5×速度/字体/主题）
+│   │   ├── WorkersPanel.tsx   # 工人分配面板（grid-cols-2 + hover tooltip）
+│   │   └── WorkersPanel.module.css
 │   ├── rooms/                # 场景组件
-│   │   ├── Room.tsx           # 暗室（火堆操作 + 建造 grid flex-col 分栏）
-│   │   ├── Outside.tsx        # 野外（伐木 + 延迟奖励）
+│   │   ├── Room.tsx           # 暗室（火堆操作 + 建造分栏）
+│   │   ├── Outside.tsx        # 野外（伐木 + 检查陷阱 + WorkersPanel，grid-cols-2 布局）
 │   │   └── craftables/        # 制造系统（纯数据配置）
 │   │       ├── index.ts        # 合并导出 + buildCraftable action
 │   │       ├── types.ts        # CraftableDef / UnlockCondition 接口
@@ -93,16 +98,19 @@ pnpm test
 ## 当前功能
 
 - 🏠 **暗室**：点火/添柴，火堆冷却 + 温度调节
-- 🌲 **野外**：伐木（冷却 + 延迟奖励，倍速加速）
-- 🏗️ **建造系统**：10 栋建筑（trap → armoury），动态解锁 + 成本递增 + 收入注册，纯数据驱动可扩展
+- 🌲 **野外**：伐木 + 检查陷阱（随机掉落 + 诱饵消耗），grid-cols-2 布局
+- 👥 **人口系统**：hut 提供容纳上限，定时器自动增长，多级叙事通知
+- 👷 **工人分配**：从采集者池调配猎人/陷阱师/制革工等工种，hover 显示实际产出
+- 🏗️ **建造系统**：10 栋建筑，per-worker 收入，动态解锁 + 成本递增，纯数据驱动
 - 👤 **建造者 NPC**：5 阶段状态机，自动添柴，解锁野外和建造能力
-- ⏱ **游戏加速**：1×/2×/3× 倍速，冷却进度条动画自适应
-- 📜 **叙事日志**：双区固定布局（手动叙事 + 资源变化），新条目在上渐隐，独立滚动不挤占
-- 📊 **趋势面板**：资源分类显示 + 趋势箭头 + 滑动窗口标注（/ Nt）
-- 🎛️ **右栏面板**：三块可折叠数据区（建筑物 + 库存 + 武器），默认全展开
-- 🎨 **主题切换**：浅色/暗色，`localStorage` 持久化
-- 🔤 **字体缩放**：12-24px，`localStorage` 持久化
-- 🌐 **国际化**：中文/英文，自动匹配浏览器语言
+- ⏱ **游戏加速**：1×/2×/3×/5× 倍速，进度条动画自适应
+- 📜 **叙事日志**：双区固定布局（手动叙事 + 资源变化），新旧渐隐
+- 📊 **趋势面板**：资源分类 + 趋势箭头 + 滑动窗口
+- 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
+- 🎨 **主题切换**：浅色/暗色，localStorage 持久化
+- 🔤 **字体缩放**：12–24px，localStorage 持久化
+- 🌐 **国际化**：中/英，自动匹配浏览器语言
+- 🛡️ **ErrorBoundary**：顶层错误捕获，防白屏
 
 ## 重构目标
 
@@ -111,7 +119,7 @@ pnpm test
 - 组件化的 React 架构
 - 类型安全的 TypeScript
 - 函数式状态管理（Immer + useReducer）
-- **声明式数据驱动**（RESOURCES / Craftables 配置表，新增资源/建筑只需加一行）
+- **声明式数据驱动**（RESOURCES / Craftables / WORKER_INCOME / TRAP_DROPS 配置表，新增资源/建筑/工人职业只需加一行）
 - 可静态部署的 SPA
 - 响应式 UI（Tailwind + CSS Modules）
 
