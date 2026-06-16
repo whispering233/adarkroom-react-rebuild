@@ -82,14 +82,14 @@ export function Outside() {
   }, [dispatch, state, traps, t])
 
   return (
-    <div className="flex flex-col items-start justify-start text-left px-4 gap-6 py-8">
-      {/* 场景描述 */}
-      <p className="font-mono text-sm text-gray-500 max-w-md">
+    <div className="grid grid-cols-[1fr_1fr] gap-4 text-left px-4 py-8">
+      {/* 场景描述（跨两列） */}
+      <p className="col-span-2 font-mono text-sm text-gray-500 max-w-md">
         {t('outside.desc')}
       </p>
 
-      <div className="flex gap-3 flex-wrap">
-        {/* 伐木按钮 */}
+      {/* 左列：操作按钮（竖排不换行） */}
+      <div className="flex flex-col items-start gap-3">
         <Button
           id="gatherOutside"
           text={t('outside.gather_wood')}
@@ -97,7 +97,6 @@ export function Outside() {
           cooldown={CONFIG.GATHER_WOOD_COOLDOWN}
         />
 
-        {/* 检查陷阱按钮（有陷阱才显示） */}
         {traps > 0 && (
           <Button
             id="checkTraps"
@@ -108,7 +107,7 @@ export function Outside() {
         )}
       </div>
 
-      {/* 工人分配 */}
+      {/* 右列：工人分配 */}
       <WorkersPanel />
     </div>
   )
