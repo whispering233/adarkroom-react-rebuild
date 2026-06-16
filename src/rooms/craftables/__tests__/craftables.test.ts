@@ -99,9 +99,8 @@ describe('craftables 模块', () => {
     const s1 = await runReducer(s0, buildCraftable('trap'))
     expect(s1.stores.wood).toBe(40) // 扣了 10
     expect(s1.game.buildings['trap']).toBe(1)
-    // 应注册了 trapper 收入
-    expect(s1.income['trapper']).toBeDefined()
-    expect(s1.income['trapper'].stores).toEqual({ fur: 1, meat: 1 })
+    // 陷阱本身不注册收入——收入由 lodge 的 onBuild 统一注册
+    expect(s1.income['trapper']).toBeUndefined()
   })
 
   it('buildCraftable: 动态成本 — 第二个 trap 成本更高', async () => {
@@ -143,7 +142,7 @@ describe('craftables 模块', () => {
     expect(s1.stores.wood).toBe(100) // 未扣资源
   })
 
-  it('buildCraftable: onBuild 副作用 — hut 增加人口', async () => {
+  it('buildCraftable: onBuild 副作用 — hut 扣资源不增加人口（人口由定时器增长）', async () => {
     const { applyRecipe } = await import('../../../state/reducer')
     const { INITIAL_STATE } = await import('../../../state/types')
     const { buildCraftable } = await import('..')
@@ -157,8 +156,9 @@ describe('craftables 模块', () => {
     )
 
     const s1 = await runReducer(s0, buildCraftable('hut'))
-    expect(s1.game.population).toBe(1)
+    expect(s1.game.population).toBe(0) // hut 不再直接增加人口
     expect(s1.game.buildings['hut']).toBe(1)
+    expect(s1.stores.wood).toBe(100) // 200 - 100
   })
 
   it('buildCraftable: onBuild 副作用 — workshop 解锁 craft 功能', async () => {

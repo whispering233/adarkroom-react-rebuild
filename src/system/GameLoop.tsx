@@ -27,6 +27,7 @@ import {
   pushNarrative,
   modifyResource,
   applyRecipe,
+  increasePopulation,
   FireLevel,
   TempLevel,
 } from '../state'
@@ -62,6 +63,9 @@ export function GameLoop() {
     let forestTimer = 0
     let forestUnlocked = false
 
+    // 人口增长倒计时（game-seconds），0 = 需要重新调度
+    let popTimer = 0
+
     const id = setInterval(() => {
       const speed = getSpeed()
       const dt = LOOP_INTERVAL * speed // game-ms per real tick
@@ -71,6 +75,40 @@ export function GameLoop() {
       while (accum.income >= CONFIG.INCOME_TICK_INTERVAL) {
         accum.income -= CONFIG.INCOME_TICK_INTERVAL
         dispatch(incomeTick())
+
+        // ── 人口增长倒计时 ──
+        const s0 = stateRef.current
+        const huts = s0.game.buildings['hut'] ?? 0
+        if (huts > 0) {
+          if (popTimer <= 0) {
+            // 首次或重新调度：随机 30~180 秒
+            const [min, max] = CONFIG.POP_INCREASE_INTERVAL
+            popTimer = Math.floor(Math.random() * (max - min)) + min
+          }
+          popTimer -= 1
+          if (popTimer <= 0) {
+            const maxPop = huts * CONFIG.HUT_ROOM
+            const space = maxPop - s0.game.population
+            if (space > 0) {
+              const num = Math.max(1, Math.floor(Math.random() * (space / 2) + space / 2))
+              dispatch(increasePopulation(num))
+              // 根据人数推送不同叙事
+              if (num === 1) {
+                dispatch(pushNarrative(t('outside.pop_increase_1')))
+              } else if (num < 5) {
+                dispatch(pushNarrative(t('outside.pop_increase_few')))
+              } else if (num < 10) {
+                dispatch(pushNarrative(t('outside.pop_increase_small')))
+              } else if (num < 30) {
+                dispatch(pushNarrative(t('outside.pop_increase_convoy')))
+              } else {
+                dispatch(pushNarrative(t('outside.pop_increase_boom')))
+              }
+            }
+          }
+        } else {
+          popTimer = 0
+        }
       }
 
       const s = stateRef.current
@@ -113,6 +151,7 @@ export function GameLoop() {
             const s3 = stateRef.current
             if (s3.game.builder.level === 1) {
               dispatch(unlockFeature('location.outside'))
+              dispatch(registerIncome('gatherer', { delay: 10, stores: { wood: 1 }, timeLeft: 10 }))
               dispatch(applyRecipe(draft => {
                 modifyResource(draft, 'wood', CONFIG.STRANGER_GIFT_WOOD, 'event.stranger_gift')
               }))

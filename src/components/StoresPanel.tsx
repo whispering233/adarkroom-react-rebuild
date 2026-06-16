@@ -9,7 +9,7 @@
 import { useTranslation } from 'react-i18next'
 import { useGameState } from '../state'
 import type { ResourceTickLog } from '../state'
-import { RESOURCES, getResourceCategories } from '../config'
+import { RESOURCES, getResourceCategories, CONFIG } from '../config'
 import { CRAFTABLES } from '../rooms/craftables'
 import { CollapsibleSection } from './CollapsibleSection'
 
@@ -67,7 +67,10 @@ export function StoresPanel() {
   // ── 建筑物 ──────────────────────────────────────────
   const buildingEntries = Object.entries(buildings)
     .filter(([, count]) => count > 0)
-  const hasBuildings = buildingEntries.length > 0 || state.game.population > 0
+  const hasBuildings = buildingEntries.length > 0
+  const huts = state.game.buildings['hut'] ?? 0
+  const maxPop = huts * CONFIG.HUT_ROOM
+  const hasPop = maxPop > 0
 
   // ── 动态资源（不在 RESOURCES 中的） ────────────────
   const dynamicKeys = Object.keys(stores).filter(
@@ -85,8 +88,8 @@ export function StoresPanel() {
     CATEGORIES.some(c => c.keys.some(k => stores[k] !== undefined)) ||
     dynamicKeys.length > 0
 
-  // 三块全空则不渲染
-  if (!hasBuildings && !hasStores && !hasWeapons) return null
+  // 全部为空则不渲染
+  if (!hasPop && !hasBuildings && !hasStores && !hasWeapons) return null
 
   /** 单行数值 + 趋势 */
   function renderRow(key: string, label: string) {
@@ -116,6 +119,18 @@ export function StoresPanel() {
 
   return (
     <div className="flex flex-col gap-3 text-sm">
+      {/* ── 人口 ── */}
+      {hasPop && (
+        <div className="flex justify-between text-(--game-text-body) gap-2 px-0.5">
+          <span className="text-(--game-text-muted) truncate text-xs font-semibold">
+            {t('stores.population')}
+          </span>
+          <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
+            {state.game.population}/{maxPop}
+          </span>
+        </div>
+      )}
+
       {/* ── 建筑物 ── */}
       {hasBuildings && (
         <CollapsibleSection title={t('panel.buildings')} defaultOpen>
@@ -132,16 +147,6 @@ export function StoresPanel() {
                 </div>
               )
             })}
-            {state.game.population > 0 && (
-              <div className="flex justify-between text-(--game-text-body) gap-2">
-                <span className="text-(--game-text-muted) truncate text-xs">
-                  {t('stores.population')}
-                </span>
-                <span className="text-(--game-accent) text-right min-w-[3ch] text-xs">
-                  {state.game.population}
-                </span>
-              </div>
-            )}
           </div>
         </CollapsibleSection>
       )}

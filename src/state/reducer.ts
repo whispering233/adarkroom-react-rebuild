@@ -13,11 +13,26 @@
  */
 import type { GameState, IncomeConfig } from './types'
 import { FireLevel, TempLevel } from './types'
-import { CONFIG } from '../config'
+import { CONFIG, WORKER_INCOME } from '../config'
 
 // ─── 常量 ────────────────────────────────────────────────
 
 export const MAX_STORE = CONFIG.MAX_STORE
+
+// ─── 工人辅助函数 ──────────────────────────────────────
+
+/**
+ * 计算当前未分配的采集者人数。
+ * gatherer = 总人口 − 所有已分配到各职业的工人数之和
+ */
+export function getNumGatherers(draft: GameState): number {
+  let assigned = 0
+  for (const count of Object.values(draft.game.workers)) {
+    assigned += count
+  }
+  const gatherers = draft.game.population - assigned
+  return gatherers < 0 ? 0 : gatherers
+}
 
 // ─── 资源变更统一入口 ────────────────────────────────────
 
@@ -83,6 +98,12 @@ export type GameAction =
   | { type: 'PUSH_NARRATIVE'; text: string }
   // ── 冷却控制 ──
   | { type: 'START_COOLDOWN'; id: string; seconds: number; reward?: { stores: Record<string, number>; source?: string } }
+  // ── 工人分配 ──
+  | { type: 'ASSIGN_WORKER'; role: string; count?: number }
+  | { type: 'UNASSIGN_WORKER'; role: string; count?: number }
+  // ── 人口变化 ──
+  | { type: 'INCREASE_POPULATION'; num?: number }
+  | { type: 'KILL_VILLAGERS'; count: number }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
 
@@ -192,13 +213,25 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         }
       }
 
-      // ③ 处理收入
+      // ③ 处理收入（per-worker 动态产量）
       for (const [key, config] of Object.entries(draft.income)) {
         config.timeLeft -= 1
 
         if (config.timeLeft <= 0) {
-          for (const [res, delta] of Object.entries(config.stores)) {
-            modifyResource(draft, res, delta, `income.${key}`)
+          // 确定工人数：gatherer=剩余人口，worker职业=分配人数，其他=1(固定)
+          const workerCount = key === 'gatherer'
+            ? getNumGatherers(draft)
+            : key in WORKER_INCOME
+              ? (draft.game.workers[key] ?? 0)
+              : 1
+
+          if (workerCount > 0) {
+            for (const [res, baseRate] of Object.entries(config.stores)) {
+              const delta = baseRate * workerCount
+              if (delta !== 0) {
+                modifyResource(draft, res, delta, `income.${key}`)
+              }
+            }
           }
           config.timeLeft = config.delay
         }
@@ -251,6 +284,67 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
           cooldownKey: action.id,
           stores: { ...action.reward.stores },
           source: action.reward.source,
+        }
+      }
+      break
+    }
+
+    // ── 工人分配 ──────────────────────────────
+
+    case 'ASSIGN_WORKER': {
+      const amt = action.count ?? 1
+      const available = getNumGatherers(draft)
+      if (available >= amt) {
+        draft.game.workers[action.role] = (draft.game.workers[action.role] ?? 0) + amt
+      }
+      break
+    }
+
+    case 'UNASSIGN_WORKER': {
+      const amt = action.count ?? 1
+      const current = draft.game.workers[action.role] ?? 0
+      if (current >= amt) {
+        draft.game.workers[action.role] = current - amt
+      }
+      break
+    }
+
+    // ── 人口增长 ──────────────────────────────
+
+    case 'INCREASE_POPULATION': {
+      const huts = draft.game.buildings['hut'] ?? 0
+      if (huts <= 0) break
+      const maxPop = huts * CONFIG.HUT_ROOM
+      const current = draft.game.population
+      const space = maxPop - current
+      if (space <= 0) break
+      // 使用传入值或随机增量：space/2 ~ space（至少 1）
+      const num = action.num ?? Math.max(1, Math.floor(Math.random() * (space / 2) + space / 2))
+      draft.game.population += Math.min(num, space)
+      break
+    }
+
+    // ── 屠杀村民 ──────────────────────────────
+
+    case 'KILL_VILLAGERS': {
+      let count = action.count
+      if (count <= 0) break
+      // 先减总人口
+      draft.game.population = Math.max(0, draft.game.population - count)
+      // 若人口不足以支撑当前工人数，从各职业扣回
+      let assigned = 0
+      for (const w of Object.values(draft.game.workers)) {
+        assigned += w
+      }
+      let shortfall = assigned - draft.game.population // 工人总数超出人口的部分
+      if (shortfall > 0) {
+        for (const role of Object.keys(draft.game.workers)) {
+          const w = draft.game.workers[role] ?? 0
+          if (w <= 0) continue
+          const reduce = Math.min(w, shortfall)
+          draft.game.workers[role] = w - reduce
+          shortfall -= reduce
+          if (shortfall <= 0) break
         }
       }
       break
@@ -335,6 +429,28 @@ export const startCooldown = (
  * 范例：dispatch(applyRecipe(d => { d.stores.wood += 10 }))
  * 注意：走此通道的资源变更不会记录到 resourceLog（不参与 delta 计算）。
  */
+export const assignWorker = (role: string, count = 1): GameAction => ({
+  type: 'ASSIGN_WORKER',
+  role,
+  count,
+})
+
+export const unassignWorker = (role: string, count = 1): GameAction => ({
+  type: 'UNASSIGN_WORKER',
+  role,
+  count,
+})
+
+export const increasePopulation = (num?: number): GameAction => ({
+  type: 'INCREASE_POPULATION',
+  num,
+})
+
+export const killVillagers = (count: number): GameAction => ({
+  type: 'KILL_VILLAGERS',
+  count,
+})
+
 export const applyRecipe = (
   recipe: (draft: GameState) => void,
 ): GameAction => ({

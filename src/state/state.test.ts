@@ -308,4 +308,212 @@ describe('state 模块 (useImmerReducer 版)', () => {
     const s1 = await runReducer(s0, incomeTick())
     expect(s1._pendingSources.length).toBe(0)
   })
+
+  // ─── 人口 & 工人 ──────────────────────────────────
+
+  it('getNumGatherers: 人口 10，workers{hunter:3, trapper:2} → gatherers=5', async () => {
+    const { getNumGatherers } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 10
+        d.game.workers = { hunter: 3, trapper: 2 }
+      }),
+    )
+    expect(getNumGatherers(s)).toBe(5)
+  })
+
+  it('getNumGatherers: 工人总数 > 人口 → 归零', async () => {
+    const { getNumGatherers } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 2
+        d.game.workers = { hunter: 3 }
+      }),
+    )
+    expect(getNumGatherers(s)).toBe(0)
+  })
+
+  it('INCREASE_POPULATION: 有 hut 且有空位 → 人口增长', async () => {
+    const { increasePopulation } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.buildings['hut'] = 5 // maxPop = 20
+        d.game.population = 5
+      }),
+    )
+    const s1 = await runReducer(s0, increasePopulation())
+    expect(s1.game.population).toBeGreaterThan(5)
+    expect(s1.game.population).toBeLessThanOrEqual(20)
+  })
+
+  it('INCREASE_POPULATION: 无 hut → 不增长', async () => {
+    const { increasePopulation } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const s1 = await runReducer(INITIAL_STATE, increasePopulation())
+    expect(s1.game.population).toBe(0)
+  })
+
+  it('INCREASE_POPULATION: 人口已满 → 不增长', async () => {
+    const { increasePopulation } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.buildings['hut'] = 2 // maxPop = 8
+        d.game.population = 8
+      }),
+    )
+    const s1 = await runReducer(s0, increasePopulation())
+    expect(s1.game.population).toBe(8)
+  })
+
+  it('INCREASE_POPULATION: 可指定 num', async () => {
+    const { increasePopulation } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.buildings['hut'] = 10 // maxPop = 40
+        d.game.population = 5
+      }),
+    )
+    const s1 = await runReducer(s0, increasePopulation(3))
+    expect(s1.game.population).toBe(8)
+  })
+
+  it('ASSIGN_WORKER: 从采集者分配 1 人到某职业', async () => {
+    const { assignWorker } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 5
+        d.game.workers = { hunter: 0 }
+      }),
+    )
+    const s1 = await runReducer(s0, assignWorker('hunter'))
+    expect(s1.game.workers['hunter']).toBe(1)
+  })
+
+  it('ASSIGN_WORKER: 采集者不足 → 不分配', async () => {
+    const { assignWorker } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 1
+        d.game.workers = { hunter: 1 } // no gatherers left
+      }),
+    )
+    const s1 = await runReducer(s0, assignWorker('hunter'))
+    expect(s1.game.workers['hunter']).toBe(1) // unchanged
+  })
+
+  it('UNASSIGN_WORKER: 从某职业退回 1 人到采集者', async () => {
+    const { unassignWorker } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 5
+        d.game.workers = { hunter: 3 }
+      }),
+    )
+    const s1 = await runReducer(s0, unassignWorker('hunter'))
+    expect(s1.game.workers['hunter']).toBe(2)
+  })
+
+  it('UNASSIGN_WORKER: 该职业无人 → 不变', async () => {
+    const { unassignWorker } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 5
+        d.game.workers = { hunter: 0 }
+      }),
+    )
+    const s1 = await runReducer(s0, unassignWorker('hunter'))
+    expect(s1.game.workers['hunter']).toBe(0)
+  })
+
+  it('KILL_VILLAGERS: 减少人口，工人不足时自动扣减', async () => {
+    const { killVillagers } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 10
+        d.game.workers = { hunter: 5, trapper: 3 } // 8 workers, 2 gatherers
+      }),
+    )
+    const s1 = await runReducer(s0, killVillagers(4)) // kills 4: 2 gatherers + 2 workers
+    expect(s1.game.population).toBe(6)
+    // 8 workers now exceeds 6 population → shortfall 2 → workers should be reduced
+    // trapper is reduced first (alphabetical? depends on Object.keys order)
+    const totalWorkers = (s1.game.workers['hunter'] ?? 0) + (s1.game.workers['trapper'] ?? 0)
+    expect(totalWorkers).toBe(6) // all remaining pop assigned as workers
+  })
+
+  it('KILL_VILLAGERS: 人口不会低于 0', async () => {
+    const { killVillagers } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 5
+      }),
+    )
+    const s1 = await runReducer(s0, killVillagers(100))
+    expect(s1.game.population).toBe(0)
+  })
+
+  it('INCOME_TICK: gatherer 收入按剩余人口计算', async () => {
+    const { incomeTick, registerIncome } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const { applyRecipe } = await import('./reducer')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.game.population = 3 // all gatherers
+        d.game.workers = {}
+      }),
+    )
+    // register gatherer income
+    const s1 = await runReducer(s0, registerIncome('gatherer', { delay: 10, stores: { wood: 1 }, timeLeft: 10 }))
+    // tick to just before income fires
+    const s2 = await runReducer(s1, incomeTick())
+    // After income tick, timeLeft should be 9 (was 10, -1). No income yet.
+    expect(s2.income['gatherer'].timeLeft).toBe(9)
+
+    // Fast-forward 9 more ticks to trigger income
+    let s = s2
+    for (let i = 0; i < 9; i++) {
+      s = await runReducer(s, incomeTick())
+    }
+    // Income should have fired once: wood += 1 * 3 gatherers = 3
+    // But we also lost 1 tick of countdown first time... let me rethink.
+    // Actually: timeLeft starts at 10, first tick → 9 (no income), then 8 more ticks → 0 → income fires
+    // But wait, income fires when timeLeft <= 0, then resets to delay.
+    // So we need 10 ticks total for first income.
+    // ticks done: 1 + 9 = 10. On the 10th tick, timeLeft becomes 0, income fires, wood+=3
+    expect(s.stores.wood).toBe(3)
+  })
 })

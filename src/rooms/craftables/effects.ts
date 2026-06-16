@@ -26,6 +26,17 @@ function unlockFeature(feature: string): (draft: GameState) => void {
   }
 }
 
+/** 初始化工人槽位（幂等：已存在则跳过） */
+function initWorkers(...roles: string[]): (draft: GameState) => void {
+  return (draft) => {
+    for (const role of roles) {
+      if (!(role in draft.game.workers)) {
+        draft.game.workers[role] = 0
+      }
+    }
+  }
+}
+
 // ─── 组合器 ──────────────────────────────────────────────
 
 /** 串联多个副作用为一个 */
@@ -44,5 +55,6 @@ function chain(
 export const Effects = {
   income,
   unlockFeature,
+  initWorkers,
   chain,
 }

@@ -22,7 +22,7 @@ export const BUILDINGS: Record<string, CraftableDef> = {
       const n = s.game.buildings['trap'] ?? 0
       return { wood: 10 + (n * 10) }
     },
-    onBuild: Effects.income('trapper', 10, { fur: 1, meat: 1 }),
+    // 陷阱本身无收入——"检查陷阱"按钮提供主动产出
   },
 
   cart: {
@@ -43,9 +43,7 @@ export const BUILDINGS: Record<string, CraftableDef> = {
       const n = s.game.buildings['hut'] ?? 0
       return { wood: 100 + (n * 50) }
     },
-    onBuild(draft) {
-      draft.game.population += 1
-    },
+    // 人口通过定时器自动增长，hut 仅提供容纳上限
   },
 
   // ── 中级建筑 ──────────────────────────────────────
@@ -56,7 +54,11 @@ export const BUILDINGS: Record<string, CraftableDef> = {
     max: 1,
     unlock: { builderLevel: 4 },
     cost: () => ({ wood: 200, fur: 10, meat: 5 }),
-    onBuild: Effects.income('hunter', 10, { fur: 2, meat: 3 }),
+    onBuild: Effects.chain(
+      Effects.income('hunter', 10, { fur: 0.5, meat: 0.5 }),
+      Effects.income('trapper', 10, { meat: -1, bait: 1 }),
+      Effects.initWorkers('hunter', 'trapper'),
+    ),
   },
 
   'trading post': {
@@ -74,7 +76,10 @@ export const BUILDINGS: Record<string, CraftableDef> = {
     max: 1,
     unlock: { builderLevel: 4 },
     cost: () => ({ wood: 500, fur: 50 }),
-    onBuild: Effects.income('tanner', 10, { leather: 1 }),
+    onBuild: Effects.chain(
+      Effects.income('tanner', 10, { fur: -5, leather: 1 }),
+      Effects.initWorkers('tanner'),
+    ),
   },
 
   smokehouse: {
@@ -83,7 +88,10 @@ export const BUILDINGS: Record<string, CraftableDef> = {
     max: 1,
     unlock: { builderLevel: 4 },
     cost: () => ({ wood: 600, meat: 50 }),
-    onBuild: Effects.income('smoker', 10, { 'cured meat': 1 }),
+    onBuild: Effects.chain(
+      Effects.income('charcutier', 10, { meat: -5, wood: -5, 'cured meat': 1 }),
+      Effects.initWorkers('charcutier'),
+    ),
   },
 
   // ── 高级建筑 ──────────────────────────────────────
@@ -103,7 +111,10 @@ export const BUILDINGS: Record<string, CraftableDef> = {
     max: 1,
     unlock: { builderLevel: 4 },
     cost: () => ({ wood: 1500, iron: 100, coal: 100 }),
-    onBuild: Effects.income('steelworker', 10, { steel: 1 }),
+    onBuild: Effects.chain(
+      Effects.income('steelworker', 10, { iron: -1, coal: -1, steel: 1 }),
+      Effects.initWorkers('steelworker'),
+    ),
   },
 
   armoury: {
@@ -112,6 +123,9 @@ export const BUILDINGS: Record<string, CraftableDef> = {
     max: 1,
     unlock: { builderLevel: 4 },
     cost: () => ({ wood: 3000, steel: 100, sulphur: 50 }),
-    onBuild: Effects.income('armourer', 10, { bullets: 1 }),
+    onBuild: Effects.chain(
+      Effects.income('armourer', 10, { steel: -1, sulphur: -1, bullets: 1 }),
+      Effects.initWorkers('armourer'),
+    ),
   },
 }

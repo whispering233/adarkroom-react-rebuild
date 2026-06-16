@@ -7,6 +7,7 @@ export { useGameContext, useGameState, useGameDispatch } from './hooks'
 export {
   gameReducer,
   modifyResource,
+  getNumGatherers,
   lightFire,
   stokeFire,
   fireCool,
@@ -19,6 +20,10 @@ export {
   registerIncome,
   pushNarrative,
   startCooldown,
+  assignWorker,
+  unassignWorker,
+  increasePopulation,
+  killVillagers,
   applyRecipe,
   MAX_STORE,
 } from './reducer'
