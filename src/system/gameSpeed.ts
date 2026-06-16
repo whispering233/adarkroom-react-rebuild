@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 // ─── 常量 ─────────────────────────────────────────────────
 
 const SPEED_KEY = 'adr-speed'
-const SPEED_OPTIONS = [1, 2, 3] as const
+const SPEED_OPTIONS = [1, 2, 3, 5] as const
 export type SpeedMultiplier = (typeof SPEED_OPTIONS)[number]
 
 const DEFAULT: SpeedMultiplier = 1

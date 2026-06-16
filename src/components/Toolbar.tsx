@@ -19,7 +19,7 @@ const FONT_SIZE_MAX = 24
 const FONT_SIZE_STEP = 1
 const FONT_SIZE_DEFAULT = 16
 
-const SPEED_OPTIONS: SpeedMultiplier[] = [1, 2, 3]
+const SPEED_OPTIONS: SpeedMultiplier[] = [1, 2, 3, 5]
 
 // ─── 工具函数 ─────────────────────────────────────────────
 
