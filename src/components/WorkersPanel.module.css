@@ -1,7 +1,7 @@
 /* WorkersPanel — 工人分配面板样式
  *
- * 每行 rowGroup(position:relative) > rowContent(grid-cols-2) + tooltip(absolute)。
- * 按钮用纯 CSS 三角箭头（border trick），hover 时弹出 tooltip。
+ * 扁平 grid-cols-2：左列职业名+人数，右列操作按钮均匀分布。
+ * rowGroup(display:contents) 容纳 tooltip 定位。
  */
 
 .panel {
@@ -19,31 +19,26 @@
   margin-bottom: 0.5rem;
 }
 
-/* ── 外层容器 ────────────────────────────── */
+/* ── grid 扁平容器 ────────────────────────── */
 
 .grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  position: relative;
 }
 
-/* ── 行组（含 tooltip 定位上下文） ────────── */
+/* ── 行组（display:contents 不破 grid 流，保留 tooltip hover） ── */
 
 .rowGroup {
-  position: relative;
+  display: contents;
 }
 
 .rowGroup:hover .tooltip {
   display: block;
 }
 
-/* ── grid-cols-2 行内容 ──────────────────── */
-
-.rowContent {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-/* ── 单元格 ──────────────────────────────── */
+/* ── 单元格（无分割线） ────────────────────── */
 
 .cell {
   display: flex;
@@ -52,16 +47,7 @@
   padding: 0.3rem 0.4rem;
   font-size: 0.75rem;
   color: var(--game-text-body);
-  border-bottom: 1px solid var(--game-border, #333);
   gap: 0.25rem;
-}
-
-/* 首行（表头）底部加粗 */
-.rowContent:first-child .cell {
-  font-size: 0.65rem;
-  color: var(--game-text-muted);
-  text-transform: uppercase;
-  border-bottom-width: 2px;
 }
 
 .count {
@@ -71,17 +57,18 @@
   text-align: right;
 }
 
-/* ── 操作按钮区 ───────────────────────────── */
+/* ── 操作按钮区（均匀分布，不换行） ────────── */
 
 .actions {
-  justify-content: flex-start;
-  gap: 0;
+  justify-content: space-between;
+  gap: 2px;
+  flex-wrap: nowrap;
 }
 
 /* ── 文字操作按钮 ──────────────────────────── */
 
 .btn {
-  padding: 0.1rem 0.35rem;
+  padding: 0.1rem 0.4rem;
   font-size: 0.65rem;
   line-height: 1.2;
   border: 1px solid var(--game-border);
@@ -89,7 +76,7 @@
   background: var(--game-btn-bg, transparent);
   color: var(--game-text-body);
   cursor: pointer;
-  min-width: 2em;
+  min-width: 2.2em;
   text-align: center;
   flex-shrink: 0;
 }

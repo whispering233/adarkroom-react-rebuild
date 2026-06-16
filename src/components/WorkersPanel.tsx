@@ -1,8 +1,8 @@
 /**
  * WorkersPanel — 工人分配面板（Outside 场景中显示）
  *
- * grid-cols-2 布局：左列职业名+人数，右列操作按钮（三角箭头）。
- * hover 职业行时弹出 per-worker 资源产出/消耗提示。
+ * grid-cols-2 扁平布局：左列职业名+人数，右列操作按钮。
+ * hover 职业行时弹出实际资源产出/消耗提示。
  */
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -54,20 +54,12 @@ export function WorkersPanel() {
       <h3 className={styles.title}>{t('outside.workers_title')}</h3>
 
       <div className={styles.grid}>
-        {/* ── 表头 ── */}
-        <div className={styles.rowContent}>
-          <div className={styles.cell}>{t('outside.worker_col_role')}</div>
-          <div className={styles.cell}>{t('outside.worker_col_action')}</div>
-        </div>
-
         {/* ── 采集者行（只读） ── */}
-        <div className={styles.rowContent}>
-          <div className={styles.cell}>
-            <span>{t('worker.gatherer')}</span>
-            <span className={styles.count}>{gatherers}</span>
-          </div>
-          <div className={styles.cell} />
+        <div className={styles.cell}>
+          <span>{t('worker.gatherer')}</span>
+          <span className={styles.count}>{gatherers}</span>
         </div>
+        <div className={styles.cell} />
 
         {/* ── 其他职业行 ── */}
         {workerEntries.map(([role, count]) => {
@@ -78,43 +70,41 @@ export function WorkersPanel() {
 
           return (
             <div key={role} className={styles.rowGroup}>
-              <div className={styles.rowContent}>
-                {/* 左列：职业名 + 人数 */}
-                <div className={styles.cell}>
-                  <span>{label}</span>
-                  <span className={styles.count}>{count}</span>
-                </div>
-
-                {/* 右列：操作按钮 */}
-                <div className={`${styles.cell} ${styles.actions}`}>
-                  <button
-                    className={styles.btn}
-                    disabled={!canUnassign}
-                    onClick={() => handleUnassign(role, 1)}
-                    title={t('outside.worker_unassign', { count: 1 })}
-                  >-1</button>
-                  <button
-                    className={styles.btn}
-                    disabled={!canUnassign}
-                    onClick={() => handleUnassign(role, 10)}
-                    title={t('outside.worker_unassign', { count: 10 })}
-                  >-10</button>
-                  <button
-                    className={styles.btn}
-                    disabled={!canAssign}
-                    onClick={() => handleAssign(role, 1)}
-                    title={t('outside.worker_assign', { count: 1 })}
-                  >+1</button>
-                  <button
-                    className={styles.btn}
-                    disabled={!canAssign}
-                    onClick={() => handleAssign(role, 10)}
-                    title={t('outside.worker_assign', { count: 10 })}
-                  >+10</button>
-                </div>
+              {/* 左列：职业名 + 人数 */}
+              <div className={styles.cell}>
+                <span>{label}</span>
+                <span className={styles.count}>{count}</span>
               </div>
 
-              {/* hover tooltip：每 worker 资源产出/消耗 */}
+              {/* 右列：操作按钮（均匀分布，不换行） */}
+              <div className={`${styles.cell} ${styles.actions}`}>
+                <button
+                  className={styles.btn}
+                  disabled={!canUnassign}
+                  onClick={() => handleUnassign(role, 1)}
+                  title={t('outside.worker_unassign', { count: 1 })}
+                >-1</button>
+                <button
+                  className={styles.btn}
+                  disabled={!canUnassign}
+                  onClick={() => handleUnassign(role, 10)}
+                  title={t('outside.worker_unassign', { count: 10 })}
+                >-10</button>
+                <button
+                  className={styles.btn}
+                  disabled={!canAssign}
+                  onClick={() => handleAssign(role, 1)}
+                  title={t('outside.worker_assign', { count: 1 })}
+                >+1</button>
+                <button
+                  className={styles.btn}
+                  disabled={!canAssign}
+                  onClick={() => handleAssign(role, 10)}
+                  title={t('outside.worker_assign', { count: 10 })}
+                >+10</button>
+              </div>
+
+              {/* hover tooltip */}
               {incomeDef && (
                 <div className={styles.tooltip}>
                   {Object.entries(incomeDef.stores).map(([res, rate]) => (
