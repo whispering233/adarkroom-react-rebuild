@@ -234,4 +234,78 @@ describe('state 模块 (useImmerReducer 版)', () => {
     expect(INITIAL_STATE.character.health).toBe(100)
     expect(INITIAL_STATE.config.soundOn).toBe(true)
   })
+
+  // ── 资源叙事生成 ──────────────────────────────────
+
+  it('modifyResource 带 source → _pendingSources 归并', async () => {
+    const { applyRecipe, modifyResource } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const s1 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        modifyResource(d, 'wood', 10, 'event.test')
+        modifyResource(d, 'fur', 5, 'event.test')
+        modifyResource(d, 'wood', -3, 'cost.other')
+      }),
+    )
+    // 同一 source 两次调用应合并
+    expect(s1._pendingSources).toHaveLength(2)
+    const evt = s1._pendingSources.find(s => s.source === 'event.test')
+    expect(evt).toBeDefined()
+    expect(evt!.stores.wood).toBe(10)
+    expect(evt!.stores.fur).toBe(5)
+    const cost = s1._pendingSources.find(s => s.source === 'cost.other')
+    expect(cost!.stores.wood).toBe(-3)
+  })
+
+  it('INCOME_TICK flush _pendingSources → 叙事日志含 delta', async () => {
+    const { applyRecipe, incomeTick, modifyResource } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+
+    // 准备带 source 的资源变更
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        modifyResource(d, 'wood', 2, 'income.builder')
+      }),
+    )
+
+    const s1 = await runReducer(s0, incomeTick())
+    // 应生成一条叙事
+    const latest = s1.narrativeLog[0]
+    expect(latest).toBeDefined()
+    expect(latest.delta).toBeDefined()
+    expect(latest.delta!.source).toBe('income.builder')
+    expect(latest.delta!.stores.wood).toBe(2)
+  })
+
+  it('INCOME_TICK 无 source 变更时不产生 delta 叙事', async () => {
+    const { applyRecipe, incomeTick } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    // 不带 source 的资源变更
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        d.stores.wood = 100
+      }),
+    )
+    const before = s0.narrativeLog.length
+    const s1 = await runReducer(s0, incomeTick())
+    // 叙条目数不应因纯 _pendingDeltas 而增加（只有 _pendingSources 才生成叙事）
+    expect(s1.narrativeLog.length).toBe(before)
+  })
+
+  it('INCOME_TICK 清空 _pendingSources', async () => {
+    const { applyRecipe, incomeTick, modifyResource } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+    const s0 = await runReducer(
+      INITIAL_STATE,
+      applyRecipe(d => {
+        modifyResource(d, 'wood', 5, 'income.test')
+      }),
+    )
+    expect(s0._pendingSources.length).toBe(1)
+    const s1 = await runReducer(s0, incomeTick())
+    expect(s1._pendingSources.length).toBe(0)
+  })
 })

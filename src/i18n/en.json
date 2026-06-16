@@ -137,5 +137,33 @@
       "build": "armoury's done, welcoming back the weapons of the past.",
       "max": "you already have an armoury"
     }
+  },
+  "narrative": {
+    "source": {
+      "cost.fire_light": "Light fire",
+      "cost.fire_stoke": "Stoke fire",
+      "income.builder": "Builder",
+      "income.trapper": "Traps",
+      "income.hunter": "Hunting lodge",
+      "income.tanner": "Tannery",
+      "income.smoker": "Smokehouse",
+      "income.steelworker": "Steelworks",
+      "income.armourer": "Armoury",
+      "cost.build.trap": "Build trap",
+      "cost.build.cart": "Build cart",
+      "cost.build.hut": "Build hut",
+      "cost.build.lodge": "Build lodge",
+      "cost.build.trading_post": "Build trading post",
+      "cost.build.tannery": "Build tannery",
+      "cost.build.smokehouse": "Build smokehouse",
+      "cost.build.workshop": "Build workshop",
+      "cost.build.steelworks": "Build steelworks",
+      "cost.build.armoury": "Build armoury",
+      "reward.gather_wood": "Gather wood",
+      "event.stranger_gift": "Stranger gift"
+    },
+    "delta_format": "{{source}}: {{deltas}}",
+    "delta_plus": "+{{value}} {{name}}",
+    "delta_minus": "-{{value}} {{name}}"
   }
 }

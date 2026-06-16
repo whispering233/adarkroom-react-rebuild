@@ -19,7 +19,7 @@ export function Outside() {
     dispatch(startCooldown(
       'gatherOutside',
       CONFIG.GATHER_WOOD_COOLDOWN,
-      { stores: { wood: CONFIG.GATHER_WOOD_YIELD } },
+      { stores: { wood: CONFIG.GATHER_WOOD_YIELD }, source: 'reward.gather_wood' },
     ))
   }, [dispatch])
 

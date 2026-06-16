@@ -137,5 +137,33 @@
       "build": "军械库建好了，迎接着过去的武器回归",
       "max": "你已经有一个军械库了"
     }
+  },
+  "narrative": {
+    "source": {
+      "cost.fire_light": "点火消耗",
+      "cost.fire_stoke": "添柴消耗",
+      "income.builder": "建造者",
+      "income.trapper": "陷阱产出",
+      "income.hunter": "猎人小屋产出",
+      "income.tanner": "制革厂产出",
+      "income.smoker": "熏制房产出",
+      "income.steelworker": "炼钢厂产出",
+      "income.armourer": "军械库产出",
+      "cost.build.trap": "建造陷阱",
+      "cost.build.cart": "建造手推车",
+      "cost.build.hut": "建造小屋",
+      "cost.build.lodge": "建造猎人小屋",
+      "cost.build.trading_post": "建造贸易站",
+      "cost.build.tannery": "建造制革厂",
+      "cost.build.smokehouse": "建造熏制房",
+      "cost.build.workshop": "建造工坊",
+      "cost.build.steelworks": "建造炼钢厂",
+      "cost.build.armoury": "建造军械库",
+      "reward.gather_wood": "伐木收获",
+      "event.stranger_gift": "陌生人赠予"
+    },
+    "delta_format": "{{source}}：{{deltas}}",
+    "delta_plus": "+{{value}} {{name}}",
+    "delta_minus": "-{{value}} {{name}}"
   }
 }

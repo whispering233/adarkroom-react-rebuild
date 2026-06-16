@@ -130,10 +130,12 @@ export interface ConfigData {
 export interface NarrativeEntry {
   /** 自增 ID（用于 React key） */
   id: number
-  /** 已解析的 i18n 文本 */
+  /** 已解析的 i18n 文本（手写叙事） */
   text: string
   /** 产生时的 tick */
   tick: number
+  /** 可选：带来源的资源变更（自动叙事用，由 NarrativePanel 格式化） */
+  delta?: DeltaSource
 }
 
 // ─── 延迟奖励 ────────────────────────────────────────────
@@ -144,6 +146,8 @@ export interface PendingReward {
   cooldownKey: string
   /** 资源变更（正=收入） */
   stores: Record<string, number>
+  /** 可选：叙事来源标识（如 reward.gather_wood），缺省用 reward.${cooldownKey} */
+  source?: string
 }
 
 // ─── 资源变更日志 ────────────────────────────────────────
@@ -154,6 +158,14 @@ export interface ResourceTickLog {
   tick: number
   /** 该 tick 内每项资源的净变化量（正=收入，负=消耗） */
   deltas: Record<string, number>
+}
+
+/** 单 tick 内按来源分组的资源变更（用于叙事生成） */
+export interface DeltaSource {
+  /** 变更来源标识（如 income.builder、cost.fire_light） */
+  source: string
+  /** 该来源产生的资源变更 */
+  stores: Record<string, number>
 }
 
 // ─── 根状态 ──────────────────────────────────────────────
@@ -195,6 +207,8 @@ export interface GameState {
   _nextNarrativeId: number
   /** 当前 tick 内尚未 flush 的累加 delta */
   _pendingDeltas: Record<string, number>
+  /** 当前 tick 内按来源分组的资源变更（叙事生成用） */
+  _pendingSources: DeltaSource[]
   /** 全局逻辑 tick 计数器（秒） */
   _globalTick: number
   /** 存档版本号 */
@@ -235,6 +249,7 @@ export const INITIAL_STATE: GameState = {
   pendingRewards: {},
   resourceLog: [],
   _pendingDeltas: {},
+  _pendingSources: [],
   narrativeLog: [],
   _nextNarrativeId: 1,
   _globalTick: 0,

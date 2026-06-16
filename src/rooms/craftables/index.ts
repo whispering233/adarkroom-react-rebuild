@@ -35,8 +35,9 @@ export function buildCraftable(id: string): GameAction {
 
     // 扣除资源
     const cost = def.cost(draft)
+    const source = `cost.build.${id}`
     for (const [key, amount] of Object.entries(cost)) {
-      modifyResource(draft, key, -amount)
+      modifyResource(draft, key, -amount, source)
     }
 
     // 增加建筑

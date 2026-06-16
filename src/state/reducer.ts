@@ -24,11 +24,15 @@ export const MAX_STORE = CONFIG.MAX_STORE
 /**
  * 修改资源值并累加到当前 tick 的 _pendingDeltas。
  * 实际的 ResourceTickLog 由 INCOME_TICK 统一 flush。
+ *
+ * @param source 可选来源标签（如 income.builder、cost.fire_light），
+ *   传入后自动归并到 _pendingSources，INCOME_TICK 时生成叙事条目。
  */
 export function modifyResource(
   draft: GameState,
   key: string,
   delta: number,
+  source?: string,
 ) {
   const prev = draft.stores[key] ?? 0
   let next = prev + delta
@@ -39,6 +43,19 @@ export function modifyResource(
   const actualDelta = next - prev
   if (actualDelta !== 0) {
     draft._pendingDeltas[key] = (draft._pendingDeltas[key] ?? 0) + actualDelta
+
+    // 带 source 的变更归并到 _pendingSources（按 source 去重合并）
+    if (source) {
+      const existing = draft._pendingSources.find(s => s.source === source)
+      if (existing) {
+        existing.stores[key] = (existing.stores[key] ?? 0) + actualDelta
+      } else {
+        draft._pendingSources.push({
+          source,
+          stores: { [key]: actualDelta },
+        })
+      }
+    }
   }
 }
 
@@ -65,7 +82,7 @@ export type GameAction =
   // ── 叙事推送 ──
   | { type: 'PUSH_NARRATIVE'; text: string }
   // ── 冷却控制 ──
-  | { type: 'START_COOLDOWN'; id: string; seconds: number; reward?: { stores: Record<string, number> } }
+  | { type: 'START_COOLDOWN'; id: string; seconds: number; reward?: { stores: Record<string, number>; source?: string } }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
 
@@ -76,13 +93,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 火堆 ──────────────────────────────────────────
 
     case 'LIGHT_FIRE': {
-      modifyResource(draft, 'wood', -5)
+      modifyResource(draft, 'wood', -5, 'cost.fire_light')
       draft.game.fire = FireLevel.Burning
       break
     }
 
     case 'STOKE_FIRE': {
-      modifyResource(draft, 'wood', -1)
+      modifyResource(draft, 'wood', -1, 'cost.fire_stoke')
       const next = draft.game.fire + 1
       draft.game.fire =
         next > FireLevel.Roaring ? FireLevel.Roaring : (next as FireLevel)
@@ -139,6 +156,21 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         draft._pendingDeltas = {}
       }
 
+      // ①.5 flush _pendingSources → 叙事条目（每条一个来源）
+      for (const ds of draft._pendingSources) {
+        draft.narrativeLog.unshift({
+          id: draft._nextNarrativeId++,
+          text: '', // 由 NarrativePanel 根据 delta 格式化
+          tick: draft._globalTick,
+          delta: { source: ds.source, stores: { ...ds.stores } },
+        })
+      }
+      draft._pendingSources = []
+      // 裁剪叙事日志
+      if (draft.narrativeLog.length > 50) {
+        draft.narrativeLog = draft.narrativeLog.slice(0, 50)
+      }
+
       // ② 推进全局时钟
       draft._globalTick += 1
 
@@ -146,15 +178,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       for (const [key, remaining] of Object.entries(draft.cooldown)) {
         const next = remaining - 1
         if (next < 0) {
-          // 已经归零过，清理
           delete draft.cooldown[key]
         } else if (next === 0) {
-          // 刚好归零：设为 0（进度条 CSS 过渡到 0%）+ 发放奖励
           draft.cooldown[key] = 0
           const reward = draft.pendingRewards[key]
           if (reward) {
             for (const [res, delta] of Object.entries(reward.stores)) {
-              modifyResource(draft, res, delta)
+              modifyResource(draft, res, delta, reward.source ?? `reward.${key}`)
             }
             delete draft.pendingRewards[key]
           }
@@ -163,19 +193,19 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         }
       }
 
-      // ③ 处理收入（内部调用 modifyResource → 累加到新的 _pendingDeltas）
-      for (const [, config] of Object.entries(draft.income)) {
+      // ③ 处理收入
+      for (const [key, config] of Object.entries(draft.income)) {
         config.timeLeft -= 1
 
         if (config.timeLeft <= 0) {
           for (const [res, delta] of Object.entries(config.stores)) {
-            modifyResource(draft, res, delta)
+            modifyResource(draft, res, delta, `income.${key}`)
           }
           config.timeLeft = config.delay
         }
       }
 
-      // ④ 裁剪日志：保留最近 60 tick（60 条 entry，每条 1 tick）
+      // ④ 裁剪资源日志：保留最近 60 tick
       if (draft.resourceLog.length > 60) {
         draft.resourceLog = draft.resourceLog.slice(-60)
       }
@@ -221,6 +251,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         draft.pendingRewards[action.id] = {
           cooldownKey: action.id,
           stores: { ...action.reward.stores },
+          source: action.reward.source,
         }
       }
       break
@@ -292,7 +323,7 @@ export const pushNarrative = (text: string): GameAction => ({
 export const startCooldown = (
   id: string,
   seconds: number,
-  reward?: { stores: Record<string, number> },
+  reward?: { stores: Record<string, number>; source?: string },
 ): GameAction => ({
   type: 'START_COOLDOWN',
   id,

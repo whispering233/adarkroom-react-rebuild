@@ -114,7 +114,7 @@ export function GameLoop() {
             if (s3.game.builder.level === 1) {
               dispatch(unlockFeature('location.outside'))
               dispatch(applyRecipe(draft => {
-                modifyResource(draft, 'wood', CONFIG.STRANGER_GIFT_WOOD)
+                modifyResource(draft, 'wood', CONFIG.STRANGER_GIFT_WOOD, 'event.stranger_gift')
               }))
               dispatch(pushNarrative(t('room.stranger_gives_wood')))
             }

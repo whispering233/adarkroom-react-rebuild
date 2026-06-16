@@ -35,6 +35,7 @@ export type {
   CharacterState,
   IncomeConfig,
   ResourceTickLog,
+  DeltaSource,
   NarrativeEntry,
   PendingReward,
   GameData,
