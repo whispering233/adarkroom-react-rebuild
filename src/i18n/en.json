@@ -102,6 +102,8 @@
     "trap_cloth": "tattered cloth",
     "trap_charm": "a crudely made charm",
     "workers_title": "Workers",
+    "worker_col_role": "Role",
+    "worker_col_action": "Action",
     "worker_assign": "assign {{count}} gatherer",
     "worker_unassign": "return {{count}} worker",
     "pop_increase_1": "a stranger arrives in the night",

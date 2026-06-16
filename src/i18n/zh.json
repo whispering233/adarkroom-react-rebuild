@@ -102,6 +102,8 @@
     "trap_cloth": "破旧的布料",
     "trap_charm": "一枚粗糙的护符",
     "workers_title": "工人分配",
+    "worker_col_role": "职业",
+    "worker_col_action": "操作",
     "worker_assign": "分配 {{count}} 名采集者",
     "worker_unassign": "退回 {{count}} 名工人",
     "pop_increase_1": "一个陌生人趁着夜色来到了这里",

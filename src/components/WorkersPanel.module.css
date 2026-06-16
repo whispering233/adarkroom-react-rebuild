@@ -1,9 +1,13 @@
-/* WorkersPanel — 工人分配面板样式 */
+/* WorkersPanel — 工人分配面板样式
+ *
+ * 每行 rowGroup(position:relative) > rowContent(grid-cols-2) + tooltip(absolute)。
+ * 按钮用纯 CSS 三角箭头（border trick），hover 时弹出 tooltip。
+ */
 
 .panel {
   margin-top: 1.5rem;
   width: 100%;
-  max-width: 24rem;
+  max-width: 26rem;
 }
 
 .title {
@@ -15,63 +19,122 @@
   margin-bottom: 0.5rem;
 }
 
-.rows {
+/* ── 外层容器 ────────────────────────────── */
+
+.grid {
   display: flex;
   flex-direction: column;
+}
+
+/* ── 行组（含 tooltip 定位上下文） ────────── */
+
+.rowGroup {
+  position: relative;
+}
+
+.rowGroup:hover .tooltip {
+  display: block;
+}
+
+/* ── grid-cols-2 行内容 ──────────────────── */
+
+.rowContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ── 单元格 ──────────────────────────────── */
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.75rem;
+  color: var(--game-text-body);
+  border-bottom: 1px solid var(--game-border, #333);
   gap: 0.25rem;
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--game-border, #ccc);
-}
-
-.row:last-child {
-  border-bottom: none;
-}
-
-.label {
-  flex: 1;
-  font-size: 0.75rem;
-  color: var(--game-text-body);
-  text-transform: capitalize;
+/* 首行（表头）底部加粗 */
+.rowContent:first-child .cell {
+  font-size: 0.65rem;
+  color: var(--game-text-muted);
+  text-transform: uppercase;
+  border-bottom-width: 2px;
 }
 
 .count {
-  min-width: 2.5ch;
-  text-align: right;
-  font-size: 0.75rem;
   font-weight: 600;
   color: var(--game-accent);
+  min-width: 2ch;
+  text-align: right;
 }
+
+/* ── 操作按钮区 ───────────────────────────── */
 
 .actions {
-  display: flex;
-  gap: 0.15rem;
-  min-width: 5rem;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  gap: 0;
 }
 
+/* ── 文字操作按钮 ──────────────────────────── */
+
 .btn {
-  padding: 0.1rem 0.3rem;
+  padding: 0.1rem 0.35rem;
   font-size: 0.65rem;
-  line-height: 1;
-  border: 1px solid var(--game-border, #888);
-  border-radius: 2px;
+  line-height: 1.2;
+  border: 1px solid var(--game-border);
+  border-radius: 3px;
   background: var(--game-btn-bg, transparent);
   color: var(--game-text-body);
   cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.btn:hover:not(:disabled) {
-  background: var(--game-btn-hover, #eee);
+  min-width: 2em;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+/* ── tooltip（hover 资源产出/消耗提示） ───── */
+
+.tooltip {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 2px;
+  background-color: var(--game-bg-primary);
+  border: 1px solid var(--game-border);
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  z-index: 10;
+  pointer-events: none;
+  font-size: 0.7rem;
+  color: var(--game-text-muted);
+}
+
+.ttRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.15rem 0;
+}
+
+.ttRow + .ttRow {
+  border-top: 1px solid var(--game-border);
+}
+
+.ttKey {
+  color: var(--game-text-muted);
+  text-transform: capitalize;
+}
+
+.ttVal {
+  color: var(--game-accent);
+  font-variant-numeric: tabular-nums;
 }
