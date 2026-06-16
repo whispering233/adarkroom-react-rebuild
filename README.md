@@ -57,13 +57,14 @@ pnpm test
 │   │   ├── GameLoop.tsx       # 单主循环（100ms 驱动火堆/建造者/收入）
 │   │   └── gameSpeed.ts       # 倍速模块（1×/2×/3×，localStorage 持久化）
 │   ├── components/           # 通用 UI 组件
-│   │   ├── Button.tsx         # 操作按钮（状态驱动冷却 + 倒空进度条）
+│   │   ├── Button.tsx         # 操作按钮（冷却驱动 + hover 成本浮层 + label/count 左右对齐）
+│   │   ├── CollapsibleSection.tsx # 可折叠区块（▶/▼）
 │   │   ├── Header.tsx         # 场景导航标签
-│   │   ├── NarrativePanel.tsx # 左栏叙事区（状态条 + 叙事日志）
-│   │   ├── StoresPanel.tsx    # 右栏资源面板（趋势箭头 ↑/↓）
+│   │   ├── NarrativePanel.tsx # 左栏双区叙事（手动 + 资源变化，grid 固定分栏）
+│   │   ├── StoresPanel.tsx    # 右栏三块折叠面板（建筑物/库存/武器 + 趋势）
 │   │   └── Toolbar.tsx        # 右下角工具栏（速度/字体/主题）
 │   ├── rooms/                # 场景组件
-│   │   ├── Room.tsx           # 暗室（点火/添柴 + 建造系统）
+│   │   ├── Room.tsx           # 暗室（火堆操作 + 建造 grid flex-col 分栏）
 │   │   ├── Outside.tsx        # 野外（伐木 + 延迟奖励）
 │   │   └── craftables/        # 制造系统（纯数据配置）
 │   │       ├── index.ts        # 合并导出 + buildCraftable action
@@ -71,6 +72,7 @@ pnpm test
 │   │       ├── buildings.ts    # 10 栋建筑配置
 │   │       ├── effects.ts      # 副作用模板（income / unlockFeature / chain）
 │   │       ├── unlock.ts       # evaluateUnlock 解锁评估器
+│   │       ├── buttonState.ts  # computeButtonState 统一可访问性
 │   │       └── __tests__/      # 11 项单元测试
 │   ├── i18n/                 # 国际化
 │   │   ├── zh.json            # 中文翻译
@@ -95,8 +97,9 @@ pnpm test
 - 🏗️ **建造系统**：10 栋建筑（trap → armoury），动态解锁 + 成本递增 + 收入注册，纯数据驱动可扩展
 - 👤 **建造者 NPC**：5 阶段状态机，自动添柴，解锁野外和建造能力
 - ⏱ **游戏加速**：1×/2×/3× 倍速，冷却进度条动画自适应
-- 📜 **叙事日志**：事件文本时间线，新条目在上，可滚动回溯
-- 📊 **趋势面板**：资源分类显示 + 趋势箭头（滑动窗口）
+- 📜 **叙事日志**：双区固定布局（手动叙事 + 资源变化），新条目在上渐隐，独立滚动不挤占
+- 📊 **趋势面板**：资源分类显示 + 趋势箭头 + 滑动窗口标注（/ Nt）
+- 🎛️ **右栏面板**：三块可折叠数据区（建筑物 + 库存 + 武器），默认全展开
 - 🎨 **主题切换**：浅色/暗色，`localStorage` 持久化
 - 🔤 **字体缩放**：12-24px，`localStorage` 持久化
 - 🌐 **国际化**：中文/英文，自动匹配浏览器语言
