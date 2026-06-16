@@ -6,7 +6,7 @@
 
 - 技术栈：pnpm / React 19 / TypeScript ~6.0 / Vite 8 / Tailwind CSS v4 / CSS Modules / Vitest / Immer / i18next
 - 入口：`index.html` → `src/main.tsx` → i18n init → `<GameProvider><App /></GameProvider>`
-- 项目文档在 `doc/`：架构分析、分阶段重构方案、TODO checklist
+- 项目文档在 `doc/`：原始架构分析（`原始ADarkRoom架构分析.md`），重构方案与 TODO 待补充
 - 原始项目参考在 `origin-adarkroom/`（只读，git-ignored）
 
 ## Commands
@@ -36,7 +36,7 @@
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统。`dt = 100ms × speed`，倍速加速
   - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`，订阅通知。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
-- **`src/i18n/`** — i18next 国际化（`zh.json`/`en.json`），默认中文，`LanguageDetector` 自动匹配浏览器语言
+- **`src/i18n/`** — i18next 国际化（`zh.json`/`en.json`），默认中文，`LanguageDetector` 自动匹配浏览器语言；`index.ts` 初始化 i18next + react-i18next
 - **`src/components/`** — 通用 UI 组件
   - `Button.tsx` — 通用操作按钮：冷却由 `state.cooldown[id]` 驱动（无本地定时器），倒空式进度条（CSS transition `var(--game-cooldown-step)`），资源消耗自动禁用，`min-w-[160px]` 固定宽度
   - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
