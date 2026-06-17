@@ -88,6 +88,7 @@
 .tooltipAmount {
   text-align: right;
   color: var(--game-accent);
+  font-weight: 600;
   white-space: nowrap;
 }
 

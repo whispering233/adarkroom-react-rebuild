@@ -1,8 +1,9 @@
 /**
- * A Dark Room — 共享 CSS Token
+ * A Dark Room — 共享 CSS Token（黑白极简风）
  *
  * 默认浅色主题（白底黑字），通过 [data-theme="dark"] 切换到暗色。
- * 所有颜色/字体/阴影统一在此定义，组件通过 var(--game-*) 引用。
+ * 强调通过 font-weight: 600 或下划线实现，不再使用彩色。
+ * 布局元素取消 border，仅按钮保留 border。
  */
 
 /* ═══ 浅色主题（默认） ═══ */
@@ -13,26 +14,23 @@
   --game-bg-panel: rgba(0, 0, 0, 0.03);
 
   /* 文字 */
-  --game-text-primary: #111111;
+  --game-text-primary: #000000;
   --game-text-body: #333333;
   --game-text-muted: #999999;
 
-  /* 强调色（日夜通用） */
-  --game-accent: #c94b1a;
-  --game-accent-soft: rgba(201, 75, 26, 0.15);
-  --game-accent-glow: 0 0 15px rgba(201, 75, 26, 0.2);
-  --game-text-glow: 0 0 20px rgba(201, 75, 26, 0.3);
-  --game-accent-positive: #15803d;
+  /* 强调（通过加粗/下划线实现视觉区分，此处仅保留文字色） */
+  --game-accent: #000000;
+  --game-accent-soft: rgba(0, 0, 0, 0.08);
 
   /* 按钮 */
-  --game-btn-text: #5c1a0a;
-  --game-btn-bg: rgba(201, 75, 26, 0.08);
-  --game-btn-border: rgba(201, 75, 26, 0.3);
-  --game-btn-hover-bg: rgba(201, 75, 26, 0.15);
+  --game-btn-text: #000000;
+  --game-btn-bg: rgba(0, 0, 0, 0.05);
+  --game-btn-border: rgba(0, 0, 0, 0.25);
+  --game-btn-hover-bg: rgba(0, 0, 0, 0.1);
 
-  /* 边框 */
+  /* 边框（仅用于按钮 tooltip 等，不用作布局分隔） */
   --game-border: rgba(0, 0, 0, 0.1);
-  --game-border-accent: rgba(201, 75, 26, 0.4);
+  --game-border-accent: rgba(0, 0, 0, 0.25);
 
   /* 字体 */
   --game-font: "Courier New", Courier, monospace;
@@ -46,6 +44,9 @@
   --game-header-h: 41px;
   --game-panel-padding: 1rem;
   --game-panel-gap: 0.75rem;
+
+  /* 内容宽度（由 Toolbar 控制，默认 100%） */
+  --game-content-max-width: 100%;
 }
 
 /* ═══ 暗色主题 ═══ */
@@ -54,22 +55,20 @@
   --game-bg-header: #0d0d1a;
   --game-bg-panel: rgba(0, 0, 0, 0.3);
 
-  --game-text-primary: #f4e4c1;
+  --game-text-primary: #e0e0e0;
   --game-text-body: #c8c8c8;
-  --game-text-muted: #5c5c5c;
+  --game-text-muted: #666666;
 
-  --game-accent-soft: rgba(201, 75, 26, 0.3);
-  --game-accent-glow: 0 0 15px rgba(201, 75, 26, 0.3);
-  --game-text-glow: 0 0 20px rgba(201, 75, 26, 0.5);
+  --game-accent: #e0e0e0;
+  --game-accent-soft: rgba(255, 255, 255, 0.08);
 
-  /* 按钮 */
-  --game-btn-text: #fdba74;
-  --game-btn-bg: rgba(201, 75, 26, 0.15);
-  --game-btn-border: rgba(201, 75, 26, 0.5);
-  --game-btn-hover-bg: rgba(201, 75, 26, 0.25);
+  --game-btn-text: #e0e0e0;
+  --game-btn-bg: rgba(255, 255, 255, 0.08);
+  --game-btn-border: rgba(255, 255, 255, 0.25);
+  --game-btn-hover-bg: rgba(255, 255, 255, 0.12);
 
-  --game-border: rgba(128, 128, 128, 0.3);
-  --game-border-accent: rgba(201, 75, 26, 0.5);
+  --game-border: rgba(255, 255, 255, 0.15);
+  --game-border-accent: rgba(255, 255, 255, 0.25);
 
   --game-font-size: 16px;
 }

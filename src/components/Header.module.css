@@ -6,8 +6,9 @@
 
 /* 激活标签 */
 .tabActive {
-  color: var(--game-accent);
-  border-color: var(--game-accent);
+  color: var(--game-text-primary);
+  border-color: var(--game-text-primary);
+  font-weight: 700;
   opacity: 1;
 }
 
@@ -15,5 +16,5 @@
 .tabInactive {
   color: var(--game-text-body);
   border-color: transparent;
-  opacity: 0.5;
+  opacity: 0.45;
 }

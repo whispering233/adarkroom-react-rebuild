@@ -26,30 +26,35 @@ function App() {
   const Scene = SCENES[currentRoom]
 
   return (
-    <div className="grid h-screen overflow-hidden grid-cols-[1fr_2fr_1fr]">
-      {/* 左栏 — 剧情文本 */}
-      <aside className="border-r p-4 overflow-y-auto border-(--game-border)">
-        <NarrativePanel />
-      </aside>
+    <div
+      className="mx-auto h-screen"
+      style={{ maxWidth: 'var(--game-content-max-width)' }}
+    >
+      <div className="grid h-full overflow-hidden grid-cols-[1fr_2fr_1fr]">
+        {/* 左栏 — 剧情文本 */}
+        <aside className="p-4 overflow-y-auto">
+          <NarrativePanel />
+        </aside>
 
-      {/* 中栏 — 交互操作 */}
-      <div className="flex flex-col h-full overflow-y-auto">
-        <Header />
-        <main className="flex-1 flex flex-col">
-          {/* 全局游戏循环（始终挂载：定时器 + 通知） */}
-          <GameLoop />
-          {/* 场景区域 */}
-          <div className="flex-1 flex flex-col justify-start">
-            {Scene && <Scene />}
-          </div>
-        </main>
+        {/* 中栏 — 交互操作 */}
+        <div className="flex flex-col h-full overflow-y-auto">
+          <Header />
+          <main className="flex-1 flex flex-col">
+            {/* 全局游戏循环（始终挂载：定时器 + 通知） */}
+            <GameLoop />
+            {/* 场景区域 */}
+            <div className="flex-1 flex flex-col justify-start">
+              {Scene && <Scene />}
+            </div>
+          </main>
+        </div>
+
+        {/* 右栏 — 游戏数据 */}
+        <aside className="p-4 overflow-y-auto">
+          <StoresPanel />
+        </aside>
+        <Toolbar />
       </div>
-
-      {/* 右栏 — 游戏数据 */}
-      <aside className="border-l p-4 overflow-y-auto border-(--game-border)">
-        <StoresPanel />
-      </aside>
-      <Toolbar />
     </div>
   )
 }

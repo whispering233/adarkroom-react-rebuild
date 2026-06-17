@@ -5,7 +5,18 @@
  * 导入方式：import { CONFIG } from '../config'
  */
 
+/** 运行模式 */
+export type RunMode = 'normal' | 'debug'
+
 export const CONFIG = {
+  // ── 运行模式 ────────────────────────────────────
+  /** normal: 正常游戏, debug: 资源全满用于调试 */
+  RUN_MODE: 'debug' as RunMode,
+
+  // ── 叙事面板 ────────────────────────────────────
+  /** 是否展示资源变化叙事块（右栏已有资源数据时可关闭） */
+  SHOW_DELTA_NARRATIVE: false,
+
   // ── 火堆 ──────────────────────────────────────────
   /** 点火消耗木头 */
   LIGHT_FIRE_COST: { wood: 5 } as const,
@@ -185,11 +196,11 @@ export function getResourceCategories(): { labelKey: string; keys: string[] }[] 
   ]
 }
 
-/** 从 RESOURCES 生成初始 stores 对象 */
+/** 从 RESOURCES 生成初始 stores 对象，debug 模式下全资源满上限 */
 export function getInitialStores(): Record<string, number> {
   const stores: Record<string, number> = {}
   for (const [key, def] of Object.entries(RESOURCES)) {
-    stores[key] = def.initial
+    stores[key] = CONFIG.RUN_MODE === 'debug' ? CONFIG.MAX_STORE : def.initial
   }
   return stores
 }

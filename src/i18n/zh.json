@@ -38,6 +38,13 @@
     "fabricator": "工坊",
     "ship": "飞船"
   },
+  "builder": {
+    "level_0": "一个陌生人蜷缩在角落",
+    "level_1": "陌生人在火堆旁取暖",
+    "level_2": "陌生人停止了颤抖",
+    "level_3": "陌生人站在火堆旁",
+    "level_4": "建造者正在努力工作"
+  },
   "stores": {
     "cat_basic": "基础物资",
     "cat_minerals": "矿物",
@@ -87,7 +94,8 @@
     "switch_light": "切换浅色模式",
     "font_larger": "增大字体（当前 {{size}}px）",
     "font_smaller": "减小字体（当前 {{size}}px）",
-    "speed": "游戏速度 {{speed}}×"
+    "speed": "游戏速度 {{speed}}×",
+    "width": "界面宽度"
   },
   "outside": {
     "title": "寂静的森林",

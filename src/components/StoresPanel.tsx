@@ -102,12 +102,12 @@ export function StoresPanel() {
       <div key={key} className="flex justify-between text-(--game-text-body) gap-2">
         <span className="text-(--game-text-muted) truncate text-xs">{label}</span>
         <span className="flex items-baseline gap-2 shrink-0">
-          <span className="text-(--game-accent) text-right min-w-[3ch] text-xs">
+          <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
             {value}
           </span>
           <span
             className={`text-[0.6rem] min-w-[5.5em] text-right ${
-              isPositive ? 'text-blue-500' : isNegative ? 'text-red-500' : 'text-(--game-text-muted)'
+              isPositive ? 'font-bold' : isNegative ? '' : 'text-(--game-text-muted)'
             }`}
           >
             {formatTrend(trend)}
@@ -141,7 +141,7 @@ export function StoresPanel() {
               return (
                 <div key={id} className="flex justify-between text-(--game-text-body) gap-2">
                   <span className="text-(--game-text-muted) truncate text-xs">{name}</span>
-                  <span className="text-(--game-accent) text-right min-w-[3ch] text-xs">
+                  <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
                     {count}
                   </span>
                 </div>
@@ -191,7 +191,7 @@ export function StoresPanel() {
               return (
                 <div key={key} className="flex justify-between text-(--game-text-body) gap-2">
                   <span className="text-(--game-text-muted) truncate text-xs">{name}</span>
-                  <span className="text-(--game-accent) text-right min-w-[3ch] text-xs">
+                  <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
                     {stores[key] ?? 0}
                   </span>
                 </div>

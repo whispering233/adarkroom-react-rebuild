@@ -327,7 +327,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 屠杀村民 ──────────────────────────────
 
     case 'KILL_VILLAGERS': {
-      let count = action.count
+      const count = action.count
       if (count <= 0) break
       // 先减总人口
       draft.game.population = Math.max(0, draft.game.population - count)

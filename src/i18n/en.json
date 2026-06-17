@@ -38,6 +38,13 @@
     "fabricator": "Fabricator",
     "ship": "Ship"
   },
+  "builder": {
+    "level_0": "a stranger huddles in the corner",
+    "level_1": "the stranger warms by the fire",
+    "level_2": "the stranger has stopped shivering",
+    "level_3": "the stranger stands by the fire",
+    "level_4": "the builder is working hard"
+  },
   "stores": {
     "cat_basic": "Basic",
     "cat_minerals": "Minerals",
@@ -87,7 +94,8 @@
     "switch_light": "Switch to Light Mode",
     "font_larger": "Increase font size ({{size}}px)",
     "font_smaller": "Decrease font size ({{size}}px)",
-    "speed": "Game speed {{speed}}×"
+    "speed": "Game speed {{speed}}×",
+    "width": "Layout width"
   },
   "outside": {
     "title": "A Silent Forest",

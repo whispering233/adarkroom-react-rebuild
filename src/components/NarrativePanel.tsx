@@ -1,18 +1,20 @@
 /**
  * NarrativePanel — 左栏叙事区
  *
- * 三区布局：
- *   1. 顶部状态栏 — 火堆 + 温度
+ * 布局：
+ *   1. 顶部状态条 — 火堆 + 温度 + 建造者等级
  *   2. 手动叙事 — 脚本推送的叙事文本（entry.text）
- *   3. 资源变化 — 自动生成的资源变更（entry.delta）
+ *   3. 资源变化 — 自动生成的资源变更（entry.delta，由 CONFIG 控制显隐）
  *
  * 各区独立可滚动，新条目在上，旧条目渐隐。
+ * 叙事块由通用组件 NarrativeSection 渲染，消除重复。
  */
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGameState, FireLevel } from '../state'
-import type { NarrativeEntry, DeltaSource } from '../state'
-import styles from './NarrativePanel.module.css'
+import type { DeltaSource } from '../state'
+import { CONFIG } from '../config'
+import { NarrativeSection } from './NarrativeSection'
 
 // ─── i18n 查表 ────────────────────────────────────────────
 
@@ -26,9 +28,10 @@ const TEMP_KEYS = [
   'temp.warm', 'temp.hot',
 ] as const
 
-function fadeOpacity(index: number): number {
-  return Math.max(1 - index * 0.08, 0.15)
-}
+const BUILDER_KEYS = [
+  'builder.level_0', 'builder.level_1', 'builder.level_2',
+  'builder.level_3', 'builder.level_4',
+] as const
 
 // ─── 资源 i18n key 映射 ───────────────────────────────────
 
@@ -61,28 +64,6 @@ function formatDelta(
   return t('narrative.delta_format', { source: sourceName, deltas: parts.join(', ') })
 }
 
-// ─── 叙事条目行 ────────────────────────────────────────────
-
-function EntryRow({ entry, text, index }: {
-  entry: NarrativeEntry
-  text: string
-  index: number
-}) {
-  if (!text) return null
-  return (
-    <p
-      key={entry.id}
-      className={styles.entry}
-      style={{
-        opacity: fadeOpacity(index),
-        animation: index === 0 ? 'narrSlideIn 0.4s ease-out' : undefined,
-      }}
-    >
-      {text}
-    </p>
-  )
-}
-
 // ─── 组件 ─────────────────────────────────────────────────
 
 export function NarrativePanel() {
@@ -90,16 +71,18 @@ export function NarrativePanel() {
   const state = useGameState()
   const fireLevel = state.game.fire
   const tempLevel = state.game.temperature
+  const builderLevel = state.game.builder.level
   const narrativeLog = state.narrativeLog
   const deltaLog = state.deltaLog
 
   const fireText = t(FIRE_KEYS[fireLevel])
   const tempText = t(TEMP_KEYS[tempLevel])
+  const builderText = t(BUILDER_KEYS[builderLevel])
   const isFireDead = fireLevel === FireLevel.Dead
 
   // 预处理手动叙事
   const manualEntries = useMemo(
-    () => narrativeLog.map(entry => ({ entry, text: entry.text })),
+    () => narrativeLog.map(entry => ({ id: entry.id, text: entry.text })),
     [narrativeLog],
   )
 
@@ -108,13 +91,13 @@ export function NarrativePanel() {
     () => deltaLog
       .map(entry => {
         const txt = entry.delta ? formatDelta(entry.delta, t) : ''
-        return { entry, text: txt }
+        return { id: entry.id, text: txt }
       })
       .filter(e => e.text),
     [deltaLog, t],
   )
 
-  const isEmpty = manualEntries.length === 0 && deltaEntries.length === 0
+  const showDelta = CONFIG.SHOW_DELTA_NARRATIVE
 
   return (
     <div className="flex flex-col h-full gap-0">
@@ -122,44 +105,28 @@ export function NarrativePanel() {
       <div className="shrink-0 mb-2 px-1 flex flex-col gap-0.5 text-xs text-(--game-text-body)">
         <span>{t('room.fire_is')} {isFireDead ? t('room.dead_icon') : `🔥 ${fireText}`}</span>
         <span>{t('room.room_is')} {tempText}</span>
+        <span className="font-semibold">{builderText}</span>
         <span>tick {state._globalTick}</span>
       </div>
 
-      {isEmpty ? (
-        <p className="text-xs text-(--game-text-muted) italic px-1">
-          {t('room.title_dark')}
-        </p>
-      ) : (
+      {/* ── 叙事区 ── */}
+      {showDelta ? (
         <div className="grid grid-rows-2 flex-1 min-h-0 gap-2">
-          {/* ── 手动叙事 — 始终占位 ── */}
-          <div className="overflow-y-auto min-h-0 pr-1">
-            {manualEntries.length > 0 ? (
-              <div className="flex flex-col gap-1.5">
-                {manualEntries.map(({ entry, text }, i) => (
-                  <EntryRow key={entry.id} entry={entry} text={text} index={i} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-(--game-text-muted) italic px-1">
-                —
-              </p>
-            )}
-          </div>
-
-          {/* ── 资源变化 — 始终占位 ── */}
-          <div className="overflow-y-auto min-h-0 pr-1">
-            {deltaEntries.length > 0 ? (
-              <div className="flex flex-col gap-1.5">
-                {deltaEntries.map(({ entry, text }, i) => (
-                  <EntryRow key={entry.id} entry={entry} text={text} index={i} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-(--game-text-muted) italic px-1">
-                —
-              </p>
-            )}
-          </div>
+          <NarrativeSection
+            entries={manualEntries}
+            emptyPlaceholder={<span>{t('room.title_dark')}</span>}
+          />
+          <NarrativeSection
+            entries={deltaEntries}
+            emptyPlaceholder={<span>—</span>}
+          />
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0">
+          <NarrativeSection
+            entries={manualEntries}
+            emptyPlaceholder={<span>{t('room.title_dark')}</span>}
+          />
         </div>
       )}
     </div>
