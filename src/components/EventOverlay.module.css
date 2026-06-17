@@ -1,0 +1,75 @@
+/**
+ * EventOverlay — 事件弹窗样式
+ *
+ * 固定定位覆盖层 + 居中面板，使用游戏主题 CSS Token。
+ * 进场动画由 keyframes 驱动。
+ */
+
+/* ── 遮罩 ──────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+/* ── 弹窗面板 ───────────────────────────────────── */
+.panel {
+  background: var(--game-bg-primary);
+  border: 1px solid var(--game-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 32rem;
+  width: 90vw;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: eventFadeIn 0.2s ease-out;
+}
+
+@keyframes eventFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── 标题 ───────────────────────────────────────── */
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--game-text-primary);
+  padding: 1rem 1.25rem 0.5rem;
+  letter-spacing: var(--game-tracking-tight);
+  flex-shrink: 0;
+}
+
+/* ── 文本内容 ───────────────────────────────────── */
+.description {
+  padding: 0.5rem 1.25rem 0.75rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--game-text-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ── 按钮区域 ───────────────────────────────────── */
+.buttons {
+  padding: 0.75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}

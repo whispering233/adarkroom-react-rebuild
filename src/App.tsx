@@ -12,6 +12,7 @@ import { NarrativePanel } from './components/NarrativePanel'
 import { StoresPanel } from './components/StoresPanel'
 import { Toolbar } from './components/Toolbar'
 import { GameLoop } from './system/GameLoop'
+import { EventOverlay } from './components/EventOverlay'
 import { Room } from './rooms/Room'
 import { Outside } from './rooms/Outside'
 
@@ -22,7 +23,9 @@ const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
 }
 
 function App() {
-  const currentRoom = useGameState().currentRoom
+  const state = useGameState()
+  const currentRoom = state.currentRoom
+  const activeEvent = state.game.activeEvent
   const Scene = SCENES[currentRoom]
 
   return (
@@ -30,6 +33,9 @@ function App() {
       className="mx-auto h-screen"
       style={{ maxWidth: 'var(--game-content-max-width)' }}
     >
+      {/* 事件弹窗覆盖层 */}
+      {activeEvent && <EventOverlay />}
+
       <div className="grid h-full overflow-hidden grid-cols-[1fr_3fr_1.5fr]">
         {/* 左栏 — 剧情文本 */}
         <aside className="p-4 overflow-y-auto">
