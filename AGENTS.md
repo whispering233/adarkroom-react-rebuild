@@ -27,12 +27,18 @@
 
 - **`src/state/`** — 全局状态管理层，替代原项目 `$SM` + `State`
   - `types.ts` — 类型定义 + const-object 枚举（`FireLevel`/`TempLevel`/`RoomName`）+ `INITIAL_STATE`；`Stores` 接口从 `RESOURCES` 配置派生（`extends Record<ResourceId, number>`，新增资源只需在 config.ts 加一行）；`ResourceTickLog`（per-tick 聚合日志）、`NarrativeEntry`（叙事日志条目）、`PendingReward`（延迟奖励）、`IncomeConfig`、`CharacterState`、`GameData`（含 population/workers 字段）
-  - `reducer.ts` — Immer draft-recipe reducer。`modifyResource()` 统一资源变更入口 → `_pendingDeltas` 累加 → `INCOME_TICK` 时 flush。语义 action（火堆/建造者/叙事/冷却等）+ 通用 `APPLY_RECIPE` + 人口/工人 action（`INCREASE_POPULATION`/`KILL_VILLAGERS`/`ASSIGN_WORKER`/`UNASSIGN_WORKER`）+ 事件 action（`START_EVENT`/`GO_TO_SCENE`/`END_EVENT`/`COMPLETE_EVENT`/`SET_NARRATIVE_FLAG`）+ 战斗 action（`START_COMBAT`/`END_COMBAT`）+ `getNumGatherers()` 辅助函数
+  - `reducer.ts` — Immer draft-recipe reducer。`modifyResource()` 统一资源变更入口 → `_pendingDeltas` 累加 → `INCOME_TICK` 时 flush。语义 action（火堆/建造者/叙事/冷却等）+ 通用 `APPLY_RECIPE` + 人口/工人 action（`INCREASE_POPULATION`/`KILL_VILLAGERS`/`ASSIGN_WORKER`/`UNASSIGN_WORKER`）+ 事件 action（`START_EVENT`/`GO_TO_SCENE`/`END_EVENT`/`COMPLETE_EVENT`/`SET_NARRATIVE_FLAG`）+ 战斗 action（`START_COMBAT`/`END_COMBAT`）+ 世界 action（`EMBARK_WORLD`/`RETURN_FROM_WORLD`/`ENTER_MAP`/`LEAVE_MAP`）+ `getNumGatherers()`/`getMaxHealth()`/`getMaxWater()` 辅助函数
   - `GameContext.tsx` — React Context + `<GameProvider>`（接受可选 `initialState`）
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（41 条，含叙事/人口/工人/收入/事件/战斗验证）
-- **`src/config.ts`** — 游戏数值统一配置（`RUN_MODE: 'normal'|'debug'`，debug 模式资源初始全满）+ `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
+- **`src/config.ts`** — 游戏数值统一配置（`RUN_MODE: 'normal'|'debug'`，debug 模式资源初始全满）+ `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口 + `ITEM_WEIGHT`/`BAG_UPGRADES`/`KEEP_ON_RETURN` 背包常量
+- **`src/world/`** — 世界地图系统
+  - `types.ts` — `MapTile`/`TerrainDef`/`LandmarkDef`/`MapDef`/`TileEffectFn`/`PersistentWorldData`/`WorldRuntimeState`/`WorldMapStackEntry`；Portal Landmark 预留（`nextMapId` + `mapStack`）
+  - `constants.ts` — `WORLD` 常量（半径/光照/战斗概率/补给速率等）+ `TERRAINS` 4 种地形配置 + `LANDMARKS` 15 个地标配置
+  - `generator.ts` — `generateMap()` 纯函数（螺旋地形填充+地标随机放置+L 型道路+mask 生成）+ `lightMap()`/`createNewMask()` 辅助
+  - `effects.ts` — `composeEffects()` 组合 terrain+landmark 效果函数；`getTerrainNarrationKey()` 地形叙事查询
+  - `index.ts` — barrel export
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器、事件调度 tick。`dt = 100ms × speed`，倍速加速；战斗时自动强制 1×
   - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×/5×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`/`forceSpeed()`/`releaseSpeed()`，战斗时强制 1×。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
@@ -52,6 +58,8 @@
 - **`src/rooms/`** — 场景组件
   - `Room.tsx` — 暗室场景（火堆操作单独一行 + 建造 flex-col 分栏，`computeButtonState()` 统一可访问性，cost 由 Button 自动渲染）
   - `Outside.tsx` — 野外场景（grid-cols-2 布局：左列伐木+检查陷阱按钮竖排，右列 WorkersPanel；检查陷阱根据 traps+baitedCount 计算掉落次数，按 `TRAP_DROPS` 累积概率表随机掉落+消耗诱饵+冷却+叙事推送）
+  - `Path.tsx` — 小径/出发准备场景（装备选择面板 ±1/±10 按钮，受容量/重量/库存约束；护甲/水量展示；EmbarkButton 120s 死亡冷却）
+  - `World.tsx` — 世界探索场景（61×61 CSS Grid 地图，WASD/方向键/点击移动；HUD 含 HP/水/肉干/治疗/回村；地形叙事+地标事件+随机遭遇战触发；补给消耗与饥饿/口渴死亡）
   - `craftables/` — 制造系统（纯数据配置，零组件改动可扩展）
     - `types.ts` — `CraftableDef` 接口 + `UnlockCondition`（可组合条件：builderLevel / building / minResources / seenAllOf）
     - `effects.ts` — 预制副作用模板：`Effects.income()` / `Effects.unlockFeature()` / `Effects.initWorkers()` / `Effects.chain()`
@@ -67,6 +75,7 @@
   - `utils.ts` — 概率解析（权重格式 + 累积概率格式双支持，`resolveNextScene()`）
   - `room/` — Room 事件（10 个）：nomad/beggar/noisesOutside/noisesInside/mysteriousWandererWood/mysteriousWandererFur/shadyBuilder/scout/wanderingMaster/sickMan
   - `outside/` — Outside 事件（6 个）：ruinedTrap/hutFire/sickness/plague/beastAttack/soldierAttack
+  - `world/` — World 事件：`encounters.ts`（3 个 Tier 1 遭遇战，combat:true 自动触发 CombatOverlay）+ `setpieces/`（village/outpost 地标事件骨架）
   - 事件数据纯配置：`isAvailable` 条件函数 + `scenes` DAG 场景图 + `buttons` 出口（cost/reward/nextScene/onChoose）
 - **`src/combat/`** — 战斗系统（事件驱动，CombatOverlay 自包含，不依赖 Redux）
   - `types.ts` — `CombatState` 接口
@@ -109,3 +118,4 @@
 - `pnpm-workspace.yaml` — `allowBuilds: { esbuild: true }`，允许为 esbuild 原生依赖启用构建
 - `src/assets/` — 资产预留目录（当前为空）
 - 存档版本 `version: 1.3`（`INITIAL_STATE.version`），用于跨版本存档迁移兼容性判断
+- 设计文档在 `doc/specs/`（`2025-07-15-world-map-path-design.md`）
