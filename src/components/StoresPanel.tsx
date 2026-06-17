@@ -45,9 +45,7 @@ function computeTrends(
 }
 
 function formatTrend(total: number): string {
-  const arrow = total > 0 ? '↑' : total < 0 ? '↓' : ''
-  const sign = total > 0 ? '+' : ''
-  return `${sign}${total.toFixed(1)}${arrow} ${DELTA_WINDOW}t`
+  return total > 0 ? '+ +' : total < 0 ? '- -' : '\u00A0'
 }
 
 // ─── 资源分类 ─────────────────────────────────────────────
@@ -102,15 +100,15 @@ export function StoresPanel() {
       <div key={key} className="flex justify-between text-(--game-text-body) gap-2">
         <span className="text-(--game-text-muted) truncate text-xs">{label}</span>
         <span className="flex items-baseline gap-2 shrink-0">
-          <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
-            {value}
-          </span>
           <span
-            className={`text-[0.6rem] min-w-[5.5em] text-right ${
+            className={`text-[0.7rem] w-[3ch] text-center shrink-0 ${
               isPositive ? 'font-bold' : isNegative ? '' : 'text-(--game-text-muted)'
             }`}
           >
             {formatTrend(trend)}
+          </span>
+          <span className="text-(--game-accent) text-right min-w-[3ch] text-xs font-semibold">
+            {value}
           </span>
         </span>
       </div>

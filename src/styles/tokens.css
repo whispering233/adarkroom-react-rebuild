@@ -45,10 +45,10 @@
   --game-panel-padding: 1rem;
   --game-panel-gap: 0.75rem;
 
-  /* 内容宽度（由 Toolbar 控制，默认 100%） */
-  --game-content-max-width: 100%;
-  /* 按钮最小宽度（由 Toolbar 控制，默认 10.75rem ≈ 43 × 0.25rem） */
-  --game-btn-min-width: 10.75rem;
+  /* 内容最大宽度（默认 75%） */
+  --game-content-max-width: 75%;
+  /* 按钮最小宽度（默认 11rem） */
+  --game-btn-min-width: 11rem;
 }
 
 /* ═══ 暗色主题 ═══ */

@@ -2,10 +2,9 @@
  * Toolbar — 右下角工具栏
  *
  * 固定定位，横向排列工具按钮：
- *   - 游戏速度 1×/2×/3×（持久化 localStorage）
+ *   - 游戏速度 1×/2×/3×/5×（持久化 localStorage）
  *   - 字体缩放 A⁺ / A⁻（持久化 localStorage，范围 12–24px）
  *   - 夜间/浅色模式切换（持久化 localStorage）
- *   - 界面宽度 50% / 75% / 100%（持久化 localStorage）
  */
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -21,17 +20,6 @@ const FONT_SIZE_STEP = 1
 const FONT_SIZE_DEFAULT = 16
 
 const SPEED_OPTIONS: SpeedMultiplier[] = [1, 2, 3, 5]
-
-const WIDTH_KEY = 'adr-game-width'
-const WIDTH_OPTIONS = [50, 75, 100] as const
-const WIDTH_DEFAULT = 100
-
-/** 宽度百分比 → 按钮 min-width 映射 */
-const BTN_MIN_WIDTH_MAP: Record<number, string> = {
-  50: '9rem',
-  75: '11rem',
-  100: '13rem',
-}
 
 // ─── 工具函数 ─────────────────────────────────────────────
 
@@ -66,24 +54,6 @@ function applyFontSize(px: number) {
   document.documentElement.style.setProperty('--game-font-size', `${px}px`)
 }
 
-function getInitialWidth(): number {
-  if (typeof window === 'undefined') return WIDTH_DEFAULT
-  const stored = localStorage.getItem(WIDTH_KEY)
-  if (stored) {
-    const n = parseInt(stored, 10)
-    if ((WIDTH_OPTIONS as readonly number[]).includes(n)) return n
-  }
-  return WIDTH_DEFAULT
-}
-
-function applyWidth(pct: number) {
-  document.documentElement.style.setProperty('--game-content-max-width', `${pct}%`)
-  document.documentElement.style.setProperty('--game-btn-min-width', BTN_MIN_WIDTH_MAP[pct] ?? '10.75rem')
-}
-
-// 模块加载时应用已保存的宽度
-applyWidth(getInitialWidth())
-
 // ─── 组件 ─────────────────────────────────────────────────
 
 const BTN_STYLE =
@@ -97,7 +67,6 @@ export function Toolbar() {
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
   const [fontSize, setFontSize] = useState<number>(getInitialFontSize)
   const [speed, setSpeed] = useSpeed()
-  const [width, setWidthState] = useState<number>(getInitialWidth)
 
   // 应用主题
   useEffect(() => {
@@ -131,12 +100,6 @@ export function Toolbar() {
       localStorage.setItem(FONT_SIZE_KEY, String(next))
       return next
     })
-  }, [])
-
-  const handleSetWidth = useCallback((pct: number) => {
-    setWidthState(pct)
-    localStorage.setItem(WIDTH_KEY, String(pct))
-    applyWidth(pct)
   }, [])
 
   const atMin = fontSize <= FONT_SIZE_MIN
@@ -190,21 +153,6 @@ export function Toolbar() {
       >
         {theme === 'light' ? '🌙' : '☀️'}
       </button>
-
-      {/* 界面宽度 */}
-      <div className="flex gap-0.5">
-        {WIDTH_OPTIONS.map(pct => (
-          <button
-            key={pct}
-            type="button"
-            onClick={() => handleSetWidth(pct)}
-            title={`${t('toolbar.width')} ${pct}%`}
-            className={pct === width ? BTN_ACTIVE : BTN_STYLE}
-          >
-            {pct}%
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

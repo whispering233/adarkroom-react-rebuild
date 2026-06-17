@@ -37,22 +37,20 @@ export function EventOverlay() {
   const scene = (eventDef && active) ? eventDef.scenes[active.currentScene] : undefined
 
   // ── 战斗模式状态 ──
-  const [inCombat, setInCombat] = useState(false)
-  const [combatResult, setCombatResult] = useState<{ won: boolean; loot: Record<string, number> } | null>(null)
+  const [combatResult, setCombatResult] = useState<{
+    sceneId: string
+    won: boolean
+    loot: Record<string, number>
+  } | null>(null)
+  // 仅当战斗结果属于当前场景时才有效（跨 scene 自动过期，无需 effect 重置）
+  const validResult = combatResult?.sceneId === active?.currentScene ? combatResult : null
+  // 派生：战斗场景 + 无有效结果 → 战斗中
+  const inCombat = !!(scene?.combat && !validResult)
 
   // ── Scene 生命周期：onLoad / reward / notification ──
   // 当 active.sceneId 变化时执行该场景的进入副作用
   useEffect(() => {
     if (!scene || !active) return
-
-    // 切换到战斗场景时进入战斗模式
-    if (scene.combat) {
-      setInCombat(true)
-      setCombatResult(null)
-    } else {
-      setInCombat(false)
-      setCombatResult(null)
-    }
 
     scene.onLoad?.(dispatch)
 
@@ -117,14 +115,13 @@ export function EventOverlay() {
         dispatch(endEvent())
       }
     },
-    [dispatch],
+    [dispatch, t],
   )
 
   // ── 战斗结束回调 ──
   const handleCombatEnd = useCallback(
     (won: boolean, loot: Record<string, number>) => {
-      setCombatResult({ won, loot })
-      setInCombat(false)
+      setCombatResult({ sceneId: active!.currentScene, won, loot })
     },
     [],
   )
@@ -135,7 +132,7 @@ export function EventOverlay() {
   // ── 战斗模式 ──
   if (inCombat && scene.combat) {
     return (
-      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto"
+      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
         style={{ top: 'var(--game-header-h)' }}>
         <div className={styles.panel}>
           <div className={styles.title}>{t(eventDef.title)}</div>
@@ -151,18 +148,18 @@ export function EventOverlay() {
   }
 
   // ── 战斗结果展示 ──
-  if (combatResult && scene.combat) {
+  if (validResult && scene.combat) {
     const victoryScene = scene.buttons['leave'] ?? Object.values(scene.buttons)[0]
     return (
-      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto"
+      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
         style={{ top: 'var(--game-header-h)' }}>
         <div className={styles.panel}>
           <div className={styles.title}>{t(eventDef.title)}</div>
           <div className={styles.description}>
-            {combatResult.won ? (
+            {validResult.won ? (
               <>
                 <p>{t('combat.victory')}</p>
-                {Object.entries(combatResult.loot).map(([res, qty]) => (
+                {Object.entries(validResult.loot).map(([res, qty]) => (
                   <p key={res} className="text-(--game-accent)">
                     {t(res)} +{qty}
                   </p>
@@ -194,7 +191,7 @@ export function EventOverlay() {
   }
 
   return (
-    <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto"
+    <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
       style={{ top: 'var(--game-header-h)' }}>
       <div className={styles.panel}>
         {/* 标题 */}

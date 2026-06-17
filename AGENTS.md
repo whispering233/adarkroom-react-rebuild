@@ -31,7 +31,7 @@
   - `GameContext.tsx` — React Context + `<GameProvider>`（接受可选 `initialState`）
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
-  - `state.test.ts` — Vitest 单元测试（33 条，含叙事/人口/工人/收入验证）
+  - `state.test.ts` — Vitest 单元测试（41 条，含叙事/人口/工人/收入/事件/战斗验证）
 - **`src/config.ts`** — 游戏数值统一配置 + `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器、事件调度 tick。`dt = 100ms × speed`，倍速加速；战斗时自动强制 1×
@@ -43,7 +43,7 @@
   - `ErrorBoundary.tsx` — 顶层错误边界类组件，捕获渲染异常显示错误信息+重载按钮
   - `EventOverlay.tsx` — 事件弹窗覆盖层（absolute 定位在 Header 下方、中栏内）：加载 EventDef → 渲染 scene 文本+按钮 → combat 场景自动切换 CombatOverlay → 战斗结果展示+掉落发放
   - `EventOverlay.module.css` — 弹窗样式（进场动画 + panel 约束宽度）
-  - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
+  - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由），样式提取到 `Header.module.css`
   - `NarrativePanel.tsx` — 左栏叙事区：顶部状态条 + 双区固定 grid（手动叙事 / 资源变化），各区独立滚动 + 旧条目渐隐。delta 由 `formatDelta()` 用 i18n 模板渲染，样式提纯到 `NarrativePanel.module.css`
   - `NarrativeSection.tsx` — 叙事区块通用组件，消除手动/资源变化叙事之间的重复代码，支持标题+条目列表+占位符
   - `StoresPanel.tsx` — 右栏人口独立行 + 三块 CollapsibleSection（建筑物/库存/武器），库存二级分类折叠，趋势显示滑动窗口标注 `/ 10t`，分类从 `RESOURCES` 自动生成
@@ -65,7 +65,7 @@
   - `scheduler.ts` — 调度器（接入 GameLoop，冷却后扫描 isAvailable 池 → 随机选事件 → dispatch START_EVENT）
   - `registry.ts` — 注册表（`registerEvent()`/`getEventById()`/`getAllEvents()`，模块加载时注册）
   - `utils.ts` — 概率解析（权重格式 + 累积概率格式双支持，`resolveNextScene()`）
-  - `room/` — Room 事件（9 个）：nomad/beggar/noisesOutside/noisesInside/mysteriousWandererWood/mysteriousWandererFur/shadyBuilder/scout/wanderingMaster/sickMan
+  - `room/` — Room 事件（10 个）：nomad/beggar/noisesOutside/noisesInside/mysteriousWandererWood/mysteriousWandererFur/shadyBuilder/scout/wanderingMaster/sickMan
   - `outside/` — Outside 事件（6 个）：ruinedTrap/hutFire/sickness/plague/beastAttack/soldierAttack
   - 事件数据纯配置：`isAvailable` 条件函数 + `scenes` DAG 场景图 + `buttons` 出口（cost/reward/nextScene/onChoose）
 - **`src/combat/`** — 战斗系统（事件驱动，CombatOverlay 自包含，不依赖 Redux）
