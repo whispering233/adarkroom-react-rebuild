@@ -33,9 +33,6 @@ function App() {
       className="mx-auto h-screen"
       style={{ maxWidth: 'var(--game-content-max-width)' }}
     >
-      {/* 事件弹窗覆盖层 */}
-      {activeEvent && <EventOverlay />}
-
       <div className="grid h-full overflow-hidden grid-cols-[1fr_3fr_1.5fr]">
         {/* 左栏 — 剧情文本 */}
         <aside className="p-4 overflow-y-auto">
@@ -43,8 +40,10 @@ function App() {
         </aside>
 
         {/* 中栏 — 交互操作 */}
-        <div className="flex flex-col h-full overflow-y-auto">
+        <div className="relative flex flex-col h-full overflow-y-auto">
           <Header />
+          {/* 事件弹窗覆盖层 */}
+          {activeEvent && <EventOverlay />}
           <main className="flex-1 flex flex-col">
             {/* 全局游戏循环（始终挂载：定时器 + 通知） */}
             <GameLoop />

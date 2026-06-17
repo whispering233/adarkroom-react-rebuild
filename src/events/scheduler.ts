@@ -11,6 +11,7 @@
  */
 
 import type { GameState } from '../state/types'
+import type { GameAction } from '../state/reducer'
 import type { EventDef } from './types'
 
 // ─── 常量 ────────────────────────────────────────────────
@@ -50,7 +51,7 @@ export function createSchedulingState(): SchedulingState {
 export function scheduleTick(
   sched: SchedulingState,
   state: GameState,
-  dispatch: (action: unknown) => void,
+  dispatch: (action: GameAction) => void,
   pool: EventDef[],
 ): SchedulingState {
   // 事件进行中 → 不推进冷却

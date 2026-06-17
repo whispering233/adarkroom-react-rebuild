@@ -1,0 +1,89 @@
+/**
+ * CombatOverlay — 战斗 UI 样式
+ */
+.fightBox {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.fighter {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem;
+  border: 1px solid var(--game-border);
+  border-radius: 0.25rem;
+  background: var(--game-bg-panel);
+}
+
+.fighterLabel {
+  font-size: 0.75rem;
+  color: var(--game-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.fighterName {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--game-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.hpBar {
+  height: 8px;
+  background: var(--game-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.25rem 0;
+}
+
+.hpFill {
+  height: 100%;
+  background: var(--game-accent);
+  transition: width 0.3s ease;
+}
+
+.hpText {
+  font-size: 0.75rem;
+  color: var(--game-text-muted);
+}
+
+.weaponsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.healRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.damageFloat {
+  position: absolute;
+  font-weight: 700;
+  color: var(--game-accent);
+  animation: dmgFloat 0.7s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes dmgFloat {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+
+.resultText {
+  text-align: center;
+  font-weight: 600;
+  color: var(--game-accent);
+  padding: 0.5rem 0;
+}

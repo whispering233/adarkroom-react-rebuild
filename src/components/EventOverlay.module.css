@@ -24,7 +24,7 @@
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   max-width: 32rem;
-  width: 90vw;
+  width: calc(100% - 2rem);
   max-height: 70vh;
   display: flex;
   flex-direction: column;

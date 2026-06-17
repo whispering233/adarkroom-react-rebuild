@@ -7,7 +7,7 @@
  *
  * 约束：
  *   - type 导入使用 import type，兼容 erasableSyntaxOnly
- *   - 回调签名中 dispatch 接收 unknown 避免循环导入
+ *   - 回调签名中 dispatch 使用 DispatchFn 类型，兼容 Dispatch<GameAction>
  *   - 场景图是 DAG（有向无环图），'end' 是唯一终端节点
  */
 
@@ -18,6 +18,9 @@ export type EventResult = 'seen' | 'completed' | 'refused' | 'failed'
 
 /** 场景标识符 */
 export type SceneId = string
+
+/** Dispatch 类型（避免回调签名中循环 import） */
+type DispatchFn = (action: import('../state/reducer').GameAction) => void
 
 // ─── 概率映射 ────────────────────────────────────────────
 
@@ -60,7 +63,7 @@ export interface SceneButtonDef {
   cooldown?: number
 
   /** 点击回调（在 dispatch EVENT_BUTTON_CLICK 后由 reducer 调用） */
-  onChoose?: (dispatch: (action: unknown) => void) => void
+  onChoose?: (dispatch: DispatchFn) => void
 
   /** 可用条件（缺省始终可用） */
   available?: (state: import('../state/types').GameState) => boolean
@@ -91,7 +94,7 @@ export interface SceneDef {
   reward?: Record<string, number>
 
   /** 场景加载回调（如设置 world state、触发副作用） */
-  onLoad?: (dispatch: (action: unknown) => void) => void
+  onLoad?: (dispatch: DispatchFn) => void
 
   /** 进入场景时推送的通知文本（写进 narrativeLog） */
   notification?: string
@@ -114,7 +117,7 @@ export interface SceneDef {
   /** 战斗掉落表 */
   loot?: Record<string, { min: number; max: number; chance: number }>
   /** 敌人特殊技能（间隔秒 + 动作回调） */
-  specials?: Array<{ delay: number; action: (dispatch: (action: unknown) => void) => string | undefined }>
+  specials?: Array<{ delay: number; action: (dispatch: DispatchFn) => string | undefined }>
 
   // ── 文本框 ──────────────────────────────────────────
 
