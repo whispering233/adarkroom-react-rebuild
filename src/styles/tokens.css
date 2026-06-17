@@ -16,7 +16,7 @@
   /* 文字 */
   --game-text-primary: #000000;
   --game-text-body: #333333;
-  --game-text-muted: #999999;
+  --game-text-muted: #333333;
 
   /* 强调（通过加粗/下划线实现视觉区分，此处仅保留文字色） */
   --game-accent: #000000;
