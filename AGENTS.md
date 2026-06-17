@@ -32,7 +32,7 @@
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（41 条，含叙事/人口/工人/收入/事件/战斗验证）
-- **`src/config.ts`** — 游戏数值统一配置 + `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
+- **`src/config.ts`** — 游戏数值统一配置（`RUN_MODE: 'normal'|'debug'`，debug 模式资源初始全满）+ `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器、事件调度 tick。`dt = 100ms × speed`，倍速加速；战斗时自动强制 1×
   - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×/5×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`/`forceSpeed()`/`releaseSpeed()`，战斗时强制 1×。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
@@ -97,7 +97,7 @@
 - **数据驱动**：资源和制造物均走纯数据配置 — `RESOURCES` 注册表（新增资源加一行 → 类型/初始值/UI 分类自动生效）、`WORKER_INCOME`（新增职业收入加一条）、`CRAFTABLES` 配置表（新增建筑/武器加一条 → Room UI 自动渲染）。`evaluateUnlock()` 声明式解锁条件评估
 - **导入**：`verbatimModuleSyntax`，显式 `type` 导入
 - **严格模式**：`noUnusedLocals` / `noUnusedParameters` / `noFallthroughCasesInSwitch` / `erasableSyntaxOnly`（tsconfig 全部开启）
-- **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`），共 52 条（state 41 + craftables 11；10 条预存失败待修）
+- **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`），共 52 条（state 41 + craftables 11；10 条预存失败待修 — 根因 `RUN_MODE: 'debug'` 使 `getInitialStores()` 返回 MAX_STORE 而非 0）
 - **Lint**：ESLint flat config（`eslint.config.js`），插件 `typescript-eslint` + `react-hooks` + `react-refresh`
 
 ## Notes
@@ -108,3 +108,4 @@
 - Vite `base: './'` — 构建产物使用相对路径，支持任意目录静态部署
 - `pnpm-workspace.yaml` — `allowBuilds: { esbuild: true }`，允许为 esbuild 原生依赖启用构建
 - `src/assets/` — 资产预留目录（当前为空）
+- 存档版本 `version: 1.3`（`INITIAL_STATE.version`），用于跨版本存档迁移兼容性判断

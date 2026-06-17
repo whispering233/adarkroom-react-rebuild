@@ -11,7 +11,7 @@ export type RunMode = 'normal' | 'debug'
 export const CONFIG = {
   // ── 运行模式 ────────────────────────────────────
   /** normal: 正常游戏, debug: 资源全满用于调试 */
-  RUN_MODE: 'debug' as RunMode,
+  RUN_MODE: 'normal' as RunMode,
 
   // ── 叙事面板 ────────────────────────────────────
   /** 是否展示资源变化叙事块（右栏已有资源数据时可关闭） */
@@ -156,7 +156,7 @@ interface ResourceDef {
  */
 export const RESOURCES: Record<string, ResourceDef> = {
   // ── 基础物资 ──
-  wood:      { category: 'basic',    initial: 0 },
+  wood:      { category: 'basic',    initial: 10000 },
   fur:       { category: 'basic',    initial: 0 },
   meat:      { category: 'basic',    initial: 0 },
   scales:    { category: 'basic',    initial: 0 },
