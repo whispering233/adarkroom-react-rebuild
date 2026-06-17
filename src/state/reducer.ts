@@ -465,6 +465,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         minesFound: {},
         mapStack: [],
       }
+      draft.features['location.world'] = true
       draft.currentRoom = 'world'
       lightMap(
         draft.game.world.tiles,
