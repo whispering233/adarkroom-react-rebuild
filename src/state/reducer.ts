@@ -15,7 +15,9 @@ import type { GameState, IncomeConfig } from './types'
 import type { EventResult } from '../events/types'
 import type { CombatState } from '../combat/types'
 import { FireLevel, TempLevel } from './types'
-import { CONFIG, WORKER_INCOME } from '../config'
+import { CONFIG, WORKER_INCOME, shouldKeepOnReturn } from '../config'
+import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
+import { generateMap, createNewMask, lightMap } from '../world/generator'
 
 // ─── 常量 ────────────────────────────────────────────────
 
@@ -117,6 +119,11 @@ export type GameAction =
   // ── 战斗系统 ──
   | { type: 'START_COMBAT'; config: CombatState }
   | { type: 'END_COMBAT' }
+  // ── 世界地图 ──
+  | { type: 'EMBARK_WORLD' }
+  | { type: 'RETURN_FROM_WORLD'; died: boolean }
+  | { type: 'ENTER_MAP'; mapId: string; pos?: [number, number] }
+  | { type: 'LEAVE_MAP' }
 
 // ─── Reducer（draft recipe，供 useImmerReducer 使用）───────
 
@@ -415,6 +422,126 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       break
     }
 
+    // ── 世界地图 ──────────────────────────────────────
+
+    case 'EMBARK_WORLD': {
+      // 扣减 outfit
+      for (const [key, count] of Object.entries(draft.outfit)) {
+        modifyResource(draft, key, -count, 'cost.embark')
+      }
+      // 首次生成地图
+      if (!draft.game.world) {
+        const worldDef = {
+          id: 'world',
+          size: WORLD.RADIUS,
+          terrainTypes: TERRAINS,
+          landmarks: LANDMARKS,
+          encounterPool: [],
+          isAvailable: () => true,
+        }
+        const { tiles, mask } = generateMap(worldDef)
+        draft.game.world = {
+          mapId: 'world',
+          tiles,
+          mask,
+          usedOutposts: {},
+        }
+      }
+      // 初始化运行时
+      const maxW = getMaxWater(draft)
+      const maxH = getMaxHealth(draft)
+      draft.game.worldRuntime = {
+        curPos: [WORLD.RADIUS, WORLD.RADIUS],
+        water: maxW,
+        health: maxH,
+        maxHealth: maxH,
+        foodMove: 0,
+        waterMove: 0,
+        fightCounter: 0,
+        starvation: false,
+        thirst: false,
+        mask: draft.game.world.mask.map(row => [...row]),
+        usedOutposts: { ...draft.game.world.usedOutposts },
+        minesFound: {},
+        mapStack: [],
+      }
+      draft.currentRoom = 'world'
+      lightMap(
+        draft.game.world.tiles,
+        draft.game.worldRuntime.mask,
+        [WORLD.RADIUS, WORLD.RADIUS],
+        WORLD.LIGHT_RADIUS,
+      )
+      break
+    }
+
+    case 'RETURN_FROM_WORLD': {
+      const wr = draft.game.worldRuntime
+      if (!wr) break
+      if (action.died) {
+        delete draft.game.worldRuntime
+        draft.cooldown['embark'] = WORLD.DEATH_COOLDOWN
+        draft.currentRoom = 'room'
+        draft.outfit = {}
+      } else {
+        if (draft.game.world) {
+          draft.game.world.mask = wr.mask
+          draft.game.world.usedOutposts = wr.usedOutposts
+          if (wr.minesFound?.iron && !draft.game.buildings['iron mine']) {
+            draft.game.buildings['iron mine'] = 1
+          }
+          if (wr.minesFound?.coal && !draft.game.buildings['coal mine']) {
+            draft.game.buildings['coal mine'] = 1
+          }
+          if (wr.minesFound?.sulphur && !draft.game.buildings['sulphur mine']) {
+            draft.game.buildings['sulphur mine'] = 1
+          }
+          if (wr.shipFound && !draft.features['location.spaceShip']) {
+            draft.features['location.spaceShip'] = true
+          }
+        }
+        delete draft.game.worldRuntime
+        draft.currentRoom = 'path'
+        for (const [key, count] of Object.entries(draft.outfit)) {
+          if (shouldKeepOnReturn(key)) {
+            modifyResource(draft, key, count, 'return.embark')
+          } else {
+            draft.outfit[key] = 0
+          }
+        }
+      }
+      break
+    }
+
+    case 'ENTER_MAP': {
+      const wr = draft.game.worldRuntime
+      if (!wr) break
+      wr.mapStack.push({
+        mapId: draft.game.world!.mapId,
+        pos: [...wr.curPos],
+        mask: wr.mask,
+        usedOutposts: { ...wr.usedOutposts },
+      })
+      draft.game.world!.mapId = action.mapId
+      wr.curPos = action.pos ?? [0, 0]
+      wr.mask = createNewMask(draft.game.world!.tiles, wr.curPos)
+      wr.usedOutposts = {}
+      break
+    }
+
+    case 'LEAVE_MAP': {
+      const wr = draft.game.worldRuntime
+      if (!wr) break
+      if (wr.mapStack.length > 0) {
+        const prev = wr.mapStack.pop()!
+        draft.game.world!.mapId = prev.mapId
+        wr.curPos = prev.pos
+        wr.mask = prev.mask
+        wr.usedOutposts = prev.usedOutposts
+      }
+      break
+    }
+
     default:
       break
   }
@@ -551,3 +678,30 @@ export const startCombat = (config: CombatState): GameAction => ({
 })
 
 export const endCombat = (): GameAction => ({ type: 'END_COMBAT' })
+
+// ── 世界地图 Action Creators ────────────────────────────
+
+export const embarkWorld = (): GameAction => ({ type: 'EMBARK_WORLD' })
+export const returnFromWorld = (died: boolean): GameAction => ({ type: 'RETURN_FROM_WORLD', died })
+export const enterMap = (mapId: string, pos?: [number, number]): GameAction => ({ type: 'ENTER_MAP', mapId, pos })
+export const leaveMap = (): GameAction => ({ type: 'LEAVE_MAP' })
+
+// ─── World 辅助函数 ────────────────────────────────────
+
+function getMaxHealth(draft: GameState): number {
+  const s = draft.stores
+  if (s['kinetic armour'] > 0) return WORLD.BASE_HEALTH + 75
+  if (s['s armour'] > 0) return WORLD.BASE_HEALTH + 35
+  if (s['i armour'] > 0) return WORLD.BASE_HEALTH + 15
+  if (s['l armour'] > 0) return WORLD.BASE_HEALTH + 5
+  return WORLD.BASE_HEALTH
+}
+
+function getMaxWater(draft: GameState): number {
+  const s = draft.stores
+  if (s['fluid recycler'] > 0) return WORLD.BASE_WATER + 100
+  if (s['water tank'] > 0) return WORLD.BASE_WATER + 50
+  if (s.cask > 0) return WORLD.BASE_WATER + 20
+  if (s.waterskin > 0) return WORLD.BASE_WATER + 10
+  return WORLD.BASE_WATER
+}

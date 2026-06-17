@@ -8,6 +8,7 @@
 import type { ResourceId } from '../config'
 import type { CombatState } from '../combat/types'
 import type { EventResult } from '../events/types'
+import type { PersistentWorldData, WorldRuntimeState } from '../world/types'
 import { getInitialStores } from '../config'
 
 // ─── 资源存储 ────────────────────────────────────────────
@@ -68,8 +69,10 @@ export interface GameData {
   thieves?: number
   /** 被盗资源记录 */
   stolen?: Record<string, number>
-  /** 地图数据（后期解锁） */
-  world?: { map: unknown; mask: unknown }
+  /** 世界地图持久数据 */
+  world?: PersistentWorldData
+  /** 世界运行时状态（仅 World 会话期间存在） */
+  worldRuntime?: WorldRuntimeState
   /** 飞船数据（后期解锁） */
   spaceShip?: {
     hull: number

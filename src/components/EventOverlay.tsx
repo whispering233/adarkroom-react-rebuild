@@ -25,6 +25,7 @@ import { getEventById } from '../events/registry'
 import { resolveNextScene } from '../events/utils'
 import type { SceneButtonDef } from '../events/types'
 import { CombatOverlay } from '../combat/CombatOverlay'
+import { WEAPONS } from '../combat/weapons'
 import styles from './EventOverlay.module.css'
 
 export function EventOverlay() {
@@ -140,7 +141,15 @@ export function EventOverlay() {
             {scene.text.map((line, i) => (
               <p key={i}>{t(line)}</p>
             ))}
-            <CombatOverlay scene={scene} onCombatEnd={handleCombatEnd} />
+            <CombatOverlay
+              scene={scene}
+              onCombatEnd={handleCombatEnd}
+              availableWeapons={
+                state.currentRoom === 'world'
+                  ? Object.keys(state.outfit ?? {}).filter(k => k in WEAPONS)
+                  : undefined
+              }
+            />
           </div>
         </div>
       </div>

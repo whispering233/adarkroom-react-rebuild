@@ -15,11 +15,15 @@ import { GameLoop } from './system/GameLoop'
 import { EventOverlay } from './components/EventOverlay'
 import { Room } from './rooms/Room'
 import { Outside } from './rooms/Outside'
+import { Path } from './rooms/Path'
+import { World } from './rooms/World'
 
 /** 场景路由表 — 新增场景只需在此注册即可 */
 const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
   [RoomName.Room]: Room,
   [RoomName.Outside]: Outside,
+  [RoomName.Path]: Path,
+  [RoomName.World]: World,
 }
 
 function App() {

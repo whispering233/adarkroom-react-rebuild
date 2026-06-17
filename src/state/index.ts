@@ -34,6 +34,11 @@ export {
   // ── 战斗 ──
   startCombat,
   endCombat,
+  // ── 世界地图 ──
+  embarkWorld,
+  returnFromWorld,
+  enterMap,
+  leaveMap,
   MAX_STORE,
 } from './reducer'
 export type { GameAction } from './reducer'
@@ -55,3 +60,4 @@ export type {
   GameData,
   ConfigData,
 } from './types'
+export type { PersistentWorldData, WorldRuntimeState } from '../world/types'

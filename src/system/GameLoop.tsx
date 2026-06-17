@@ -120,6 +120,13 @@ export function GameLoop() {
         } else {
           popTimer = 0
         }
+
+        // 检测 compass 解锁 Path
+        const currentState = stateRef.current
+        if ((currentState.stores['compass'] ?? 0) >= 1 && !currentState.features['location.path']) {
+          dispatch(unlockFeature('location.path'))
+          dispatch(pushNarrative(t('path.unlocked')))
+        }
       }
 
       // ── 事件调度 tick（每 1000 game-ms） ──

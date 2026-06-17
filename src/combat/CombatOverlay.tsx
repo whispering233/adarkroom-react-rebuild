@@ -25,11 +25,13 @@ const HYPO_HEAL = 60
 interface CombatOverlayProps {
   scene: SceneDef
   onCombatEnd: (won: boolean, loot: Record<string, number>) => void
+  /** 可用武器 ID 过滤（World 中仅 outfit 武器可选），undefined = 全部 */
+  availableWeapons?: string[]
 }
 
 // ─── 组件 ────────────────────────────────────────────────
 
-export function CombatOverlay({ scene, onCombatEnd }: CombatOverlayProps) {
+export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOverlayProps) {
   const { t } = useTranslation()
   const dispatch = useGameDispatch()
 
@@ -142,7 +144,8 @@ export function CombatOverlay({ scene, onCombatEnd }: CombatOverlayProps) {
   const enemyHpPct = Math.round((combat.enemyHp / combat.enemyMaxHp) * 100)
   const playerHpPct = Math.round((combat.playerHp / combat.playerMaxHp) * 100)
 
-  const availableWeapons = Object.values(WEAPONS).filter(w => {
+  const weaponsGrid = Object.values(WEAPONS).filter(w => {
+    if (availableWeapons && !availableWeapons.includes(w.id)) return false
     if (!w.cost) return true
     return true // TODO: check if player has enough resources
   })
@@ -181,7 +184,7 @@ export function CombatOverlay({ scene, onCombatEnd }: CombatOverlayProps) {
 
       {/* 武器 */}
       <div className={styles.weaponsGrid}>
-        {availableWeapons.map(w => (
+        {weaponsGrid.map(w => (
           <button
             key={w.id}
             onClick={() => handleAttack(w.id)}

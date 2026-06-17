@@ -204,3 +204,39 @@ export function getInitialStores(): Record<string, number> {
   }
   return stores
 }
+
+// ─── 背包装备系统 ──────────────────────────────────────
+
+/** 物品重量表（未列出的默认重量 = 1） */
+export const ITEM_WEIGHT: Record<string, number> = {
+  'bone spear': 2,
+  'iron sword': 3,
+  'steel sword': 5,
+  rifle: 5,
+  'laser rifle': 5,
+  bullets: 0.1,
+  'energy cell': 0.2,
+  bolas: 0.5,
+}
+
+/** 背包升级容量加成 */
+export const BAG_UPGRADES: Record<string, number> = {
+  rucksack: 10,
+  wagon: 30,
+  convoy: 60,
+  'cargo drone': 100,
+}
+
+/** 回村时保留在背包的物品 ID */
+export const KEEP_ON_RETURN: string[] = [
+  'cured meat', 'bullets', 'energy cell', 'charm',
+  'medicine', 'stim', 'hypo',
+]
+
+/**
+ * 判断物品是否应在回村时保留。
+ * 武器（在 ITEM_WEIGHT 中有定义的）也自动保留。
+ */
+export function shouldKeepOnReturn(itemId: string): boolean {
+  return KEEP_ON_RETURN.includes(itemId) || itemId in ITEM_WEIGHT
+}

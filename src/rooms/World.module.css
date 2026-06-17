@@ -1,0 +1,138 @@
+.worldPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── HUD ───────────────────────────────── */
+
+.worldHUD {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--game-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.hudItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.hudLabel {
+  color: var(--game-text-muted);
+  font-size: 0.75rem;
+}
+.hudValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.healBtn {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--game-btn-border);
+  border-radius: 3px;
+  background: var(--game-btn-bg);
+  color: var(--game-btn-text);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.1s;
+}
+.healBtn:hover:not(:disabled) {
+  background: var(--game-btn-hover-bg);
+}
+.healBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Map ────────────────────────────────── */
+
+.worldMap {
+  display: grid;
+  grid-template-columns: repeat(61, 1.6ch);
+  grid-template-rows: repeat(61, 1.2em);
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.2em;
+  user-select: none;
+  overflow: auto;
+  flex: 1;
+  justify-content: center;
+  align-content: center;
+  padding: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.tile {
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+}
+
+.masked {
+  visibility: hidden;
+}
+
+.forest  { background: #1a3a1a; color: #4a8; }
+.field   { background: #3a3a1a; color: #aa8; }
+.barrens { background: #2a2a2a; color: #888; }
+.road    { background: #3a2a1a; color: #a86; }
+
+.current {
+  outline: 2px solid var(--game-accent);
+  outline-offset: -1px;
+  z-index: 1;
+}
+.landmark {
+  color: var(--game-accent);
+  font-weight: bold;
+}
+
+/* ── Controls ────────────────────────────── */
+
+.worldControls {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--game-border);
+  flex-shrink: 0;
+}
+
+.dirPad {
+  display: grid;
+  grid-template-columns: repeat(3, 2.5rem);
+  grid-template-rows: repeat(3, 2.5rem);
+  gap: 0.15rem;
+}
+
+.dirBtn {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--game-btn-border);
+  border-radius: 4px;
+  background: var(--game-btn-bg);
+  color: var(--game-btn-text);
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: background 0.1s;
+}
+.dirBtn:hover {
+  background: var(--game-btn-hover-bg);
+}
+
+.dirCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--game-text-muted);
+}

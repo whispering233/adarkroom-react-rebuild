@@ -393,6 +393,85 @@
       "arrived": "军队袭击村庄",
       "go_home": "回家",
       "end_notify": "战争嗜血成性"
+    },
+    "encounter": {
+      "snarlingBeast": "一只咆哮的野兽",
+      "snarlingBeast.text": "一只咆哮的野兽从灌木丛中扑出！",
+      "snarlingBeast.notif": "灌木丛中窜出一只咆哮的野兽",
+      "gauntMan": "一个枯瘦的男人",
+      "gauntMan.text": "一个目光疯狂、枯瘦如柴的男人向你走来。",
+      "gauntMan.notif": "一个枯瘦的男人走近，眼中闪烁着疯狂。",
+      "strangeBird": "一只异样的鸟",
+      "strangeBird.text": "一只怪异的鸟飞掠过平原。",
+      "strangeBird.notif": "一只异样的鸟从天而降。"
+    },
+    "setpiece": {
+      "village": "村庄",
+      "village.text": "你回到了村庄。熟悉的面孔迎接你的归来。",
+      "village.rest": "在村庄得到充分休息。",
+      "outpost": "前哨站",
+      "outpost.text": "一座孤零零的前哨站矗立在荒原中。里面还有干净的水源。",
+      "outpost.rest": "水源得到补充。"
     }
+  },
+  "path": {
+    "armour": "护甲",
+    "water_capacity": "水量上限",
+    "bag_space": "背包：{{used}}/{{total}}",
+    "embark": "出发",
+    "need_meat": "需要携带肉干才能出发",
+    "unlocked": "旧指南针指向一条尘土飞扬的小径..."
+  },
+  "armour": {
+    "none": "无",
+    "leather": "皮甲",
+    "iron": "铁甲",
+    "steel": "钢甲",
+    "kinetic": "动能护甲"
+  },
+  "world": {
+    "not_available": "世界尚未生成",
+    "hp": "生命",
+    "water": "水",
+    "eat_meat": "吃肉干",
+    "use_meds": "用药",
+    "use_hypo": "注射",
+    "return_home": "回村",
+    "starvation": "饥饿袭来...",
+    "thirst": "口渴难耐...",
+    "narrate": {
+      "forest_to_field": "树木渐疏，枯黄的灌木在风中瑟瑟作响。",
+      "forest_to_barrens": "树林消失，只剩焦土和漫天尘土。",
+      "field_to_forest": "地平线上浮现出一片森林，脚下枯枝落叶渐渐取代草地。",
+      "field_to_barrens": "草地变薄，很快只剩下沙尘。",
+      "barrens_to_field": "荒地尽头出现一片枯草，在干热的风中摇曳。",
+      "barrens_to_forest": "一堵扭曲的树墙从尘土中升起，枝丫在上方编织成骸骨般的树冠。"
+    },
+    "landmark": {
+      "village": "村庄",
+      "ironMine": "铁矿",
+      "coalMine": "煤矿",
+      "sulphurMine": "硫磺矿",
+      "house": "老房子",
+      "cave": "潮湿的洞穴",
+      "town": "废弃的城镇",
+      "city": "废墟城市",
+      "outpost": "前哨站",
+      "ship": "坠毁的星舰",
+      "borehole": "钻孔",
+      "battlefield": "战场",
+      "swamp": "阴暗沼泽",
+      "cache": "被摧毁的村庄",
+      "executioner": "破败的战舰"
+    }
+  },
+  "actions": {
+    "continue": "继续",
+    "rest": "休息"
+  },
+  "perk": {
+    "stealthy": "潜行",
+    "slow metabolism": "缓慢代谢",
+    "desert rat": "沙漠之鼠"
   }
 }

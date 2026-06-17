@@ -394,6 +394,85 @@
       "arrived": "troops storm the village",
       "go_home": "go home",
       "end_notify": "warfare is bloodthirsty"
+    },
+    "encounter": {
+      "snarlingBeast": "A Snarling Beast",
+      "snarlingBeast.text": "A snarling beast leaps out of the underbrush!",
+      "snarlingBeast.notif": "a snarling beast leaps out of the underbrush",
+      "gauntMan": "A Gaunt Man",
+      "gauntMan.text": "A gaunt man approaches, a crazed look in his eye.",
+      "gauntMan.notif": "a gaunt man approaches, a crazed look in his eye",
+      "strangeBird": "A Strange Bird",
+      "strangeBird.text": "A strange looking bird speeds across the plains.",
+      "strangeBird.notif": "a strange looking bird speeds across the plains"
+    },
+    "setpiece": {
+      "village": "The Village",
+      "village.text": "You return to the village. Familiar faces greet you.",
+      "village.rest": "Well rested at the village.",
+      "outpost": "Outpost",
+      "outpost.text": "A lone outpost stands in the wasteland. There's clean water inside.",
+      "outpost.rest": "Water replenished."
     }
+  },
+  "path": {
+    "armour": "Armour",
+    "water_capacity": "Water Capacity",
+    "bag_space": "Bag: {{used}}/{{total}}",
+    "embark": "embark",
+    "need_meat": "You need cured meat to embark",
+    "unlocked": "the old compass points to a dusty path..."
+  },
+  "armour": {
+    "none": "none",
+    "leather": "leather",
+    "iron": "iron",
+    "steel": "steel",
+    "kinetic": "kinetic"
+  },
+  "world": {
+    "not_available": "World not generated",
+    "hp": "HP",
+    "water": "Water",
+    "eat_meat": "eat meat",
+    "use_meds": "use meds",
+    "use_hypo": "use hypo",
+    "return_home": "return home",
+    "starvation": "starvation sets in...",
+    "thirst": "the thirst becomes unbearable...",
+    "narrate": {
+      "forest_to_field": "the trees yield to dry grass. the yellowed brush rustles in the wind.",
+      "forest_to_barrens": "the trees are gone. parched earth and blowing dust are poor replacements.",
+      "field_to_forest": "trees loom on the horizon. grasses gradually yield to a forest floor.",
+      "field_to_barrens": "the grasses thin. soon, only dust remains.",
+      "barrens_to_field": "the barrens break at a sea of dying grass, swaying in the arid breeze.",
+      "barrens_to_forest": "a wall of gnarled trees rises from the dust."
+    },
+    "landmark": {
+      "village": "The Village",
+      "ironMine": "Iron Mine",
+      "coalMine": "Coal Mine",
+      "sulphurMine": "Sulphur Mine",
+      "house": "An Old House",
+      "cave": "A Damp Cave",
+      "town": "An Abandoned Town",
+      "city": "A Ruined City",
+      "outpost": "An Outpost",
+      "ship": "A Crashed Starship",
+      "borehole": "A Borehole",
+      "battlefield": "A Battlefield",
+      "swamp": "A Murky Swamp",
+      "cache": "A Destroyed Village",
+      "executioner": "A Ravaged Battleship"
+    }
+  },
+  "actions": {
+    "continue": "continue",
+    "rest": "rest"
+  },
+  "perk": {
+    "stealthy": "Stealthy",
+    "slow metabolism": "Slow Metabolism",
+    "desert rat": "Desert Rat"
   }
 }
