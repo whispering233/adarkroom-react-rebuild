@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.3rem 0.4rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--game-text-body);
   gap: 0.25rem;
 }

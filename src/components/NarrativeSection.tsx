@@ -21,7 +21,7 @@ interface NarrativeSectionProps {
 }
 
 function fadeOpacity(index: number): number {
-  return Math.max(1 - index * 0.08, 0.15)
+  return Math.max(1 - index * 0.08, 0.5)
 }
 
 export function NarrativeSection({ title, entries, emptyPlaceholder }: NarrativeSectionProps) {
