@@ -18,6 +18,12 @@ import { shadyBuilder } from './room/shadyBuilder'
 import { scout } from './room/scout'
 import { wanderingMaster } from './room/wanderingMaster'
 import { sickMan } from './room/sickMan'
+import { ruinedTrap } from './outside/ruinedTrap'
+import { hutFire } from './outside/hutFire'
+import { sickness } from './outside/sickness'
+import { plague } from './outside/plague'
+import { beastAttack } from './outside/beastAttack'
+import { soldierAttack } from './outside/soldierAttack'
 
 const _events = new Map<string, EventDef>()
 
@@ -39,6 +45,12 @@ registerEvent(shadyBuilder)
 registerEvent(scout)
 registerEvent(wanderingMaster)
 registerEvent(sickMan)
+registerEvent(ruinedTrap)
+registerEvent(hutFire)
+registerEvent(sickness)
+registerEvent(plague)
+registerEvent(beastAttack)
+registerEvent(soldierAttack)
 
 export function getEventById(id: string): EventDef | undefined {
   return _events.get(id)
