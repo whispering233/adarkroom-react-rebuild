@@ -55,7 +55,7 @@ pnpm test
 │   │   └── state.test.ts     # Vitest 单元测试
 │   ├── system/               # 全局系统模块
 │   │   ├── GameLoop.tsx       # 单主循环（100ms 驱动火堆/建造者/收入）
-│   │   └── gameSpeed.ts       # 倍速模块（1×/2×/3×，localStorage 持久化）
+│   │   └── gameSpeed.ts       # 倍速模块（1×/2×/3×/5×，localStorage 持久化）
 │   ├── components/           # 通用 UI 组件
 │   │   ├── Button.tsx         # 操作按钮（冷却驱动 + hover 成本浮层）
 │   │   ├── Button.module.css
@@ -86,7 +86,7 @@ pnpm test
 │   │   ├── scheduler.ts       # 调度器（GameLoop 驱动）
 │   │   ├── registry.ts        # 事件注册表
 │   │   ├── utils.ts           # 概率解析（权重/累积双格式）
-│   │   ├── room/              # 9 个 Room 事件
+│   │   ├── room/              # 10 个 Room 事件
 │   │   └── outside/           # 6 个 Outside 事件
 │   ├── combat/               # 战斗系统
 │   │   ├── types.ts           # CombatState
@@ -118,7 +118,7 @@ pnpm test
 - 👤 **建造者 NPC**：5 阶段状态机，自动添柴，解锁野外和建造能力
 - ⏱ **游戏加速**：1×/2×/3×/5× 倍速，进度条动画自适应
 - 📜 **叙事日志**：双区固定布局（手动叙事 + 资源变化），新旧渐隐
-- 📊 **趋势面板**：资源分类 + 趋势箭头 + 滑动窗口
+- 📊 **趋势面板**：资源分类 + 纯箭头（↑/↓）趋势 + 固定占位防跳变
 - 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
 - 🎲 **随机事件**：Room（商人/乞丐/流浪者...）+ Outside（陷阱被毁/火灾/瘟疫/袭击...），纯数据配置，isAvailable 条件 + DAG 场景图
 - ⚔️ **战斗系统**：CombatOverlay 自包含（HP 条/武器网格/敌攻定时器/治疗/掉落），事件场景声明 `combat: true` 即可触发
