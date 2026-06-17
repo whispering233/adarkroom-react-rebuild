@@ -27,20 +27,22 @@
 
 - **`src/state/`** — 全局状态管理层，替代原项目 `$SM` + `State`
   - `types.ts` — 类型定义 + const-object 枚举（`FireLevel`/`TempLevel`/`RoomName`）+ `INITIAL_STATE`；`Stores` 接口从 `RESOURCES` 配置派生（`extends Record<ResourceId, number>`，新增资源只需在 config.ts 加一行）；`ResourceTickLog`（per-tick 聚合日志）、`NarrativeEntry`（叙事日志条目）、`PendingReward`（延迟奖励）、`IncomeConfig`、`CharacterState`、`GameData`（含 population/workers 字段）
-  - `reducer.ts` — Immer draft-recipe reducer。`modifyResource()` 统一资源变更入口 → `_pendingDeltas` 累加 → `INCOME_TICK` 时 flush。语义 action（火堆/建造者/叙事/冷却等）+ 通用 `APPLY_RECIPE` + 人口/工人 action（`INCREASE_POPULATION`/`KILL_VILLAGERS`/`ASSIGN_WORKER`/`UNASSIGN_WORKER`）+ `getNumGatherers()` 辅助函数
+  - `reducer.ts` — Immer draft-recipe reducer。`modifyResource()` 统一资源变更入口 → `_pendingDeltas` 累加 → `INCOME_TICK` 时 flush。语义 action（火堆/建造者/叙事/冷却等）+ 通用 `APPLY_RECIPE` + 人口/工人 action（`INCREASE_POPULATION`/`KILL_VILLAGERS`/`ASSIGN_WORKER`/`UNASSIGN_WORKER`）+ 事件 action（`START_EVENT`/`GO_TO_SCENE`/`END_EVENT`/`COMPLETE_EVENT`/`SET_NARRATIVE_FLAG`）+ 战斗 action（`START_COMBAT`/`END_COMBAT`）+ `getNumGatherers()` 辅助函数
   - `GameContext.tsx` — React Context + `<GameProvider>`（接受可选 `initialState`）
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（33 条，含叙事/人口/工人/收入验证）
 - **`src/config.ts`** — 游戏数值统一配置 + `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
 - **`src/system/`** — 全局系统模块
-  - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器。`dt = 100ms × speed`，倍速加速
-  - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×/5×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`，订阅通知。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
+  - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器、事件调度 tick。`dt = 100ms × speed`，倍速加速；战斗时自动强制 1×
+  - `gameSpeed.ts` — 游戏倍速模块（1×/2×/3×/5×），`localStorage` 持久化，`getSpeed()`/`setSpeed()`/`useSpeed()`/`forceSpeed()`/`releaseSpeed()`，战斗时强制 1×。同步 CSS 变量 `--game-cooldown-step` 供进度条动画
 - **`src/i18n/`** — i18next 国际化（`zh.json`/`en.json`），默认中文，`LanguageDetector` 自动匹配浏览器语言；`index.ts` 初始化 i18next + react-i18next
 - **`src/components/`** — 通用 UI 组件
   - `Button.tsx` — 通用操作按钮：冷却由 `state.cooldown[id]` 驱动，倒空式进度条（CSS transition），hover 时弹出成本浮层（资源│数量）。样式提取到 `Button.module.css`
   - `CollapsibleSection.tsx` — 可折叠区块（▶/▼ 箭头，默认折叠）
   - `ErrorBoundary.tsx` — 顶层错误边界类组件，捕获渲染异常显示错误信息+重载按钮
+  - `EventOverlay.tsx` — 事件弹窗覆盖层（absolute 定位在 Header 下方、中栏内）：加载 EventDef → 渲染 scene 文本+按钮 → combat 场景自动切换 CombatOverlay → 战斗结果展示+掉落发放
+  - `EventOverlay.module.css` — 弹窗样式（进场动画 + panel 约束宽度）
   - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
   - `NarrativePanel.tsx` — 左栏叙事区：顶部状态条 + 双区固定 grid（手动叙事 / 资源变化），各区独立滚动 + 旧条目渐隐。delta 由 `formatDelta()` 用 i18n 模板渲染，样式提纯到 `NarrativePanel.module.css`
   - `NarrativeSection.tsx` — 叙事区块通用组件，消除手动/资源变化叙事之间的重复代码，支持标题+条目列表+占位符
@@ -58,7 +60,21 @@
     - `buttonState.ts` — `computeButtonState()` 统一 hidden/disabled 判断
     - `index.ts` — 合并导出 + `buildCraftable(id)` action creator（扣资源 + 增建筑 + 跑 onBuild）
     - `__tests__/craftables.test.ts` — 解锁评估 + 建造 action 单元测试（11 条）
-- **`src/App.tsx`** — 根组件，三栏布局 `grid-cols-[1fr_2fr_1fr]`（NarrativePanel | SCENES 场景路由 | StoresPanel）+ `<ErrorBoundary>` + `<GameLoop/>` + `<Toolbar/>`
+- **`src/events/`** — 随机事件系统（对标原版 `Events.js` + `events/` 目录）
+  - `types.ts` — `EventDef`/`SceneDef`/`SceneButtonDef`/`ProbabilityMap` 类型定义；回调 dispatch 使用 `DispatchFn` 类型别名兼容 `Dispatch<GameAction>`
+  - `scheduler.ts` — 调度器（接入 GameLoop，冷却后扫描 isAvailable 池 → 随机选事件 → dispatch START_EVENT）
+  - `registry.ts` — 注册表（`registerEvent()`/`getEventById()`/`getAllEvents()`，模块加载时注册）
+  - `utils.ts` — 概率解析（权重格式 + 累积概率格式双支持，`resolveNextScene()`）
+  - `room/` — Room 事件（9 个）：nomad/beggar/noisesOutside/noisesInside/mysteriousWandererWood/mysteriousWandererFur/shadyBuilder/scout/wanderingMaster/sickMan
+  - `outside/` — Outside 事件（6 个）：ruinedTrap/hutFire/sickness/plague/beastAttack/soldierAttack
+  - 事件数据纯配置：`isAvailable` 条件函数 + `scenes` DAG 场景图 + `buttons` 出口（cost/reward/nextScene/onChoose）
+- **`src/combat/`** — 战斗系统（事件驱动，CombatOverlay 自包含，不依赖 Redux）
+  - `types.ts` — `CombatState` 接口
+  - `weapons.ts` — 武器配置表（8 把：fists/bone spear/iron sword/steel sword/rifle/laser rifle/grenade/bolas）
+  - `CombatManager.ts` — 纯函数战斗逻辑（`playerAttack`/`enemyAttack`/`healPlayer`/`isPlayerDead`）
+  - `CombatOverlay.tsx` — 战斗 UI（敌我 HP 条 + 武器网格 + 治疗行 + 敌攻 setInterval 定时器 + 浮动伤害数字）
+  - `CombatOverlay.module.css` — 战斗样式（HP 条动画/浮动文字）
+- **`src/App.tsx`** — 根组件，三栏布局 `grid-cols-[1fr_3fr_1.5fr]`（NarrativePanel | SCENES 场景路由 + Header + EventOverlay | StoresPanel）+ `<ErrorBoundary>` + `<GameLoop/>` + `<Toolbar/>`
 - **`src/index.css`** — `@import "tailwindcss"` + `@import "./styles/tokens.css"` + 动画关键帧（`roomFlicker`/`notifFadeIn`/`narrSlideIn`）+ 滚动条隐藏（aside 默认无滚动条，hover 时显示）+ `html { font-size: var(--game-font-size) }`
 - **`src/styles/tokens.css`** — CSS 设计 Token（`var(--game-*)`），浅色/暗色主题通过 `[data-theme="dark"]` 切换，含 `--game-font-size`/`--game-cooldown-step`
 
@@ -81,7 +97,7 @@
 - **数据驱动**：资源和制造物均走纯数据配置 — `RESOURCES` 注册表（新增资源加一行 → 类型/初始值/UI 分类自动生效）、`WORKER_INCOME`（新增职业收入加一条）、`CRAFTABLES` 配置表（新增建筑/武器加一条 → Room UI 自动渲染）。`evaluateUnlock()` 声明式解锁条件评估
 - **导入**：`verbatimModuleSyntax`，显式 `type` 导入
 - **严格模式**：`noUnusedLocals` / `noUnusedParameters` / `noFallthroughCasesInSwitch` / `erasableSyntaxOnly`（tsconfig 全部开启）
-- **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`），共 44 条（state 33 + craftables 11）
+- **测试**：Vitest（`globals: true`，`include: ['src/**/*.test.ts']`，配置在 `vite.config.ts`），共 52 条（state 41 + craftables 11；10 条预存失败待修）
 - **Lint**：ESLint flat config（`eslint.config.js`），插件 `typescript-eslint` + `react-hooks` + `react-refresh`
 
 ## Notes

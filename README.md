@@ -61,6 +61,8 @@ pnpm test
 │   │   ├── Button.module.css
 │   │   ├── CollapsibleSection.tsx # 可折叠区块
 │   │   ├── ErrorBoundary.tsx   # 顶层错误边界
+│   │   ├── EventOverlay.tsx    # 事件弹窗覆盖层（Header下方/中栏内）
+│   │   ├── EventOverlay.module.css
 │   │   ├── Header.tsx         # 场景导航标签
 │   │   ├── NarrativePanel.tsx # 左栏双区叙事
 │   │   ├── NarrativePanel.module.css
@@ -79,15 +81,26 @@ pnpm test
 │   │       ├── unlock.ts       # evaluateUnlock 解锁评估器
 │   │       ├── buttonState.ts  # computeButtonState 统一可访问性
 │   │       └── __tests__/      # 11 项单元测试
+│   ├── events/               # 随机事件系统
+│   │   ├── types.ts           # EventDef/SceneDef/场景按钮 类型
+│   │   ├── scheduler.ts       # 调度器（GameLoop 驱动）
+│   │   ├── registry.ts        # 事件注册表
+│   │   ├── utils.ts           # 概率解析（权重/累积双格式）
+│   │   ├── room/              # 9 个 Room 事件
+│   │   └── outside/           # 6 个 Outside 事件
+│   ├── combat/               # 战斗系统
+│   │   ├── types.ts           # CombatState
+│   │   ├── weapons.ts         # 武器配置（8 把）
+│   │   ├── CombatManager.ts   # 纯函数战斗逻辑
+│   │   ├── CombatOverlay.tsx  # 战斗 UI
+│   │   └── CombatOverlay.module.css
 │   ├── i18n/                 # 国际化
 │   │   ├── zh.json            # 中文翻译
 │   │   └── en.json            # 英文翻译
 │   └── styles/
 │       └── tokens.css        # CSS 设计 Token（浅色/暗色主题）
 ├── doc/                      # 文档
-│   ├── 原始ADarkRoom架构分析.md    # 原始项目源码分析
-│   ├── 重构各阶段方案.md          # 分阶段重构计划
-│   └── 重构todo checklist.md     # 详细任务清单
+│   └── 原始ADarkRoom架构分析.md    # 原始项目源码分析
 ├── origin-adarkroom/         # 原始项目参考（只读，git 忽略）
 ├── vite.config.ts            # Vite 配置
 ├── tsconfig.json             # TypeScript 配置
@@ -107,6 +120,8 @@ pnpm test
 - 📜 **叙事日志**：双区固定布局（手动叙事 + 资源变化），新旧渐隐
 - 📊 **趋势面板**：资源分类 + 趋势箭头 + 滑动窗口
 - 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
+- 🎲 **随机事件**：Room（商人/乞丐/流浪者...）+ Outside（陷阱被毁/火灾/瘟疫/袭击...），纯数据配置，isAvailable 条件 + DAG 场景图
+- ⚔️ **战斗系统**：CombatOverlay 自包含（HP 条/武器网格/敌攻定时器/治疗/掉落），事件场景声明 `combat: true` 即可触发
 - 🎨 **主题切换**：浅色/暗色，localStorage 持久化
 - 🔤 **字体缩放**：12–24px，localStorage 持久化
 - 🌐 **国际化**：中/英，自动匹配浏览器语言
