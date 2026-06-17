@@ -100,17 +100,17 @@ export function GameLoop() {
           }
           if (popTimer <= 0) {
             const maxPop = huts * CONFIG.HUT_ROOM
-            const space = maxPop - s0.game.population
+            const space = Math.min(maxPop - s0.game.population, CONFIG.HUT_ROOM * 4)
             if (space > 0) {
-              const num = Math.max(1, Math.floor(Math.random() * (space / 2) + space / 2))
+              const num = Math.max(1, Math.floor(Math.random() * space))
               dispatch(increasePopulation(num))
               if (num === 1) {
                 dispatch(pushNarrative(t('outside.pop_increase_1')))
-              } else if (num < 5) {
+              } else if (num < CONFIG.HUT_ROOM * 1) {
                 dispatch(pushNarrative(t('outside.pop_increase_few')))
-              } else if (num < 10) {
+              } else if (num < CONFIG.HUT_ROOM * 2) {
                 dispatch(pushNarrative(t('outside.pop_increase_small')))
-              } else if (num < 30) {
+              } else if (num < CONFIG.HUT_ROOM * 3) {
                 dispatch(pushNarrative(t('outside.pop_increase_convoy')))
               } else {
                 dispatch(pushNarrative(t('outside.pop_increase_boom')))
