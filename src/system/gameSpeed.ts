@@ -47,11 +47,35 @@ function syncCooldownStep() {
   }
 }
 
+// ─── 强制倍速（如战斗时强制 1×） ───────────────────────
+
+let _forcedSpeed: SpeedMultiplier | null = null
+
+/**
+ * 强制设置倍速，忽略用户选择。
+ * 已强制时再次调用不生效（防止重复强制）。
+ * 不会修改 localStorage 中的用户设定值。
+ */
+export function forceSpeed(speed: SpeedMultiplier) {
+  if (_forcedSpeed !== null) return
+  _forcedSpeed = speed
+  syncCooldownStep()
+  notify()
+}
+
+/** 释放强制倍速，恢复用户设定的值 */
+export function releaseSpeed() {
+  if (_forcedSpeed === null) return
+  _forcedSpeed = null
+  syncCooldownStep()
+  notify()
+}
+
 // ─── 公开 API ────────────────────────────────────────────
 
-/** 获取当前倍速（非 Hook，供 GameLoop 定时器读取） */
+/** 获取当前倍速（优先返回强制倍速，否则返回用户设定） */
 export function getSpeed(): SpeedMultiplier {
-  return current
+  return _forcedSpeed ?? current
 }
 
 /** 设置倍速，持久化并通知订阅者 */

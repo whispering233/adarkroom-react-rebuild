@@ -32,7 +32,10 @@ import {
   TempLevel,
 } from '../state'
 import { CONFIG } from '../config'
-import { getSpeed } from './gameSpeed'
+import { getSpeed, forceSpeed, releaseSpeed } from './gameSpeed'
+import { createSchedulingState, scheduleTick } from '../events/scheduler'
+import type { SchedulingState } from '../events/scheduler'
+import { getAllEvents } from '../events/registry'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
@@ -57,7 +60,12 @@ export function GameLoop() {
   // ═══════════════════════════════════════════════════════
   useEffect(() => {
     // 时间累加器（game-ms）
-    const accum = { fire: 0, builder: 0, income: 0 }
+    const accum = { fire: 0, builder: 0, income: 0, event: 0 }
+
+    // 事件调度状态（由 ref 持有，不触发重渲染）
+    let schedulingRef: SchedulingState = createSchedulingState()
+    const eventPool = getAllEvents()
+    let prevCombatActive = false
 
     // 建造者森林解锁倒计时（game-ms），0 = 未在倒计时
     let forestTimer = 0
@@ -112,6 +120,15 @@ export function GameLoop() {
           }
         } else {
           popTimer = 0
+        }
+      }
+
+      // ── 事件调度 tick（每 1000 game-ms） ──
+      accum.event += dt
+      while (accum.event >= CONFIG.INCOME_TICK_INTERVAL) {
+        accum.event -= CONFIG.INCOME_TICK_INTERVAL
+        if (!stateRef.current.game.activeEvent) {
+          schedulingRef = scheduleTick(schedulingRef, stateRef.current, dispatch, eventPool)
         }
       }
 
@@ -201,6 +218,16 @@ export function GameLoop() {
           continue
         }
       }
+
+      // ── 战斗倍速控制 ──
+      const sCombat = stateRef.current
+      const inCombat = sCombat.combat?.active ?? false
+      if (inCombat && !prevCombatActive) {
+        forceSpeed(1)
+      } else if (!inCombat && prevCombatActive) {
+        releaseSpeed()
+      }
+      prevCombatActive = inCombat
     }, LOOP_INTERVAL)
 
     return () => clearInterval(id)
