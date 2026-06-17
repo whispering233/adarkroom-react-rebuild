@@ -39,11 +39,11 @@
     "ship": "飞船"
   },
   "builder": {
-    "level_0": "一个陌生人蜷缩在角落",
-    "level_1": "陌生人在火堆旁取暖",
-    "level_2": "陌生人停止了颤抖",
-    "level_3": "陌生人站在火堆旁",
-    "level_4": "建造者正在努力工作"
+    "level_0": "一个陌生人蜷缩在角落 建造等级0",
+    "level_1": "陌生人在火堆旁取暖 建造等级1",
+    "level_2": "陌生人停止了颤抖 建造等级2",
+    "level_3": "陌生人站在火堆旁 建造等级3",
+    "level_4": "建造者正在努力工作 建造等级4"
   },
   "stores": {
     "cat_basic": "基础物资",
@@ -208,7 +208,6 @@
       "cost.build.workshop": "建造工坊",
       "cost.build.steelworks": "建造炼钢厂",
       "cost.build.armoury": "建造军械库",
-      "reward.gather_wood": "伐木收获",
       "event.stranger_gift": "陌生人赠予"
     },
     "delta_format": "{{source}}：{{deltas}}",

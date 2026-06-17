@@ -6,7 +6,7 @@
 
 - 技术栈：pnpm / React 19 / TypeScript ~6.0 / Vite 8 / Tailwind CSS v4 / CSS Modules / Vitest / Immer / i18next
 - 入口：`index.html` → `src/main.tsx` → i18n init → `<ErrorBoundary><GameProvider><App /></GameProvider></ErrorBoundary>`
-- 项目文档在 `doc/`：原始项目源码分析（`原始ADarkRoom架构分析.md`）
+- 项目文档在 `doc/`（`原始ADarkRoom架构分析.md`）
 - 原始项目参考在 `origin-adarkroom/`（只读，git-ignored）
 
 ## Commands
@@ -32,7 +32,6 @@
   - `hooks.ts` — `useGameContext` / `useGameState` / `useGameDispatch` 三个 hook
   - `index.ts` — barrel export
   - `state.test.ts` — Vitest 单元测试（33 条，含叙事/人口/工人/收入验证）
-  - `craftables/__tests__/craftables.test.ts` — 解锁评估 + 建造 action 单元测试（11 条）
 - **`src/config.ts`** — 游戏数值统一配置 + `RESOURCES` 资源注册表（18 项，4 分类，含 bait）+ `WORKER_INCOME`（10 职业 per-worker 速率）+ `BUILDING_WORKERS`（建筑→职业映射）+ `TRAP_DROPS`（6 档累积概率掉落表）+ `HUT_ROOM`/`POP_INCREASE_INTERVAL` 人口参数 + `NARRATIVE_LOG_MAX`/`RESOURCE_LOG_MAX` 裁剪窗口
 - **`src/system/`** — 全局系统模块
   - `GameLoop.tsx` — 单主循环（100ms），通过时间累加器驱动火堆冷却、建造者状态机、收入系统、人口增长定时器。`dt = 100ms × speed`，倍速加速
@@ -44,6 +43,7 @@
   - `ErrorBoundary.tsx` — 顶层错误边界类组件，捕获渲染异常显示错误信息+重载按钮
   - `Header.tsx` — 场景标签导航（features 驱动显隐 + currentRoom 高亮，对象映射路由）
   - `NarrativePanel.tsx` — 左栏叙事区：顶部状态条 + 双区固定 grid（手动叙事 / 资源变化），各区独立滚动 + 旧条目渐隐。delta 由 `formatDelta()` 用 i18n 模板渲染，样式提纯到 `NarrativePanel.module.css`
+  - `NarrativeSection.tsx` — 叙事区块通用组件，消除手动/资源变化叙事之间的重复代码，支持标题+条目列表+占位符
   - `StoresPanel.tsx` — 右栏人口独立行 + 三块 CollapsibleSection（建筑物/库存/武器），库存二级分类折叠，趋势显示滑动窗口标注 `/ 10t`，分类从 `RESOURCES` 自动生成
   - `Toolbar.tsx` — 右下角工具栏：1×/2×/3×/5× 速度切换、A⁻/A⁺ 字体缩放、🌙/☀️ 主题切换，均 `localStorage` 持久化
   - `WorkersPanel.tsx` — 工人分配面板：grid-cols-2 扁平布局（左列职业名+人数，右列 -1/-10/+1/+10 文字按钮均匀分布）；hover 时 tooltip 显示该职业实际资源产出/消耗（rate × 工人数）；gatherer 行只读无按钮。样式提取到 `WorkersPanel.module.css`
@@ -57,6 +57,7 @@
     - `unlock.ts` — `evaluateUnlock()` 纯函数，`'hidden' | 'locked' | 'available'` 三态，已建造过不再隐藏
     - `buttonState.ts` — `computeButtonState()` 统一 hidden/disabled 判断
     - `index.ts` — 合并导出 + `buildCraftable(id)` action creator（扣资源 + 增建筑 + 跑 onBuild）
+    - `__tests__/craftables.test.ts` — 解锁评估 + 建造 action 单元测试（11 条）
 - **`src/App.tsx`** — 根组件，三栏布局 `grid-cols-[1fr_2fr_1fr]`（NarrativePanel | SCENES 场景路由 | StoresPanel）+ `<ErrorBoundary>` + `<GameLoop/>` + `<Toolbar/>`
 - **`src/index.css`** — `@import "tailwindcss"` + `@import "./styles/tokens.css"` + 动画关键帧（`roomFlicker`/`notifFadeIn`/`narrSlideIn`）+ 滚动条隐藏（aside 默认无滚动条，hover 时显示）+ `html { font-size: var(--game-font-size) }`
 - **`src/styles/tokens.css`** — CSS 设计 Token（`var(--game-*)`），浅色/暗色主题通过 `[data-theme="dark"]` 切换，含 `--game-font-size`/`--game-cooldown-step`

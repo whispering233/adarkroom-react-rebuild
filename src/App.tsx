@@ -30,7 +30,7 @@ function App() {
       className="mx-auto h-screen"
       style={{ maxWidth: 'var(--game-content-max-width)' }}
     >
-      <div className="grid h-full overflow-hidden grid-cols-[1fr_3fr_1.8fr]">
+      <div className="grid h-full overflow-hidden grid-cols-[1fr_3fr_1.5fr]">
         {/* 左栏 — 剧情文本 */}
         <aside className="p-4 overflow-y-auto">
           <NarrativePanel />

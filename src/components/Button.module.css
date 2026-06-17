@@ -27,7 +27,7 @@
   font-family: var(--game-font);
   font-size: 0.875rem;
   line-height: 1.25rem;
-  min-width: var(--game-btn-min-width, 10.75rem);
+  width: var(--game-btn-min-width, 10.75rem);
   transition: all 0.15s ease;
   overflow: hidden;
   color: var(--game-btn-text);
@@ -64,14 +64,12 @@
 
 .labelName {
   text-align: left;
-  white-space: nowrap;
 }
 
 .labelCount {
   text-align: right;
   opacity: 0.7;
   font-size: 0.85em;
-  white-space: nowrap;
 }
 
 .centerText {

@@ -28,9 +28,9 @@ const WIDTH_DEFAULT = 100
 
 /** 宽度百分比 → 按钮 min-width 映射 */
 const BTN_MIN_WIDTH_MAP: Record<number, string> = {
-  50: '5.5rem',
-  75: '8rem',
-  100: '10.75rem',
+  50: '9rem',
+  75: '11rem',
+  100: '13rem',
 }
 
 // ─── 工具函数 ─────────────────────────────────────────────
