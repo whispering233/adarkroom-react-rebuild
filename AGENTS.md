@@ -6,7 +6,7 @@
 
 - 技术栈：pnpm / React 19 / TypeScript ~6.0 / Vite 8 / Tailwind CSS v4 / CSS Modules / Vitest / Immer / i18next
 - 入口：`index.html` → `src/main.tsx` → i18n init → `<ErrorBoundary><GameProvider><App /></GameProvider></ErrorBoundary>`
-- 项目文档在 `doc/`：原始架构分析（`原始ADarkRoom架构分析.md`），重构方案与 TODO 待补充
+- 项目文档在 `doc/`：原始项目源码分析（`原始ADarkRoom架构分析.md`）
 - 原始项目参考在 `origin-adarkroom/`（只读，git-ignored）
 
 ## Commands
