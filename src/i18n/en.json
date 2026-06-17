@@ -214,5 +214,128 @@
     "delta_format": "{{source}}: {{deltas}}",
     "delta_plus": "+{{value}} {{name}}",
     "delta_minus": "-{{value}} {{name}}"
+  },
+  "events": {
+    "nomad": {
+      "title": "The Nomad",
+      "text": ["a nomad shuffles into view, laden with makeshift bags.", "won't say from where he came, but it's clear that he's not staying."],
+      "arrived": "a nomad arrives, looking to trade",
+      "buy_scales": "buy scales",
+      "buy_teeth": "buy teeth",
+      "buy_bait": "buy bait",
+      "bait_effective": "traps are more effective with bait.",
+      "buy_compass": "buy compass",
+      "compass_desc": "the old compass is dented and dusty, but it looks to work.",
+      "goodbye": "say goodbye"
+    },
+    "noises": {
+      "title": "Noises",
+      "text": ["through the walls, shuffling noises can be heard.", "can't tell what they're up to."],
+      "arrived": "strange noises can be heard through the walls",
+      "investigate": "investigate",
+      "ignore": "ignore them",
+      "back": "go back inside",
+      "nothing": ["vague shapes move, just out of sight.", "the sounds stop."],
+      "stuff": ["a bundle of sticks lies just beyond the threshold.", "the night is silent."]
+    },
+    "noises_in": {
+      "title": "Noises",
+      "text": ["scratching noises can be heard from the store room.", "something's in there."],
+      "arrived": "something's in the store room",
+      "investigate": "investigate",
+      "ignore": "ignore them",
+      "leave": "leave",
+      "result": ["some wood is missing.", ""],
+      "scales": ["the ground is littered with small scales."],
+      "teeth": ["the ground is littered with small teeth."],
+      "cloth": ["the ground is littered with scraps of cloth."]
+    },
+    "beggar": {
+      "title": "The Beggar",
+      "text": ["a beggar arrives.", "asks for any spare furs to keep him warm at night."],
+      "arrived": "a beggar arrives",
+      "give_50": "give 50",
+      "give_100": "give 100",
+      "deny": "turn him away",
+      "thanks": "the beggar expresses his thanks.",
+      "scales_result": "leaves a pile of small scales behind.",
+      "teeth_result": "leaves a pile of small teeth behind.",
+      "cloth_result": "leaves some scraps of cloth behind.",
+      "goodbye": "say goodbye"
+    },
+    "shady": {
+      "title": "The Shady Builder",
+      "text": ["a shady builder passes through.", "says he can build you a hut for less wood."],
+      "arrived": "a shady builder passes through",
+      "build": "300 wood",
+      "steal": "the shady builder has made off with your wood",
+      "steal_notify": "the shady builder has made off with your wood",
+      "build_ok": "the shady builder builds a hut",
+      "build_notify": "the shady builder builds a hut",
+      "go_home": "go home",
+      "goodbye": "say goodbye"
+    },
+    "wanderer": {
+      "title": "The Mysterious Wanderer",
+      "text": ["a wanderer arrives with an empty cart. says if he leaves with wood, he'll be back with more.", "builder's not sure he's to be trusted."],
+      "arrived": "a mysterious wanderer arrives",
+      "give_100": "give 100",
+      "give_500": "give 500",
+      "deny": "turn him away",
+      "wood_sent": "the wanderer leaves, cart loaded with wood",
+      "goodbye": "say goodbye",
+      "return_text": "the mysterious wanderer returns, cart piled high with wood.",
+      "return": "the mysterious wanderer returns, cart piled high with wood.",
+      "nothing": "the wanderer never returned."
+    },
+    "wanderer_fur": {
+      "title": "The Mysterious Wanderer",
+      "text": ["a wanderer arrives with an empty cart. says if she leaves with furs, she'll be back with more.", "builder's not sure she's to be trusted."],
+      "arrived": "a mysterious wanderer arrives",
+      "give_100": "give 100",
+      "give_500": "give 500",
+      "deny": "turn her away",
+      "fur_sent": "the wanderer leaves, cart loaded with furs",
+      "goodbye": "say goodbye",
+      "return_text": "the mysterious wanderer returns, cart piled high with furs.",
+      "return": "the mysterious wanderer returns, cart piled high with furs.",
+      "nothing": "the wanderer never returned."
+    },
+    "scout": {
+      "title": "The Scout",
+      "text": ["the scout says she's been all over.", "willing to talk about it, for a price."],
+      "arrived": "a scout stops for the night",
+      "buy_map": "buy map",
+      "map_desc": "the map uncovers a bit of the world",
+      "learn_scouting": "learn scouting",
+      "goodbye": "say goodbye"
+    },
+    "master": {
+      "title": "The Master",
+      "text": ["an old wanderer arrives.", "he smiles warmly and asks for lodgings for the night."],
+      "arrived": "an old wanderer arrives",
+      "agree": "agree",
+      "deny": "turn him away",
+      "offer": "in exchange, the wanderer offers his wisdom.",
+      "evasion": "evasion",
+      "precision": "precision",
+      "force": "force",
+      "nothing": "nothing"
+    },
+    "sick": {
+      "title": "The Sick Man",
+      "text": ["a man hobbles up, coughing.", "he begs for medicine."],
+      "arrived": "a sick man hobbles up",
+      "give_meds": "give 1 medicine",
+      "meds_eaten": "the man swallows the medicine eagerly",
+      "ignore": "tell him to leave",
+      "thanks": "the man is thankful.",
+      "reward": "he leaves a reward.",
+      "alloy": "some weird metal he picked up on his travels.",
+      "cells": "some weird glowing boxes he picked up on his travels.",
+      "scales": "all he has are some scales.",
+      "nothing": "the man expresses his thanks and hobbles off.",
+      "goodbye": "say goodbye"
+    }
   }
 }

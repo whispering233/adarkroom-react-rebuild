@@ -64,7 +64,6 @@ export function GameLoop() {
 
     // 事件调度状态（由 ref 持有，不触发重渲染）
     let schedulingRef: SchedulingState = createSchedulingState()
-    const eventPool = getAllEvents()
     let prevCombatActive = false
 
     // 建造者森林解锁倒计时（game-ms），0 = 未在倒计时
@@ -128,7 +127,7 @@ export function GameLoop() {
       while (accum.event >= CONFIG.INCOME_TICK_INTERVAL) {
         accum.event -= CONFIG.INCOME_TICK_INTERVAL
         if (!stateRef.current.game.activeEvent) {
-          schedulingRef = scheduleTick(schedulingRef, stateRef.current, dispatch, eventPool)
+          schedulingRef = scheduleTick(schedulingRef, stateRef.current, dispatch, getAllEvents())
         }
       }
 

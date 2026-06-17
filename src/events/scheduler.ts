@@ -15,8 +15,8 @@ import type { EventDef } from './types'
 
 // ─── 常量 ────────────────────────────────────────────────
 
-/** 默认调度冷却范围（game-seconds），对应原版 3-6 分钟 */
-const DEFAULT_COOLDOWN_RANGE: [number, number] = [180, 360]
+/** 默认调度冷却范围（分钟），对应原版 3-6 分钟 */
+const DEFAULT_COOLDOWN_RANGE: [number, number] = [3, 6]
 
 /** 无可用事件时的重试间隔（game-seconds） */
 const RETRY_COOLDOWN = 30
@@ -30,8 +30,9 @@ export interface SchedulingState {
 
 /** 创建初始调度状态（随机首次冷却） */
 export function createSchedulingState(): SchedulingState {
+  const [min, max] = DEFAULT_COOLDOWN_RANGE
   return {
-    cooldown: randomInt(DEFAULT_COOLDOWN_RANGE[0], DEFAULT_COOLDOWN_RANGE[1]),
+    cooldown: randomInt(min, max) * 60, // 分钟 → 秒
   }
 }
 

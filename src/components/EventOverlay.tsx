@@ -51,7 +51,7 @@ export function EventOverlay() {
     }
 
     if (scene.notification) {
-      dispatch(pushNarrative(scene.notification))
+      dispatch(pushNarrative(t(scene.notification)))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active?.currentScene])
@@ -77,7 +77,7 @@ export function EventOverlay() {
 
       // ② 通知
       if (button.notification) {
-        dispatch(pushNarrative(button.notification))
+        dispatch(pushNarrative(t(button.notification)))
       }
 
       // ③ onChoose 回调
