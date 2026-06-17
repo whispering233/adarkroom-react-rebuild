@@ -25,6 +25,15 @@ export {
   increasePopulation,
   killVillagers,
   applyRecipe,
+  // ── 事件 ──
+  startEvent,
+  goToScene,
+  endEvent,
+  completeEvent,
+  setNarrativeFlag,
+  // ── 战斗 ──
+  startCombat,
+  endCombat,
   MAX_STORE,
 } from './reducer'
 export type { GameAction } from './reducer'

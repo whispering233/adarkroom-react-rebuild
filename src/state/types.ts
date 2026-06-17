@@ -6,6 +6,8 @@
  */
 
 import type { ResourceId } from '../config'
+import type { CombatState } from '../combat/types'
+import type { EventResult } from '../events/types'
 import { getInitialStores } from '../config'
 
 // ─── 资源存储 ────────────────────────────────────────────
@@ -77,6 +79,24 @@ export interface GameData {
   }
   /** Outside 探索标记 */
   outside?: { seenForest?: boolean }
+
+  /** 当前进行中的事件（null = 无） */
+  activeEvent: {
+    /** 事件唯一标识 */
+    eventId: string
+    /** 当前场景 ID */
+    currentScene: string
+    /** 场景历史（用于回溯或剧情依赖） */
+    sceneHistory: string[]
+  } | null
+
+  /** 叙事标记（跨事件持久化） */
+  narrative: {
+    /** 已完结的事件记录 */
+    eventsCompleted: Record<string, EventResult>
+    /** 自由命名的叙事标记 */
+    flags: Record<string, boolean>
+  }
 }
 
 // ─── 场景路由 ────────────────────────────────────────────
@@ -207,6 +227,9 @@ export interface GameState {
   deltaLog: NarrativeEntry[]
   /** 叙事自增 ID */
   _nextNarrativeId: number
+
+  /** 战斗状态（null = 非战斗） */
+  combat: CombatState | null
   /** 当前 tick 内尚未 flush 的累加 delta */
   _pendingDeltas: Record<string, number>
   /** 当前 tick 内按来源分组的资源变更（叙事生成用） */
@@ -237,6 +260,8 @@ export const INITIAL_STATE: GameState = {
     buildings: {},
     population: 0,
     workers: {},
+    activeEvent: null,
+    narrative: { eventsCompleted: {}, flags: {} },
   },
   playStats: {},
   previous: {},
@@ -255,6 +280,7 @@ export const INITIAL_STATE: GameState = {
   narrativeLog: [],
   deltaLog: [],
   _nextNarrativeId: 1,
+  combat: null,
   _globalTick: 0,
   version: 1.3,
 }

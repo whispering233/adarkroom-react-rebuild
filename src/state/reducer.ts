@@ -12,6 +12,8 @@
  * INCOME_TICK 时 flush 为单条 ResourceTickLog（每个 tick 一条，避免高频 key 挤占）。
  */
 import type { GameState, IncomeConfig } from './types'
+import type { EventResult } from '../events/types'
+import type { CombatState } from '../combat/types'
 import { FireLevel, TempLevel } from './types'
 import { CONFIG, WORKER_INCOME } from '../config'
 
@@ -106,6 +108,15 @@ export type GameAction =
   | { type: 'KILL_VILLAGERS'; count: number }
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
+  // ── 事件系统 ──
+  | { type: 'START_EVENT'; eventId: string; sceneId?: string }
+  | { type: 'GO_TO_SCENE'; sceneId: string }
+  | { type: 'END_EVENT' }
+  | { type: 'COMPLETE_EVENT'; eventId: string; result: EventResult }
+  | { type: 'SET_NARRATIVE_FLAG'; key: string; value: boolean }
+  // ── 战斗系统 ──
+  | { type: 'START_COMBAT'; config: CombatState }
+  | { type: 'END_COMBAT' }
 
 // ─── Reducer（draft recipe，供 useImmerReducer 使用）───────
 
@@ -357,6 +368,53 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       break
     }
 
+    // ── 事件系统 ──────────────────────────────────────
+
+    case 'START_EVENT': {
+      draft.game.activeEvent = {
+        eventId: action.eventId,
+        currentScene: action.sceneId ?? 'start',
+        sceneHistory: [],
+      }
+      break
+    }
+
+    case 'GO_TO_SCENE': {
+      const ev = draft.game.activeEvent
+      if (ev) {
+        ev.sceneHistory.push(ev.currentScene)
+        ev.currentScene = action.sceneId
+      }
+      break
+    }
+
+    case 'END_EVENT': {
+      draft.game.activeEvent = null
+      break
+    }
+
+    case 'COMPLETE_EVENT': {
+      draft.game.narrative.eventsCompleted[action.eventId] = action.result
+      break
+    }
+
+    case 'SET_NARRATIVE_FLAG': {
+      draft.game.narrative.flags[action.key] = action.value
+      break
+    }
+
+    // ── 战斗系统 ──────────────────────────────────────
+
+    case 'START_COMBAT': {
+      draft.combat = { ...action.config, active: true }
+      break
+    }
+
+    case 'END_COMBAT': {
+      draft.combat = null
+      break
+    }
+
     default:
       break
   }
@@ -457,3 +515,39 @@ export const applyRecipe = (
   type: 'APPLY_RECIPE',
   recipe,
 })
+
+// ── 事件 Action Creator ──────────────────────────────────
+
+export const startEvent = (eventId: string, sceneId?: string): GameAction => ({
+  type: 'START_EVENT',
+  eventId,
+  sceneId,
+})
+
+export const goToScene = (sceneId: string): GameAction => ({
+  type: 'GO_TO_SCENE',
+  sceneId,
+})
+
+export const endEvent = (): GameAction => ({ type: 'END_EVENT' })
+
+export const completeEvent = (eventId: string, result: EventResult): GameAction => ({
+  type: 'COMPLETE_EVENT',
+  eventId,
+  result,
+})
+
+export const setNarrativeFlag = (key: string, value: boolean): GameAction => ({
+  type: 'SET_NARRATIVE_FLAG',
+  key,
+  value,
+})
+
+// ── 战斗 Action Creator ──────────────────────────────────
+
+export const startCombat = (config: CombatState): GameAction => ({
+  type: 'START_COMBAT',
+  config,
+})
+
+export const endCombat = (): GameAction => ({ type: 'END_COMBAT' })

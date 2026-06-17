@@ -516,4 +516,109 @@ describe('state 模块 (useImmerReducer 版)', () => {
     // ticks done: 1 + 9 = 10. On the 10th tick, timeLeft becomes 0, income fires, wood+=3
     expect(s.stores.wood).toBe(3)
   })
+
+  // ── 事件系统 ──────────────────────────────────────────
+
+  describe('event actions', () => {
+    it('START_EVENT sets activeEvent with default start scene', async () => {
+      const { startEvent } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(INITIAL_STATE, startEvent('nomad'))
+      expect(s1.game.activeEvent).not.toBeNull()
+      expect(s1.game.activeEvent!.eventId).toBe('nomad')
+      expect(s1.game.activeEvent!.currentScene).toBe('start')
+      expect(s1.game.activeEvent!.sceneHistory).toEqual([])
+    })
+
+    it('START_EVENT with custom sceneId', async () => {
+      const { startEvent } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(INITIAL_STATE, startEvent('nomad', 'trade'))
+      expect(s1.game.activeEvent!.currentScene).toBe('trade')
+    })
+
+    it('GO_TO_SCENE pushes previous scene to history', async () => {
+      const { goToScene, startEvent } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s0 = await runReducer(INITIAL_STATE, startEvent('nomad'))
+      const s1 = await runReducer(s0, goToScene('trade'))
+      expect(s1.game.activeEvent!.sceneHistory).toEqual(['start'])
+      expect(s1.game.activeEvent!.currentScene).toBe('trade')
+      const s2 = await runReducer(s1, goToScene('end'))
+      expect(s2.game.activeEvent!.sceneHistory).toEqual(['start', 'trade'])
+      expect(s2.game.activeEvent!.currentScene).toBe('end')
+    })
+
+    it('END_EVENT clears activeEvent', async () => {
+      const { endEvent, startEvent } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s0 = await runReducer(INITIAL_STATE, startEvent('nomad'))
+      expect(s0.game.activeEvent).not.toBeNull()
+      const s1 = await runReducer(s0, endEvent())
+      expect(s1.game.activeEvent).toBeNull()
+    })
+
+    it('COMPLETE_EVENT records result', async () => {
+      const { completeEvent } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(INITIAL_STATE, completeEvent('nomad', 'completed'))
+      expect(s1.game.narrative.eventsCompleted['nomad']).toBe('completed')
+    })
+
+    it('SET_NARRATIVE_FLAG toggles flag', async () => {
+      const { setNarrativeFlag } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(INITIAL_STATE, setNarrativeFlag('helped_beggar', true))
+      expect(s1.game.narrative.flags['helped_beggar']).toBe(true)
+      const s2 = await runReducer(s1, setNarrativeFlag('helped_beggar', false))
+      expect(s2.game.narrative.flags['helped_beggar']).toBe(false)
+    })
+  })
+
+  // ── 战斗系统 ──────────────────────────────────────────
+
+  describe('combat actions', () => {
+    it('START_COMBAT sets combat state', async () => {
+      const { startCombat } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(
+        INITIAL_STATE,
+        startCombat({
+          active: false,
+          enemyId: 'beast',
+          enemyHp: 30,
+          enemyMaxHp: 30,
+          playerHp: 100,
+          playerMaxHp: 100,
+          attackDelay: 2,
+          enemyDamage: 4,
+          enemyHit: 0.8,
+        }),
+      )
+      expect(s1.combat).not.toBeNull()
+      expect(s1.combat!.active).toBe(true)
+      expect(s1.combat!.enemyId).toBe('beast')
+      expect(s1.combat!.enemyHp).toBe(30)
+      expect(s1.combat!.playerHp).toBe(100)
+    })
+
+    it('END_COMBAT clears combat', async () => {
+      const { endCombat, startCombat } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s0 = await runReducer(
+        INITIAL_STATE,
+        startCombat({
+          active: false,
+          enemyId: 'beast',
+          enemyHp: 30,
+          enemyMaxHp: 30,
+          playerHp: 100,
+          playerMaxHp: 100,
+        }),
+      )
+      expect(s0.combat).not.toBeNull()
+      const s1 = await runReducer(s0, endCombat())
+      expect(s1.combat).toBeNull()
+    })
+  })
 })
