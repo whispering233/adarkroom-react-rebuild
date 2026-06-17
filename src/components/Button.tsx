@@ -70,18 +70,13 @@ export function Button({
   const alignClass = label != null ? 'text-left' : 'text-center'
 
   return (
-    <div className={`${styles.wrapper} relative group inline-block`}>
+    <div className={`${styles.wrapper} relative inline-block`}>
       <button
         type="button"
         id={`btn-${id}`}
         onClick={handleClick}
         disabled={isDisabled}
-        className={`
-          relative cursor-pointer rounded border px-5 py-2 font-mono text-sm ${alignClass}
-          min-w-43 transition active:scale-95
-          disabled:cursor-not-allowed disabled:opacity-40 overflow-hidden
-          ${styles.base} ${className}
-        `}
+        className={`${styles.button} ${alignClass} ${className}`}
       >
         {/* 冷却进度条 */}
         {cooldownActive && (

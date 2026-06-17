@@ -13,6 +13,36 @@
   border-color: var(--game-btn-border);
 }
 
+/**
+ * .button — 按钮宿主，收纳原 JSX 内联 className。
+ * 动态的 alignClass(text-left / text-center) 和传入的 className 
+ * 仍在 JSX 中通过 Tailwind 追加。
+ */
+.button {
+  position: relative;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  border: 1px solid var(--game-btn-border);
+  padding: 0.5rem 1.25rem;
+  font-family: var(--game-font);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  min-width: var(--game-btn-min-width, 10.75rem);
+  transition: all 0.15s ease;
+  overflow: hidden;
+  color: var(--game-btn-text);
+  background-color: var(--game-btn-bg);
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 /* ── 冷却进度条（倒空式：从左向右收缩） ──────────────── */
 
 .progress {

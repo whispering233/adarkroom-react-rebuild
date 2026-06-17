@@ -53,7 +53,7 @@ export function Header() {
 
   return (
     <nav
-      className="flex items-center px-4 py-0 bg-(--game-bg-header)"
+      className="flex items-center px-4 py-0"
     >
       {ROOM_ORDER.map((room) => {
         const isUnlocked =

@@ -26,6 +26,13 @@ const WIDTH_KEY = 'adr-game-width'
 const WIDTH_OPTIONS = [50, 75, 100] as const
 const WIDTH_DEFAULT = 100
 
+/** 宽度百分比 → 按钮 min-width 映射 */
+const BTN_MIN_WIDTH_MAP: Record<number, string> = {
+  50: '5.5rem',
+  75: '8rem',
+  100: '10.75rem',
+}
+
 // ─── 工具函数 ─────────────────────────────────────────────
 
 function getInitialTheme(): 'light' | 'dark' {
@@ -71,6 +78,7 @@ function getInitialWidth(): number {
 
 function applyWidth(pct: number) {
   document.documentElement.style.setProperty('--game-content-max-width', `${pct}%`)
+  document.documentElement.style.setProperty('--game-btn-min-width', BTN_MIN_WIDTH_MAP[pct] ?? '10.75rem')
 }
 
 // 模块加载时应用已保存的宽度
