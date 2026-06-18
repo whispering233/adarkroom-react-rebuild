@@ -102,6 +102,9 @@ export interface SceneDef {
   /** 是否闪烁浏览器标签标题 */
   blink?: boolean
 
+  /** 自动跳转（无需按钮交互时按概率跳转下一场景） */
+  nextScene?: SceneId | ProbabilityMap
+
   // ── combat 相关（仅当 combat: true 时生效） ──────────
 
   /** 敌人显示字符（用于战斗 UI 标签） */

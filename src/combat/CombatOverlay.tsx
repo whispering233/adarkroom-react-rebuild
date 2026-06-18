@@ -8,9 +8,8 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGameDispatch, applyRecipe, modifyResource, pushNarrative } from '../state'
 import type { CombatState } from './types'
-import type { WeaponDef } from './weapons'
 import type { SceneDef } from '../events/types'
-import { playerAttack, enemyAttack, healPlayer, isPlayerDead, isEnemyDead } from './CombatManager'
+import { playerAttack, enemyAttack, healPlayer, isPlayerDead } from './CombatManager'
 import { WEAPONS } from './weapons'
 import styles from './CombatOverlay.module.css'
 
@@ -18,7 +17,6 @@ import styles from './CombatOverlay.module.css'
 
 const MEAT_HEAL = 10
 const MEDS_HEAL = 20
-const HYPO_HEAL = 60
 
 // ─── Props ───────────────────────────────────────────────
 
@@ -94,7 +92,9 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
       if (weapon.cost) {
         dispatch(applyRecipe(d => {
           for (const [res, qty] of Object.entries(weapon.cost!)) {
-            modifyResource(d, res, -qty, 'combat.attack')
+            if (qty != null) {
+              modifyResource(d, res, -qty, 'combat.attack')
+            }
           }
         }))
       }
