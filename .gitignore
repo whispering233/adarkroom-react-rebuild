@@ -22,6 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.omo
 
 # 原始项目参考（只读分析用）
 origin-adarkroom/
