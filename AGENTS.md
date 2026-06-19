@@ -95,3 +95,26 @@ type X = (typeof X)[keyof typeof X]
 - `package.json` 中 `"type": "module"` — 项目为 ESM
 - `pnpm-workspace.yaml` 中 `allowBuilds: { esbuild: true }` 是 esbuild 原生依赖构建所需
 - 包管理器固定为 pnpm（通过 `pnpm-lock.yaml` 锁定）
+
+## Release workflow
+
+Release notes source: `CHANGELOG.md` (Keep a Changelog format). When a `v*` tag is pushed, `.github/workflows/release.yml` runs `hermannm/release-from-changelog@v0.2.6` which parses the matching `## [vX.Y.Z]` section and creates a GitHub Release.
+
+### Release steps (for AI agents)
+
+1. Edit `CHANGELOG.md`: move content from `## [Unreleased]` to a new `## [vX.Y.Z] - YYYY-MM-DD` section
+2. Update `version` in `package.json`
+3. Stage, commit, tag, push:
+
+```bash
+git add CHANGELOG.md package.json
+git commit -m "chore(release): bump version to vX.Y.Z"
+git tag vX.Y.Z
+git push origin main
+git push origin vX.Y.Z
+```
+
+- Tag format: `v<semver>` (e.g. `v0.2.0`). Only `v*` tags trigger the release workflow.
+- The release workflow runs on `ubuntu-latest`, requires `permissions: contents: write`.
+- If CHANGELOG.md has no entry matching the tag, the action errors (safe fail, no empty release).
+- GitHub auto-links `#NNN` references to issues/PRs in the Release body.
