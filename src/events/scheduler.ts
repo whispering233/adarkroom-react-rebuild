@@ -17,7 +17,7 @@ import type { EventDef } from './types'
 // ─── 常量 ────────────────────────────────────────────────
 
 /** 默认调度冷却范围（分钟），对应原版 3-6 分钟 */
-const DEFAULT_COOLDOWN_RANGE: [number, number] = [1, 2]
+const DEFAULT_COOLDOWN_RANGE: [number, number] = [1, 5]
 
 /** 无可用事件时的重试间隔（game-seconds） */
 const RETRY_COOLDOWN = 30
