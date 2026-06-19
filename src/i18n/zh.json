@@ -473,5 +473,25 @@
     "stealthy": "潜行",
     "slow metabolism": "缓慢代谢",
     "desert rat": "沙漠之鼠"
+  },
+  "save": {
+    "save": "保存",
+    "export": "导出",
+    "import": "导入",
+    "new_game": "重新开始",
+    "save_ok": "游戏已保存",
+    "save_fail": "保存失败：存储空间不足",
+    "export_title": "导出存档",
+    "export_desc": "复制下方文本以备份存档",
+    "copy": "复制",
+    "copied": "已复制到剪贴板",
+    "import_title": "导入存档",
+    "import_desc": "粘贴 Base64 编码的存档数据",
+    "import_btn": "加载存档",
+    "import_invalid": "无效的存档数据",
+    "import_ok": "存档已加载",
+    "confirm_new": "确定要重新开始吗？当前进度将永久丢失。",
+    "cancel": "取消",
+    "close": "关闭"
   }
 }

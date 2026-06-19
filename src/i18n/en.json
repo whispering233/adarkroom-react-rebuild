@@ -474,5 +474,25 @@
     "stealthy": "Stealthy",
     "slow metabolism": "Slow Metabolism",
     "desert rat": "Desert Rat"
+  },
+  "save": {
+    "save": "Save",
+    "export": "Export",
+    "import": "Import",
+    "new_game": "New Game",
+    "save_ok": "Game saved",
+    "save_fail": "Save failed: storage full",
+    "export_title": "Export Save",
+    "export_desc": "Copy the text below to backup your save",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "import_title": "Import Save",
+    "import_desc": "Paste Base64-encoded save data",
+    "import_btn": "Load Save",
+    "import_invalid": "Invalid save data",
+    "import_ok": "Save loaded",
+    "confirm_new": "Are you sure you want to start over? All progress will be lost permanently.",
+    "cancel": "Cancel",
+    "close": "Close"
   }
 }
