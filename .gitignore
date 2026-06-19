@@ -29,6 +29,7 @@ origin-adarkroom/
 
 # Reasonix agent 本地状态
 .reasonix/
+.claude/
 
 # Codegraph 缓存索引（可再生）
 .codegraph/
