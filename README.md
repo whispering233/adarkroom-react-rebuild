@@ -157,8 +157,11 @@ pnpm test
 3. 打 tag 并推送：
 
 ```bash
-git tag v0.2.0
-git push origin v0.2.0
+git add CHANGELOG.md package.json
+git commit -m "chore(release): bump version to vX.Y.Z"
+git tag vX.Y.Z
+git push origin main
+git push origin vX.Y.Z
 ```
 
 推送后 GitHub Actions 自动创建 Release 页面，正文即为 CHANGELOG 中对应版本段落。
