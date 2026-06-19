@@ -19,6 +19,7 @@ export interface SaveEnvelope {
 // ─── 错误回调 ──────────────────────────────────────────────
 
 /** 存档写入失败时的错误报告回调（默认 null，由 UI 层注入） */
+// eslint-disable-next-line prefer-const
 export let onSaveError: ((msg: string) => void) | null = null
 
 // ─── localStorage 键名 ─────────────────────────────────────
