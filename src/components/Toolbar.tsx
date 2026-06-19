@@ -9,6 +9,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSpeed, type SpeedMultiplier } from '../system/gameSpeed'
+import { useGameState, useGameDispatch, loadSave, pushNarrative } from '../state'
+import { INITIAL_STATE } from '../state/types'
+import { saveState, clearSave } from '../system/saveManager'
+import { SaveModal } from './SaveModal'
 
 // ─── 常量 ─────────────────────────────────────────────────
 
@@ -67,6 +71,9 @@ export function Toolbar() {
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
   const [fontSize, setFontSize] = useState<number>(getInitialFontSize)
   const [speed, setSpeed] = useSpeed()
+  const state = useGameState()
+  const dispatch = useGameDispatch()
+  const [modalMode, setModalMode] = useState<'export' | 'import' | null>(null)
 
   // 应用主题
   useEffect(() => {
@@ -104,6 +111,27 @@ export function Toolbar() {
 
   const atMin = fontSize <= FONT_SIZE_MIN
   const atMax = fontSize >= FONT_SIZE_MAX
+
+  const handleSave = useCallback(() => {
+    saveState(state)
+    dispatch(pushNarrative(t('save.save_ok')))
+  }, [state, dispatch, t])
+
+  const handleExport = useCallback(() => {
+    setModalMode('export')
+  }, [])
+
+  const handleImport = useCallback(() => {
+    setModalMode('import')
+  }, [])
+
+  const handleNewGame = useCallback(() => {
+    if (!window.confirm(t('save.confirm_new'))) return
+    clearSave()
+    dispatch(loadSave(INITIAL_STATE))
+    dispatch(pushNarrative(t('save.confirm_new')))
+    setModalMode(null)
+  }, [dispatch, t])
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex gap-1.5">
@@ -153,6 +181,50 @@ export function Toolbar() {
       >
         {theme === 'light' ? '🌙' : '☀️'}
       </button>
+
+      {/* 保存 */}
+      <button
+        type="button"
+        onClick={handleSave}
+        title={t('save.save')}
+        className={BTN_STYLE}
+      >
+        💾
+      </button>
+
+      {/* 导出 */}
+      <button
+        type="button"
+        onClick={handleExport}
+        title={t('save.export')}
+        className={BTN_STYLE}
+      >
+        📤
+      </button>
+
+      {/* 导入 */}
+      <button
+        type="button"
+        onClick={handleImport}
+        title={t('save.import')}
+        className={BTN_STYLE}
+      >
+        📥
+      </button>
+
+      {/* 重新开始 */}
+      <button
+        type="button"
+        onClick={handleNewGame}
+        title={t('save.new_game')}
+        className={BTN_STYLE}
+      >
+        🔄
+      </button>
+
+      {modalMode && (
+        <SaveModal mode={modalMode} onClose={() => setModalMode(null)} />
+      )}
     </div>
   )
 }
