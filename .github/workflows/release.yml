@@ -1,0 +1,17 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+env:
+  FORCE_COLOR: 1
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: hermannm/release-from-changelog@v0.2.6
