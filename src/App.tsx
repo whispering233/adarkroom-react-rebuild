@@ -4,14 +4,15 @@
  * 三栏布局：左栏剧情 | 中栏交互 | 右栏数据
  * 基于 currentRoom 状态驱动场景路由（对象映射）。
  */
-import type { ComponentType } from 'react'
-import { useGameState, RoomName } from './state'
+import { useRef, useEffect, type ComponentType } from 'react'
+import { useGameState, useGameContext, RoomName } from './state'
 import type { RoomName as RoomNameType } from './state/types'
 import { Header } from './components/Header'
 import { NarrativePanel } from './components/NarrativePanel'
 import { StoresPanel } from './components/StoresPanel'
 import { Toolbar } from './components/Toolbar'
 import { GameLoop } from './system/GameLoop'
+import { saveState } from './system/saveManager'
 import { EventOverlay } from './components/EventOverlay'
 import { Room } from './rooms/Room'
 import { Outside } from './rooms/Outside'
@@ -28,9 +29,42 @@ const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
 
 function App() {
   const state = useGameState()
+  const { state: fullState } = useGameContext()
   const currentRoom = state.currentRoom
   const activeEvent = state.game.activeEvent
   const Scene = SCENES[currentRoom]
+
+  // ── auto-save (10s real-time throttle, skip during combat/events) ──
+  const lastSaveRef = useRef<number>(0)
+
+  useEffect(() => {
+    const now = Date.now()
+    const inCombat = fullState.combat?.active ?? false
+    const inEvent = fullState.game.activeEvent !== null
+
+    // Skip save during combat or active event
+    if (inCombat || inEvent) return
+
+    // Throttle: minimum 10 seconds real time between saves
+    if (now - lastSaveRef.current < 10000) return
+
+    saveState(fullState)
+    lastSaveRef.current = now
+  }, [fullState._globalTick])
+
+  // ── beforeunload save (ref avoids stale closure) ──
+  const stateRef = useRef(fullState)
+  useEffect(() => {
+    stateRef.current = fullState
+  })
+
+  useEffect(() => {
+    const handler = () => {
+      saveState(stateRef.current)
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [])
 
   return (
     <div
