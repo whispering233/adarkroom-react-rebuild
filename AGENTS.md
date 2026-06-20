@@ -25,6 +25,7 @@
 - **数据驱动**：新增资源/建筑/职业只需在 `config.ts` 加一行配置，UI 自动渲染。`evaluateUnlock()` 声明式解锁条件评估
 - **冷却系统**：所有按钮冷却由 `state.cooldown[id]` 驱动，无组件级定时器。`START_COOLDOWN` → `INCOME_TICK` 递减 → 归零时自动发放 reward
 - **CSS 三层架构**：Tailwind v4（`@import "tailwindcss"` 指令，非旧版 `@tailwind` 指令）+ `tokens.css`（设计 Token `var(--game-*)`）+ CSS Modules（`.module.css` 组件级隔离）
+- **DESIGN.md**: 项目根目录 DESIGN.md 文件记录了完整的 UI 设计规范，所有 UI 开发前应先阅读
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
 
