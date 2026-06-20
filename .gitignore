@@ -24,6 +24,12 @@ dist-ssr
 *.sw?
 .omo
 
+# 临时文本文件
+*.txt
+
+# 测试覆盖率报告
+coverage/
+
 # 原始项目参考（只读分析用）
 origin-adarkroom/
 
