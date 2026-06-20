@@ -13,7 +13,7 @@ import { encodeState, decodeState } from '../system/saveManager'
 // ─── 常量 ─────────────────────────────────────────────────
 
 const BTN_STYLE =
-  'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
+  'rounded border px-2.5 py-1 font-[var(--game-font)] text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
 
 // ─── Props ────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ export function SaveModal({ mode, onClose }: SaveModalProps) {
 
   if (mode === 'export') {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20">
+      <div className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-start justify-center pt-20">
         <div className="bg-(--game-bg-header) rounded-lg p-6 max-w-lg w-full mx-4 shadow-lg border border-(--game-border)">
           <h2 className="text-lg font-bold mb-2 text-(--game-text-body)">
             {t('save.export_title')}
@@ -74,7 +74,7 @@ export function SaveModal({ mode, onClose }: SaveModalProps) {
           <p className="text-sm text-(--game-text-body) mb-3">
             {t('save.export_desc')}
           </p>
-          <pre className="select-all overflow-auto max-h-60 text-xs break-all bg-(--game-bg) p-3 rounded border border-(--game-border) text-(--game-text-body) mb-4">
+          <pre className="select-all overflow-auto max-h-60 text-xs break-all bg-(--game-bg-header) p-3 rounded border border-(--game-border) text-(--game-text-body) mb-4">
             {b64}
           </pre>
           <div className="flex gap-2">
@@ -92,7 +92,7 @@ export function SaveModal({ mode, onClose }: SaveModalProps) {
 
   // Import mode
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center pt-20">
+    <div className="fixed inset-0 bg-[rgba(0,0,0,0.4)] z-50 flex items-start justify-center pt-20">
       <div className="bg-(--game-bg-header) rounded-lg p-6 max-w-lg w-full mx-4 shadow-lg border border-(--game-border)">
         <h2 className="text-lg font-bold mb-2 text-(--game-text-body)">
           {t('save.import_title')}
@@ -101,7 +101,7 @@ export function SaveModal({ mode, onClose }: SaveModalProps) {
           {t('save.import_desc')}
         </p>
         <textarea
-          className="w-full h-40 font-mono text-xs border rounded p-2 bg-(--game-bg) border-(--game-border) text-(--game-text-body) mb-2 resize-none"
+          className="w-full h-40 font-[var(--game-font)] text-xs border rounded p-2 bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) mb-2 resize-none"
           value={text}
           onChange={(e) => {
             setText(e.target.value)
@@ -110,7 +110,7 @@ export function SaveModal({ mode, onClose }: SaveModalProps) {
           placeholder={t('save.import_desc')}
         />
         {error && (
-          <p className="text-red-500 text-sm mb-2">{error}</p>
+          <p className="text-(--game-text-primary) font-bold text-sm mb-2">{error}</p>
         )}
         <div className="flex gap-2">
           <button type="button" onClick={handleImport} className={BTN_STYLE}>

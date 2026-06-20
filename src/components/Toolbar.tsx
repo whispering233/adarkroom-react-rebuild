@@ -61,10 +61,10 @@ function applyFontSize(px: number) {
 // ─── 组件 ─────────────────────────────────────────────────
 
 const BTN_STYLE =
-  'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
+  'rounded border px-2.5 py-1 font-[var(--game-font)] text-xs transition cursor-pointer bg-(--game-bg-header) border-(--game-border) text-(--game-text-body) hover:bg-(--game-btn-hover-bg)'
 
 const BTN_ACTIVE =
-  'rounded border px-2.5 py-1 font-mono text-xs transition cursor-pointer bg-(--game-accent-soft) border-(--game-border-accent) text-(--game-accent)'
+  'rounded border px-2.5 py-1 font-[var(--game-font)] text-xs transition cursor-pointer bg-(--game-accent-soft) border-(--game-border-accent) text-(--game-accent)'
 
 export function Toolbar() {
   const { t } = useTranslation()

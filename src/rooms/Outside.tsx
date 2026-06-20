@@ -84,7 +84,7 @@ export function Outside() {
   return (
     <div className="grid grid-cols-[1fr_2fr] gap-4 text-left px-4 py-8">
       {/* 场景描述（跨两列） */}
-      <p className="col-span-2 font-mono text-sm text-(--game-text-muted) max-w-md">
+      <p className="col-span-2 font-[var(--game-font)] text-sm text-(--game-text-muted) max-w-md">
         {t('outside.desc')}
       </p>
 

@@ -38,7 +38,7 @@ function featureKey(name: RoomNameType): string {
 
 /** 标签基础样式 */
 const TAB_BASE =
-  'px-4 py-3 font-mono text-sm transition-colors cursor-pointer border-b-2 -mb-[1px]'
+  'px-4 py-3 font-[var(--game-font)] text-sm transition-colors cursor-pointer border-b-2 -mb-[1px]'
 
 export function Header() {
   const { t } = useTranslation()

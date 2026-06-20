@@ -133,7 +133,7 @@ export function EventOverlay() {
   // ── 战斗模式 ──
   if (inCombat && scene.combat) {
     return (
-      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
+      <div className="absolute inset-0 z-50 flex items-start justify-center bg-[rgba(0,0,0,0.4)] overflow-y-auto"
         style={{ top: 'var(--game-header-h)' }}>
         <div className={styles.panel}>
           <div className={styles.title}>{t(eventDef.title)}</div>
@@ -160,7 +160,7 @@ export function EventOverlay() {
   if (validResult && scene.combat) {
     const victoryScene = scene.buttons['leave'] ?? Object.values(scene.buttons)[0]
     return (
-      <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
+      <div className="absolute inset-0 z-50 flex items-start justify-center bg-[rgba(0,0,0,0.4)] overflow-y-auto"
         style={{ top: 'var(--game-header-h)' }}>
         <div className={styles.panel}>
           <div className={styles.title}>{t(eventDef.title)}</div>
@@ -200,7 +200,7 @@ export function EventOverlay() {
   }
 
   return (
-    <div className="absolute inset-0 z-50 flex items-start justify-center bg-black/5 overflow-y-auto"
+    <div className="absolute inset-0 z-50 flex items-start justify-center bg-[rgba(0,0,0,0.4)] overflow-y-auto"
       style={{ top: 'var(--game-header-h)' }}>
       <div className={styles.panel}>
         {/* 标题 */}

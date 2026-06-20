@@ -1,7 +1,7 @@
 /**
  * World — 世界探索场景
  *
- * 61×61 CSS Grid 地图 + 四向行走（WASD / 方向键 / 点击 / 按钮）
+ * 61×61 CSS Grid 地图 + 四向行走（WASD / 方向键 / 点击）
  * + 补给消耗 + 随机遭遇战 + 地标事件触发。
  *
  * 复用现有 EventOverlay + CombatOverlay——事件通过 dispatch(startEvent) 触发，
@@ -29,86 +29,14 @@ export function World() {
   const wr = state.game.worldRuntime
   const pw = state.game.world
 
-  // ── 键盘监听 ────────────────────────────────────────
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowUp': case 'w': case 'W':
-          e.preventDefault(); move(WORLD.NORTH); break
-        case 'ArrowDown': case 's': case 'S':
-          e.preventDefault(); move(WORLD.SOUTH); break
-        case 'ArrowLeft': case 'a': case 'A':
-          e.preventDefault(); move(WORLD.WEST); break
-        case 'ArrowRight': case 'd': case 'D':
-          e.preventDefault(); move(WORLD.EAST); break
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [wr],
-  )
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [handleKey])
-
-  if (!wr || !pw) {
-    return <div className={styles.worldPanel}>{t('world.not_available')}</div>
-  }
-
-  const tiles = pw.tiles
-  const { curPos, water, health, maxHealth } = wr
+  // ── 数据提取（空值安全）───────────────────────────────
+  const tiles = pw?.tiles ?? []
+  const mask = wr?.mask ?? []
+  const curPos = wr?.curPos ?? [0, 0]
+  const water = wr?.water ?? 0
+  const health = wr?.health ?? 0
+  const maxHealth = wr?.maxHealth ?? 0
   const outfit = state.outfit ?? {}
-
-  // ── 移动逻辑 ────────────────────────────────────────
-  const move = (dir: readonly [number, number]) => {
-    const [nx, ny] = [curPos[0] + dir[0], curPos[1] + dir[1]]
-    const size = tiles.length
-    if (nx < 0 || nx >= size || ny < 0 || ny >= size) return
-
-    const prevTile = tiles[curPos[0]][curPos[1]]
-    const newTile = tiles[nx][ny]
-
-    // 更新位置 + 揭露地图 + 地形叙事
-    dispatch(applyRecipe(d => {
-      const w = d.game.worldRuntime
-      if (!w) return
-      w.curPos = [nx, ny]
-      lightMap(d.game.world!.tiles, w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
-
-      // 地形切换叙事
-      if (prevTile.terrain !== newTile.terrain) {
-        const td = TERRAINS.find(td => td.type === newTile.terrain)
-        const narKey = td?.narrateOnEnter?.[prevTile.terrain]
-        if (narKey) {
-          d.narrativeLog.unshift({
-            id: d._nextNarrativeId++,
-            text: t(narKey),
-            tick: d._globalTick,
-          })
-        }
-      }
-    }))
-
-    // 地标处理
-    if (newTile.landmark) {
-      if (newTile.landmark === 'village') {
-        dispatch(returnFromWorld(false))
-        return
-      }
-      const lm = LANDMARKS.find(l => l.type === newTile.landmark)
-      if (lm) {
-        dispatch(startEvent(lm.sceneId))
-      }
-      return
-    }
-
-    // 补给消耗
-    if (!consumeSupplies()) return
-
-    // 随机遭遇战
-    checkFight()
-  }
 
   // ── 补给消耗 ────────────────────────────────────────
   const consumeSupplies = (): boolean => {
@@ -185,6 +113,81 @@ export function World() {
     }))
   }
 
+  // ── 移动逻辑 ────────────────────────────────────────
+  const move = (dir: readonly [number, number]) => {
+    if (!wr || !pw) return
+    const [nx, ny] = [curPos[0] + dir[0], curPos[1] + dir[1]]
+    const size = tiles.length
+    if (nx < 0 || nx >= size || ny < 0 || ny >= size) return
+
+    const prevTile = tiles[curPos[0]][curPos[1]]
+    const newTile = tiles[nx][ny]
+
+    // 更新位置 + 揭露地图 + 地形叙事
+    dispatch(applyRecipe(d => {
+      const w = d.game.worldRuntime
+      if (!w) return
+      w.curPos = [nx, ny]
+      lightMap(d.game.world!.tiles, w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
+
+      // 地形切换叙事
+      if (prevTile.terrain !== newTile.terrain) {
+        const td = TERRAINS.find(td => td.type === newTile.terrain)
+        const narKey = td?.narrateOnEnter?.[prevTile.terrain]
+        if (narKey) {
+          d.narrativeLog.unshift({
+            id: d._nextNarrativeId++,
+            text: t(narKey),
+            tick: d._globalTick,
+          })
+        }
+      }
+    }))
+
+    // 地标处理
+    if (newTile.landmark) {
+      if (newTile.landmark === 'village') {
+        dispatch(returnFromWorld(false))
+        return
+      }
+      const lm = LANDMARKS.find(l => l.type === newTile.landmark)
+      if (lm) {
+        dispatch(startEvent(lm.sceneId))
+      }
+      return
+    }
+
+    // 补给消耗
+    if (!consumeSupplies()) return
+
+    // 随机遭遇战
+    checkFight()
+  }
+
+  // ── 键盘监听 ────────────────────────────────────────
+  const handleKey = useCallback(
+    (e: KeyboardEvent) => {
+      if (!wr || !pw) return
+      switch (e.key) {
+        case 'ArrowUp': case 'w': case 'W':
+          e.preventDefault(); move(WORLD.NORTH); break
+        case 'ArrowDown': case 's': case 'S':
+          e.preventDefault(); move(WORLD.SOUTH); break
+        case 'ArrowLeft': case 'a': case 'A':
+          e.preventDefault(); move(WORLD.WEST); break
+        case 'ArrowRight': case 'd': case 'D':
+          e.preventDefault(); move(WORLD.EAST); break
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wr, move],
+  )
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [handleKey])
+
   // ── 治疗 ────────────────────────────────────────────
   const heal = useCallback(
     (type: 'meat' | 'meds' | 'hypo', amount: number) => {
@@ -202,13 +205,14 @@ export function World() {
 
   // ── 地图渲染（CSS Grid） ────────────────────────────
   const mapCells = useMemo(() => {
+    if (!wr || !pw) return null
     const cells: React.ReactNode[] = []
     const size = tiles.length
 
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const tile = tiles[x][y]
-        const masked = !wr.mask[x][y]
+        const masked = !mask[x][y]
         const isCur = curPos[0] === x && curPos[1] === y
         const td = TERRAINS.find(t => t.type === tile.terrain)
         const lm = tile.landmark ? LANDMARKS.find(l => l.type === tile.landmark) : null
@@ -247,67 +251,58 @@ export function World() {
     }
     return cells
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tiles, wr.mask, curPos, t])
+  }, [tiles, mask, curPos, t])
 
   return (
     <div className={styles.worldPanel}>
-      {/* HUD */}
-      <div className={styles.worldHUD}>
-        <div className={styles.hudItem}>
-          <span className={styles.hudLabel}>{t('world.hp')}</span>
-          <span className={styles.hudValue}>{health}/{maxHealth}</span>
-        </div>
-        <div className={styles.hudItem}>
-          <span className={styles.hudLabel}>{t('world.water')}</span>
-          <span className={styles.hudValue}>{water}</span>
-        </div>
-        <div className={styles.hudItem}>
-          <span className={styles.hudLabel}>{t('cured meat')}</span>
-          <span className={styles.hudValue}>{outfit['cured meat'] ?? 0}</span>
-        </div>
-        <button
-          className={styles.healBtn}
-          onClick={() => heal('meat', WORLD.MEAT_HEAL)}
-          disabled={(outfit['cured meat'] ?? 0) <= 0}
-        >
-          {t('world.eat_meat')}
-        </button>
-        <button
-          className={styles.healBtn}
-          onClick={() => heal('meds', WORLD.MEDS_HEAL)}
-          disabled={(outfit.medicine ?? 0) <= 0}
-        >
-          {t('world.use_meds')}
-        </button>
-        <button
-          className={styles.healBtn}
-          onClick={() => heal('hypo', WORLD.HYPO_HEAL)}
-          disabled={(outfit.hypo ?? 0) <= 0}
-        >
-          {t('world.use_hypo')}
-        </button>
-        <button className={styles.healBtn} onClick={() => dispatch(returnFromWorld(false))}>
-          {t('world.return_home')}
-        </button>
-      </div>
+      {wr && pw ? (
+        <>
+          {/* HUD */}
+          <div className={styles.worldHUD}>
+            <div className={styles.hudItem}>
+              <span className={styles.hudLabel}>{t('world.hp')}</span>
+              <span className={styles.hudValue}>{health}/{maxHealth}</span>
+            </div>
+            <div className={styles.hudItem}>
+              <span className={styles.hudLabel}>{t('world.water')}</span>
+              <span className={styles.hudValue}>{water}</span>
+            </div>
+            <div className={styles.hudItem}>
+              <span className={styles.hudLabel}>{t('cured meat')}</span>
+              <span className={styles.hudValue}>{outfit['cured meat'] ?? 0}</span>
+            </div>
+            <button
+              className={styles.healBtn}
+              onClick={() => heal('meat', WORLD.MEAT_HEAL)}
+              disabled={(outfit['cured meat'] ?? 0) <= 0}
+            >
+              {t('world.eat_meat')}
+            </button>
+            <button
+              className={styles.healBtn}
+              onClick={() => heal('meds', WORLD.MEDS_HEAL)}
+              disabled={(outfit.medicine ?? 0) <= 0}
+            >
+              {t('world.use_meds')}
+            </button>
+            <button
+              className={styles.healBtn}
+              onClick={() => heal('hypo', WORLD.HYPO_HEAL)}
+              disabled={(outfit.hypo ?? 0) <= 0}
+            >
+              {t('world.use_hypo')}
+            </button>
+            <button className={styles.healBtn} onClick={() => dispatch(returnFromWorld(false))}>
+              {t('world.return_home')}
+            </button>
+          </div>
 
-      {/* Map */}
-      <div className={styles.worldMap}>{mapCells}</div>
-
-      {/* Direction Controls */}
-      <div className={styles.worldControls}>
-        <div className={styles.dirPad}>
-          <div />
-          <button className={styles.dirBtn} onClick={() => move(WORLD.NORTH)}>↑</button>
-          <div />
-          <button className={styles.dirBtn} onClick={() => move(WORLD.WEST)}>←</button>
-          <div className={styles.dirCenter}>@</div>
-          <button className={styles.dirBtn} onClick={() => move(WORLD.EAST)}>→</button>
-          <div />
-          <button className={styles.dirBtn} onClick={() => move(WORLD.SOUTH)}>↓</button>
-          <div />
-        </div>
-      </div>
+          {/* Map */}
+          <div className={styles.worldMap}>{mapCells}</div>
+        </>
+      ) : (
+        <div>{t('world.not_available')}</div>
+      )}
     </div>
   )
 }
