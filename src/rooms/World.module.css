@@ -55,10 +55,8 @@
 .worldMap {
   display: grid;
   grid-template-columns: repeat(61, minmax(0, 1.2em));
-  grid-template-rows: repeat(61, 1.2em);
   font-family: var(--game-font);
   font-size: 0.75rem;
-  line-height: 1.2em;
   user-select: none;
   overflow: auto;
   flex: 1;
@@ -73,6 +71,7 @@
   text-align: center;
   position: relative;
   aspect-ratio: 1;
+  line-height: 1;
 }
 
 .masked {
