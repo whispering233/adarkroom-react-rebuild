@@ -54,10 +54,10 @@
 
 .worldMap {
   display: grid;
-  grid-template-columns: repeat(61, 1fr);
-  grid-template-rows: repeat(61, 1fr);
-  aspect-ratio: 1;
+  grid-template-columns: repeat(62, 1fr);
+  grid-template-rows: repeat(62, 1fr);
   width: 100%;
+  height: 100%;
   max-height: 100%;
   overflow: hidden;
   font-family: var(--game-font);
@@ -65,6 +65,33 @@
   user-select: none;
   padding: 0.5rem;
   scrollbar-width: thin;
+}
+
+.mapContainer {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.axisX,
+.axisY {
+  font-size: 8px;
+  color: var(--game-text-muted);
+  text-align: center;
+  user-select: none;
+  pointer-events: none;
+  cursor: default;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.axisCorner {
+  background: var(--game-border);
+  pointer-events: none;
+  user-select: none;
 }
 
 .tile {
@@ -90,6 +117,37 @@
 .landmark {
   color: var(--game-accent);
   font-weight: bold;
+}
+
+/* ── Coordinate axis labels ─────────────── */
+
+.axisCorner {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--game-text-muted);
+  user-select: none;
+}
+
+.axisX {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--game-text-muted);
+  user-select: none;
+}
+
+.axisY {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--game-text-muted);
+  user-select: none;
+}
+
+/* ── Map scroll container ───────────────── */
+
+.mapContainer {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
 }
 
 

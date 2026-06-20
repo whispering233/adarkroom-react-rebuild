@@ -7,7 +7,7 @@
  * 复用现有 EventOverlay + CombatOverlay——事件通过 dispatch(startEvent) 触发，
  * CombatOverlay 由 EventOverlay 按 scene.combat=true 自动渲染。
  */
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useGameState,
@@ -25,6 +25,10 @@ export function World() {
   const { t } = useTranslation()
   const state = useGameState()
   const dispatch = useGameDispatch()
+
+  // Stale-closure guard: always reads latest state, not render-captured copy
+  const stateRef = useRef(state)
+  useEffect(() => { stateRef.current = state })
 
   const wr = state.game.worldRuntime
   const pw = state.game.world
@@ -114,8 +118,13 @@ export function World() {
   }
 
   // ── 移动逻辑 ────────────────────────────────────────
-  const move = (dir: readonly [number, number]) => {
+  const move = useCallback((dir: readonly [number, number]) => {
+    const s = stateRef.current
+    const wr = s.game.worldRuntime
+    const pw = s.game.world
     if (!wr || !pw) return
+    const curPos = wr.curPos
+    const tiles = pw.tiles
     const [nx, ny] = [curPos[0] + dir[0], curPos[1] + dir[1]]
     const size = tiles.length
     if (nx < 0 || nx >= size || ny < 0 || ny >= size) return
@@ -123,51 +132,39 @@ export function World() {
     const prevTile = tiles[curPos[0]][curPos[1]]
     const newTile = tiles[nx][ny]
 
-    // 更新位置 + 揭露地图 + 地形叙事
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
       if (!w) return
       w.curPos = [nx, ny]
       lightMap(d.game.world!.tiles, w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
 
-      // 地形切换叙事
       if (prevTile.terrain !== newTile.terrain) {
         const td = TERRAINS.find(td => td.type === newTile.terrain)
         const narKey = td?.narrateOnEnter?.[prevTile.terrain]
         if (narKey) {
           d.narrativeLog.unshift({
-            id: d._nextNarrativeId++,
-            text: t(narKey),
-            tick: d._globalTick,
+            id: d._nextNarrativeId++, text: t(narKey), tick: d._globalTick,
           })
         }
       }
     }))
 
-    // 地标处理
     if (newTile.landmark) {
-      if (newTile.landmark === 'village') {
-        dispatch(returnFromWorld(false))
-        return
-      }
+      if (newTile.landmark === 'village') { dispatch(returnFromWorld(false)); return }
       const lm = LANDMARKS.find(l => l.type === newTile.landmark)
-      if (lm) {
-        dispatch(startEvent(lm.sceneId))
-      }
+      if (lm) { dispatch(startEvent(lm.sceneId)) }
       return
     }
 
-    // 补给消耗
     if (!consumeSupplies()) return
-
-    // 随机遭遇战
     checkFight()
-  }
+  }, [dispatch])
 
   // ── 键盘监听 ────────────────────────────────────────
   const handleKey = useCallback(
     (e: KeyboardEvent) => {
-      if (!wr || !pw) return
+      const s = stateRef.current
+      if (!s.game.worldRuntime || !s.game.world) return
       switch (e.key) {
         case 'ArrowUp': case 'w': case 'W':
           e.preventDefault(); move(WORLD.NORTH); break
@@ -179,8 +176,7 @@ export function World() {
           e.preventDefault(); move(WORLD.EAST); break
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [wr, move],
+    [move],
   )
 
   useEffect(() => {
@@ -209,7 +205,28 @@ export function World() {
     const cells: React.ReactNode[] = []
     const size = tiles.length
 
+    // Axis corner (0, 0)
+    cells.push(
+      <span key="corner" className={styles.axisCorner}>&nbsp;</span>,
+    )
+
+    // X-axis (row 0, columns 1..61)
+    for (let x = 0; x < size; x++) {
+      const label = x % 5 === 0 ? String(x) : ''
+      cells.push(
+        <span key={`axisX-${x}`} className={styles.axisX}>{label}</span>,
+      )
+    }
+
+    // Map rows: Y-axis label + tile cells
     for (let y = 0; y < size; y++) {
+      // Y-axis label (col 0)
+      const yLabel = y % 5 === 0 ? String(y) : ''
+      cells.push(
+        <span key={`axisY-${y}`} className={styles.axisY}>{yLabel}</span>,
+      )
+
+      // Tiles (col 1..61)
       for (let x = 0; x < size; x++) {
         const tile = tiles[x][y]
         const masked = !mask[x][y]
@@ -298,7 +315,9 @@ export function World() {
           </div>
 
           {/* Map */}
-          <div className={styles.worldMap}>{mapCells}</div>
+          <div className={styles.mapContainer}>
+            <div className={styles.worldMap}>{mapCells}</div>
+          </div>
         </>
       ) : (
         <div>{t('world.not_available')}</div>

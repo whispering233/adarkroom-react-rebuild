@@ -86,7 +86,7 @@ function App() {
             {/* 全局游戏循环（始终挂载：定时器 + 通知） */}
             <GameLoop />
             {/* 场景区域 */}
-            <div className="flex-1 flex flex-col justify-start">
+            <div className="flex-1 flex flex-col justify-start min-h-0">
               {Scene && <Scene />}
             </div>
           </main>
