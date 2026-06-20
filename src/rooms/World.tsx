@@ -203,61 +203,55 @@ export function World() {
     [dispatch],
   )
 
-  // ── 地图渲染（HTML 字符串，同原版 drawMap）────────────
-  const mapHtml = useMemo(() => {
-    if (!wr || !pw) return ''
+  // ── 地图渲染（CSS Grid） ────────────────────────────
+  const mapCells = useMemo(() => {
+    if (!wr || !pw) return null
+    const cells: React.ReactNode[] = []
     const size = tiles.length
-    let html = ''
 
     for (let y = 0; y < size; y++) {
       for (let x = 0; x < size; x++) {
         const tile = tiles[x][y]
         const masked = !mask[x][y]
+        const isCur = curPos[0] === x && curPos[1] === y
+        const td = TERRAINS.find(t => t.type === tile.terrain)
+        const lm = tile.landmark ? LANDMARKS.find(l => l.type === tile.landmark) : null
 
-        if (masked) {
-          html += '&nbsp;'
-        } else if (curPos[0] === x && curPos[1] === y) {
-          html += `<span class="${styles.current}">@</span>`
-        } else if (tile.landmark) {
-          const lm = tile.landmark ? LANDMARKS.find(l => l.type === tile.landmark) : null
-          const title = lm && !masked ? t(lm.labelKey) : ''
-          const char = lm?.char ?? '?'
-          html += `<span class="${styles.landmark}" title="${title}">${char}</span>`
-        } else {
-          const td = TERRAINS.find(t => t.type === tile.terrain)
-          const cls = td && td.cssClass in styles ? styles[td.cssClass as keyof typeof styles] ?? '' : ''
-          const char = td?.char ?? '?'
-          html += `<span class="${cls}">${char}</span>`
+        const cls = [
+          styles.tile,
+          masked ? styles.masked : '',
+          td && td.cssClass in styles ? styles[td.cssClass as keyof typeof styles] ?? '' : '',
+          isCur ? styles.current : '',
+          tile.landmark && !isCur ? styles.landmark : '',
+        ].filter(Boolean).join(' ')
+
+        let char = '&nbsp;'
+        if (!masked) {
+          if (isCur) char = '@'
+          else if (tile.landmark) char = lm?.char ?? '?'
+          else char = td?.char ?? '?'
         }
-      }
-      html += '<br/>'
-    }
 
-    return html
+        cells.push(
+          <span
+            key={`${x}-${y}`}
+            className={cls}
+            title={lm && !masked ? t(lm.labelKey) : undefined}
+            onClick={() => {
+              const dx = x - curPos[0]
+              const dy = y - curPos[1]
+              if (Math.abs(dx) + Math.abs(dy) === 1) {
+                move([Math.sign(dx), Math.sign(dy)] as readonly [number, number])
+              }
+            }}
+            dangerouslySetInnerHTML={{ __html: char }}
+          />,
+        )
+      }
+    }
+    return cells
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tiles, mask, curPos, t])
-
-  // ── 地图点击（象限法——同原版 World.click）─────────────
-  const handleMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!wr || !pw) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    const charWidth = rect.width / (WORLD.RADIUS * 2 + 1)
-    const charHeight = rect.height / (WORLD.RADIUS * 2 + 1)
-    const centreX = rect.left + charWidth * curPos[0]
-    const centreY = rect.top + charHeight * curPos[1]
-    const clickX = e.clientX - centreX
-    const clickY = e.clientY - centreY
-
-    if (clickX > clickY && clickX < -clickY) {
-      e.preventDefault(); move(WORLD.NORTH)
-    } else if (clickX < clickY && clickX > -clickY) {
-      e.preventDefault(); move(WORLD.SOUTH)
-    } else if (clickX < clickY && clickX < -clickY) {
-      e.preventDefault(); move(WORLD.WEST)
-    } else if (clickX > clickY && clickX > -clickY) {
-      e.preventDefault(); move(WORLD.EAST)
-    }
-  }, [wr, pw, curPos, move])
 
   return (
     <div className={styles.worldPanel}>
@@ -304,11 +298,7 @@ export function World() {
           </div>
 
           {/* Map */}
-          <div
-            className={styles.worldMap}
-            dangerouslySetInnerHTML={{ __html: mapHtml }}
-            onClick={handleMapClick}
-          />
+          <div className={styles.worldMap}>{mapCells}</div>
         </>
       ) : (
         <div>{t('world.not_available')}</div>

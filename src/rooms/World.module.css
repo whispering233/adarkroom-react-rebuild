@@ -53,16 +53,25 @@
 /* ── Map ────────────────────────────────── */
 
 .worldMap {
+  display: grid;
+  grid-template-columns: repeat(61, minmax(0, 1.2em));
   font-family: var(--game-font);
   font-size: 0.75rem;
-  line-height: 1.4;
   user-select: none;
-  cursor: pointer;
   overflow: auto;
   flex: 1;
+  justify-content: center;
+  align-content: center;
   padding: 0.5rem;
   scrollbar-width: thin;
-  white-space: nowrap;
+}
+
+.tile {
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  aspect-ratio: 1;
+  line-height: 1;
 }
 
 .masked {
