@@ -1,6 +1,6 @@
 ---
 name: A Dark Room
-description: Monochrome minimalist design system for a text-based survival adventure game
+description: 基于文字生存冒险游戏的黑白极简风设计系统
 colors:
   primary: "#000000"
   secondary: "#333333"
@@ -80,294 +80,294 @@ components:
     fontSize: 12px
 ---
 
-## Overview
+## 概述
 
-This design system powers **A Dark Room**, a text-based survival adventure game rebuilt in React and TypeScript. The aesthetic is defined as **"黑白极简风" (monochrome minimalism)**.
+本设计系统服务于 **A Dark Room**，一款基于 React + TypeScript 重构的文字生存冒险游戏。其美学定义为**黑白极简风**。
 
-Every part of the UI uses a black-and-white grayscale palette. No color is used for emphasis. Instead, the game communicates hierarchy through font weight (600 for labels, 700 for active elements and headings) and underline decoration. This constraint preserves the text-adventure immersion and keeps the player focused on the narrative.
+UI 的每一部分均采用黑白灰度调色板。不使用彩色进行强调。而是通过字重（标签 600，活跃元素和标题 700）和下划线装饰来传达层次结构。这一约束保留了文字冒险的沉浸感，让玩家专注于叙事。
 
-The monospace font (Courier New) reinforces the retro terminal feel. Layout borders are used only on buttons and modal panels, never for layout separation. The dark theme shifts to deep navy backgrounds (`#1a1a2e`) while keeping the same typographic and spacing system.
+等宽字体（Courier New）强化了复古终端的感觉。布局边框仅用于按钮和弹窗面板，绝不用于布局分割。暗色主题切换到深海军蓝背景（`#1a1a2e`），同时保持相同的排版和间距体系。
 
-**Key principles:**
-- Monochrome only: black, white, grays
-- Emphasis through weight and underline, never color
-- Courier New monospace for all text
-- Borders only on interactive elements, never for layout
-- Dark theme with deep navy backgrounds
+**核心原则：**
+- 仅使用黑白灰色调
+- 通过字重和下划线强调，绝不使用彩色
+- 所有文字使用 Courier New 等宽字体
+- 边框仅用于交互元素，绝不用于布局
+- 暗色主题采用深海军蓝背景
 
-## Colors
+## 色彩
 
-The palette is intentionally limited to black, white, and grays. UI emphasis is conveyed through font-weight (600/700) or underlines.
+调色板刻意限定为黑、白和灰色。UI 强调通过字重（600/700）或下划线传达。
 
-### Light theme
+### 浅色主题
 
-| Token | Value | Usage |
+| 令牌 | 值 | 用途 |
 |-------|-------|-------|
-| `--game-bg-primary` | `#ffffff` | Page and panel backgrounds |
-| `--game-bg-header` | `#f5f5f5` | Header bar background |
-| `--game-bg-panel` | `rgba(0,0,0,0.03)` | Subtle panel tint |
-| `--game-text-primary` | `#000000` | Headlines, titles, primary labels |
-| `--game-text-body` | `#333333` | Body text, descriptions |
-| `--game-text-muted` | `#333333` | Muted/secondary text |
-| `--game-accent` | `#000000` | Data values, counts, emphasis |
-| `--game-btn-text` | `#000000` | Button label text |
-| `--game-btn-bg` | `rgba(0,0,0,0.05)` | Button background |
-| `--game-btn-border` | `rgba(0,0,0,0.25)` | Button border |
-| `--game-btn-hover-bg` | `rgba(0,0,0,0.1)` | Button hover fill |
-| `--game-border` | `rgba(0,0,0,0.1)` | Modal and tooltip borders |
+| `--game-bg-primary` | `#ffffff` | 页面和面板背景 |
+| `--game-bg-header` | `#f5f5f5` | 顶栏背景 |
+| `--game-bg-panel` | `rgba(0,0,0,0.03)` | 面板微色调 |
+| `--game-text-primary` | `#000000` | 标题、名称、主要标签 |
+| `--game-text-body` | `#333333` | 正文、描述 |
+| `--game-text-muted` | `#333333` | 弱化/次要文本 |
+| `--game-accent` | `#000000` | 数据值、计数、强调 |
+| `--game-btn-text` | `#000000` | 按钮标签文本 |
+| `--game-btn-bg` | `rgba(0,0,0,0.05)` | 按钮背景 |
+| `--game-btn-border` | `rgba(0,0,0,0.25)` | 按钮边框 |
+| `--game-btn-hover-bg` | `rgba(0,0,0,0.1)` | 按钮悬停填充 |
+| `--game-border` | `rgba(0,0,0,0.1)` | 弹窗和提示框边框 |
 
-### Dark theme
+### 暗色主题
 
-| Token | Value | Usage |
+| 令牌 | 值 | 用途 |
 |-------|-------|-------|
-| `--game-bg-primary` | `#1a1a2e` | Page and panel backgrounds |
-| `--game-bg-header` | `#0d0d1a` | Header bar background (darker layer) |
-| `--game-bg-panel` | `rgba(0,0,0,0.3)` | Subtle panel tint |
-| `--game-text-primary` | `#e0e0e0` | Headlines, titles, primary labels |
-| `--game-text-body` | `#c8c8c8` | Body text, descriptions |
-| `--game-text-muted` | `#666666` | Muted/secondary text |
-| `--game-accent` | `#e0e0e0` | Data values, counts, emphasis |
-| `--game-btn-text` | `#e0e0e0` | Button label text |
-| `--game-btn-bg` | `rgba(255,255,255,0.08)` | Button background |
-| `--game-btn-border` | `rgba(255,255,255,0.25)` | Button border |
-| `--game-btn-hover-bg` | `rgba(255,255,255,0.12)` | Button hover fill |
-| `--game-border` | `rgba(255,255,255,0.15)` | Modal and tooltip borders |
+| `--game-bg-primary` | `#1a1a2e` | 页面和面板背景 |
+| `--game-bg-header` | `#0d0d1a` | 顶栏背景（更深层） |
+| `--game-bg-panel` | `rgba(0,0,0,0.3)` | 面板微色调 |
+| `--game-text-primary` | `#e0e0e0` | 标题、名称、主要标签 |
+| `--game-text-body` | `#c8c8c8` | 正文、描述 |
+| `--game-text-muted` | `#666666` | 弱化/次要文本 |
+| `--game-accent` | `#e0e0e0` | 数据值、计数、强调 |
+| `--game-btn-text` | `#e0e0e0` | 按钮标签文本 |
+| `--game-btn-bg` | `rgba(255,255,255,0.08)` | 按钮背景 |
+| `--game-btn-border` | `rgba(255,255,255,0.25)` | 按钮边框 |
+| `--game-btn-hover-bg` | `rgba(255,255,255,0.12)` | 按钮悬停填充 |
+| `--game-border` | `rgba(255,255,255,0.15)` | 弹窗和提示框边框 |
 
-## Typography
+## 排版
 
-The typography system is monospace-only. All text uses the same font family with three size levels.
+排版系统仅使用等宽字体。所有文本使用同一字族，分为三个字号层级。
 
-### Font family
+### 字族
 
 ```
 font-family: 'Courier New', Courier, monospace;
 ```
 
-### Size scale
+### 字号层级
 
-| Level | Size | Weight | Tracking | Line height | Usage |
+| 层级 | 字号 | 字重 | 字距 | 行高 | 用途 |
 |-------|------|--------|----------|-------------|-------|
-| body | 16px | 400 | default | 1.6 | All body text, buttons, panels |
-| label-sm | 12px | 600 | 0.15em | 1.25 | Section titles, uppercase labels |
-| label-xs | 11px | 400 | 0.1em | 1.6 | Narrative entries, tooltips |
-| map-tile | 12px | 400 | default | 1.2em | World map characters |
-| button | 14px | 400 | default | 1.25 | Button labels |
+| body | 16px | 400 | 默认 | 1.6 | 所有正文、按钮、面板 |
+| label-sm | 12px | 600 | 0.15em | 1.25 | 区块标题、大写标签 |
+| label-xs | 11px | 400 | 0.1em | 1.6 | 叙事条目、提示框 |
+| map-tile | 12px | 400 | 默认 | 1.2em | 世界地图字符 |
+| button | 14px | 400 | 默认 | 1.25 | 按钮标签 |
 
-### Tracking scale
+### 字距层级
 
-| Level | Value | Usage |
+| 层级 | 值 | 用途 |
 |-------|-------|-------|
-| Wide (`--game-tracking-wide`) | `0.3em` | Uppercase panel headers |
-| Standard (`--game-tracking`) | `0.15em` | `label-sm` section titles |
-| Tight (`--game-tracking-tight`) | `0.1em` | `label-xs` narrative text, event titles |
+| 宽松（`--game-tracking-wide`） | `0.3em` | 大写面板标题 |
+| 标准（`--game-tracking`） | `0.15em` | `label-sm` 区块标题 |
+| 紧凑（`--game-tracking-tight`） | `0.1em` | `label-xs` 叙事文本、事件标题 |
 
-### Emphasis
+### 强调方式
 
-- **Bold (600)**: Section titles, row labels, muted data labels
-- **Bold (700)**: Active header tabs, event overlay titles, building counts
-- Underline: Not used in current UI (reserved for future link-style interactions)
+- **粗体（600）**：区块标题、行标签、弱化数据标签
+- **粗体（700）**：活跃顶栏标签、事件弹窗标题、建筑数量
+- 下划线：当前 UI 中未使用（保留用于未来的链接式交互）
 
-## Layout
+## 布局
 
-### Grid structure
+### 栅格结构
 
-The root layout is a three-column grid defined in `App.tsx`:
+根布局为三栏栅格，定义在 `App.tsx` 中：
 
 ```
 grid-cols-[1fr_3fr_1.5fr]
 ```
 
-| Column | Fraction | Content |
+| 列 | 占比 | 内容 |
 |--------|----------|---------|
-| Left | 1fr | Narrative panel (story text, status, delta log) |
-| Center | 3fr | Header tabs + scene content (interactions) |
-| Right | 1.5fr | Stores panel (buildings, inventory, weapons) |
+| 左栏 | 1fr | 叙事面板（故事文本、状态、资源变更日志） |
+| 中栏 | 3fr | 顶栏标签 + 场景内容（交互操作） |
+| 右栏 | 1.5fr | 数据面板（建筑、库存、武器） |
 
-### Content width
+### 内容宽度
 
-The entire layout is wrapped in a container with `max-width: 75%` (`--game-content-max-width`), centered horizontally.
+整个布局包裹在一个容器中，设置 `max-width: 75%`（`--game-content-max-width`），水平居中。
 
-### Spacing
+### 间距
 
-All spacing values derive from CSS custom properties:
+所有间距值源于 CSS 自定义属性：
 
-| Token | Value | Usage |
+| 令牌 | 值 | 用途 |
 |-------|-------|-------|
-| `--game-panel-padding` | `1rem` (16px) | Side panel inner padding |
-| `--game-panel-gap` | `0.75rem` (12px) | Gap between panel sections |
-| `xs` | 4px | Button progress bar, small gaps |
-| `sm` | 8px | Element groups, form spacing |
-| `md` | 16px | Section spacing, panel padding |
-| `lg` | 24px | Large section breaks |
-| `xl` | 32px | Page-level margins |
+| `--game-panel-padding` | `1rem`（16px） | 侧栏内边距 |
+| `--game-panel-gap` | `0.75rem`（12px） | 面板区域间距 |
+| `xs` | 4px | 按钮进度条、小间隙 |
+| `sm` | 8px | 元素分组、表单间距 |
+| `md` | 16px | 区块间距、面板内边距 |
+| `lg` | 24px | 大区块分割 |
+| `xl` | 32px | 页面级外边距 |
 
-### Header
+### 顶栏
 
-- Height: `41px` (`--game-header-h`)
-- Consists of scene navigation tabs (Room, Outside, Path, World, etc.)
-- Tabs have border-bottom active indicator
+- 高度：`41px`（`--game-header-h`）
+- 由场景导航标签组成（暗室、野外、小径、世界等）
+- 标签底部有下边框作为激活指示
 
-### Button sizing
+### 按钮尺寸
 
-- Minimum width: `11rem` (`--game-btn-min-width`)
-- Padding: `0.5rem 1.25rem` (8px 20px)
-- Full-width variant: `w-full` for event overlay actions
+- 最小宽度：`11rem`（`--game-btn-min-width`）
+- 内边距：`0.5rem 1.25rem`（8px 20px）
+- 全宽变体：事件弹窗按钮使用 `w-full`
 
-## Elevation and Depth
+## 层级与深度
 
-The design is intentionally flat. No box-shadows are used on surfaces or cards.
+设计刻意扁平。表面和卡片上不使用阴影。
 
-### Interactive feedback
+### 交互反馈
 
-| Element | Feedback |
+| 元素 | 反馈效果 |
 |---------|----------|
-| Button press | `transform: scale(0.95)` on `:active` |
-| Button hover | Background darkens from `--game-btn-bg` to `--game-btn-hover-bg` |
-| Tab hover | No transform; color transitions only |
-| Clickable map tile | `cursor: pointer` |
+| 按钮按下 | `:active` 时 `transform: scale(0.95)` |
+| 按钮悬停 | 背景从 `--game-btn-bg` 变为 `--game-btn-hover-bg` |
+| 标签悬停 | 无变换；仅颜色过渡 |
+| 可点击地图格 | `cursor: pointer` |
 
-### Modal elevation
+### 弹窗层级
 
-The event overlay is the only element with visual depth. It uses:
+事件弹窗是唯一具有视觉深度的元素。它使用：
 
 ```
 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4)
 ```
 
-This creates a floating modal effect against a semi-transparent backdrop (`rgba(0, 0, 0, 0.4)`).
+在半透明遮罩（`rgba(0, 0, 0, 0.4)`）之上营造浮动弹窗效果。
 
-### Dark theme tonal layering
+### 暗色主题色层
 
-In dark mode, depth is suggested through tonal layering:
+暗色模式中，通过色层暗示深度：
 
-- Page background: `#1a1a2e`
-- Header background: `#0d0d1a` (darker, recedes)
-- Event overlay: `#1a1a2e` (same as page, with border separation)
+- 页面背景：`#1a1a2e`
+- 顶栏背景：`#0d0d1a`（更深、后退感）
+- 事件弹窗：`#1a1a2e`（与页面同色，通过边框区分）
 
-### Transitions
+### 过渡动画
 
-- Interactive elements: `0.15s ease` (buttons, tabs, hover effects)
-- HP bar fills: `0.3s ease`
-- Narrative opacity: `1s`
+- 交互元素：`0.15s ease`（按钮、标签、悬停效果）
+- 血条填充：`0.3s ease`
+- 叙事文本透明度：`1s`
 
-## Shapes
+## 形状
 
-| Element | Radius | Token |
+| 元素 | 圆角 | 令牌 |
 |---------|--------|-------|
-| Buttons | 4px (0.25rem) | `{rounded.sm}` |
-| Event overlays, panels | 8px (0.5rem) | `{rounded.md}` |
-| Tooltips | 4px (0.25rem) | `{rounded.sm}` |
-| HP bars | 4px | - |
-| Legacy small action buttons | 3px | - |
+| 按钮 | 4px（0.25rem） | `{rounded.sm}` |
+| 事件弹窗、面板 | 8px（0.5rem） | `{rounded.md}` |
+| 提示框 | 4px（0.25rem） | `{rounded.sm}` |
+| 血条 | 4px | - |
+| 历史遗留小型操作按钮 | 3px | - |
 
-No fully rounded (pill) shapes are used anywhere.
+任何地方都不使用圆 pill 形状。
 
-Small action buttons (WorkersPanel +/- buttons, Path item +/- buttons) use `border-radius: 3px`. This is a legacy holdover. The standard for new buttons is 4px.
+小型操作按钮（工人面板 +/- 按钮、小径物品 +/- 按钮）使用 `border-radius: 3px`。这是历史遗留。新按钮标准为 4px。
 
-## Components
+## 组件
 
 ### Button
 
-**File:** `src/components/Button.tsx` + `Button.module.css`
+**文件：** `src/components/Button.tsx` + `Button.module.css`
 
-The shared game action button. All interactive game actions must use this component, not inline styled `<button>` elements.
+通用游戏操作按钮。所有游戏交互操作必须使用此组件，而非内联样式的 `<button>` 元素。
 
-- Fixed minimum width `11rem` (`--game-btn-min-width`)
-- Left-aligned label with right-aligned count display
-- Cooldown progress bar: fills from `--game-btn-hover-bg`, shrinks left-to-right with CSS transition
-- Cost tooltip on hover: structured list of resource name | amount
-- Disabled state: `opacity: 0.4`, `cursor: not-allowed`
-- Hover: background transitions from `--game-btn-bg` to `--game-btn-hover-bg`
-- Press: `transform: scale(0.95)`
-- Transition: `all 0.15s ease`
+- 固定最小宽度 `11rem`（`--game-btn-min-width`）
+- 左对齐标签，右对齐数量显示
+- 冷却进度条：从 `--game-btn-hover-bg` 填充，通过 CSS 过渡从左向右收缩
+- 悬停成本提示：结构化列表显示资源名称 | 数量
+- 禁用状态：`opacity: 0.4`，`cursor: not-allowed`
+- 悬停：背景从 `--game-btn-bg` 过渡到 `--game-btn-hover-bg`
+- 按下：`transform: scale(0.95)`
+- 过渡：`all 0.15s ease`
 
 ### Header Tab
 
-**File:** `src/components/Header.tsx` + `Header.module.css`
+**文件：** `src/components/Header.tsx` + `Header.module.css`
 
-Scene navigation tabs at the top of the center column.
+中栏顶部的场景导航标签。
 
-- Active tab: `color: var(--game-text-primary)`, `font-weight: 700`, `border-bottom: 2px solid`, `opacity: 1`
-- Inactive tab: `color: var(--game-text-body)`, `border-color: transparent`, `opacity: 0.45`
-- Padding: `12px 16px`
-- Font: monospace, `0.875rem` (14px)
+- 活跃标签：`color: var(--game-text-primary)`，`font-weight: 700`，`border-bottom: 2px solid`，`opacity: 1`
+- 非活跃标签：`color: var(--game-text-body)`，`border-color: transparent`，`opacity: 0.45`
+- 内边距：`12px 16px`
+- 字体：等宽，`0.875rem`（14px）
 
 ### Event Overlay
 
-**File:** `src/components/EventOverlay.tsx` + `EventOverlay.module.css`
+**文件：** `src/components/EventOverlay.tsx` + `EventOverlay.module.css`
 
-Modal overlay for random events and encounters.
+随机事件和遭遇的弹窗覆盖层。
 
-- Fixed inset positioning with `15vh` top offset
-- Semi-transparent backdrop (`rgba(0, 0, 0, 0.4)`)
-- White panel with `max-width: 32rem`
-- `border-radius: 8px` (`{rounded.md}`)
+- 固定定位，顶部偏移 `15vh`
+- 半透明遮罩（`rgba(0, 0, 0, 0.4)`）
+- 白色面板，`max-width: 32rem`
+- `border-radius: 8px`（`{rounded.md}`）
 - `box-shadow: 0 10px 40px rgba(0,0,0,0.4)`
-- Fade-in animation: `eventFadeIn 0.2s ease-out` (opacity 0 to 1, translateY -16px to 0)
-- Title: `font-weight: 700`, `letter-spacing: var(--game-tracking-tight)`
-- Body text: `0.875rem`, `line-height: 1.5`
-- Action buttons stacked vertically, full width
+- 淡入动画：`eventFadeIn 0.2s ease-out`（透明度 0 到 1，translateY -16px 到 0）
+- 标题：`font-weight: 700`，`letter-spacing: var(--game-tracking-tight)`
+- 正文：`0.875rem`，`line-height: 1.5`
+- 操作按钮垂直堆叠，全宽
 
 ### Combat Overlay
 
-**File:** `src/combat/CombatOverlay.tsx` + `CombatOverlay.module.css`
+**文件：** `src/combat/CombatOverlay.tsx` + `CombatOverlay.module.css`
 
-Combat UI, rendered inside the EventOverlay panel.
+战斗 UI，渲染在事件弹窗面板内。
 
-- Two-column fighter display (player vs enemy)
-- HP bar: `8px` height, `--game-accent` fill color, `0.3s` width transition
-- Weapons grid: `grid-template-columns: 1fr 1fr`, small action buttons
-- Damage float animation: `dmgFloat 0.7s ease-out` (upward fade, translateY -24px)
-- Heal row: two side-by-side buttons
-- Flee button: full width, muted text color
+- 双列战斗者展示（玩家 vs 敌人）
+- 血条：`8px` 高度，`--game-accent` 填充色，`0.3s` 宽度过渡
+- 武器网格：`grid-template-columns: 1fr 1fr`，小型操作按钮
+- 伤害漂浮动画：`dmgFloat 0.7s ease-out`（向上淡出，translateY -24px）
+- 治疗行：两个并排按钮
+- 逃跑按钮：全宽，弱化文本颜色
 
 ### Workers Panel
 
-**File:** `src/components/WorkersPanel.tsx` + `WorkersPanel.module.css`
+**文件：** `src/components/WorkersPanel.tsx` + `WorkersPanel.module.css`
 
-Worker assignment panel displayed in the Outside scene.
+工人分配面板，渲染在野外场景中。
 
-- 2-column grid layout: left = job name + count, right = action buttons
-- Action buttons: `+1`, `+10`, `-1`, `-10` pattern
-- Small compact buttons: `padding: 0.1rem 0.4rem`, `font-size: 0.65rem`
-- Hover resource tooltip: absolute positioned overlay showing per-worker income rates
-- Disabled buttons: `opacity: 0.35`
+- 2 列网格布局：左侧 = 职业名称 + 数量，右侧 = 操作按钮
+- 操作按钮：`+1`、`+10`、`-1`、`-10` 模式
+- 小型紧凑按钮：`padding: 0.1rem 0.4rem`，`font-size: 0.65rem`
+- 悬停资源提示：绝对定位覆盖层，显示每人收入速率
+- 禁用按钮：`opacity: 0.35`
 
 ### Narrative Entry
 
-**File:** `src/components/NarrativeSection.tsx`
+**文件：** `src/components/NarrativeSection.tsx`
 
-Individual narrative text entries in the left panel.
+左栏中的单条叙事文本条目。
 
-- Font: `0.7rem` (11.2px), `line-height: 1.6`
-- Opacity transitions: `1s` for older entries fading toward 0.5
-- Newest entry: slide-in animation (`narrSlideIn 0.4s ease-out`)
-- Index-based opacity decay: `max(1 - index * 0.08, 0.5)`
+- 字体：`0.7rem`（11.2px），`line-height: 1.6`
+- 透明度过渡：老条目渐隐至 0.5 的过程为 `1s`
+- 最新条目：滑入动画（`narrSlideIn 0.4s ease-out`）
+- 基于索引的透明度衰减：`max(1 - index * 0.08, 0.5)`
 
 ### World Map Tile
 
-**File:** `src/rooms/World.tsx` + `World.module.css`
+**文件：** `src/rooms/World.tsx` + `World.module.css`
 
-CSS Grid world map tiles in the World scene.
+世界场景中的 CSS Grid 世界地图格。
 
-- Grid: 61 columns x 61 rows (`repeat(61, 1.6ch)` x `repeat(61, 1.2em)`)
-- Font: `monospace`, `0.75rem`
-- Player marker: `@` character
-- Current tile: `2px solid var(--game-accent)` outline
-- Masked (unexplored) tiles: `visibility: hidden`
-- Terrain backgrounds: `forest (#1a3a1a)`, `field (#3a3a1a)`, `barrens (#2a2a2a)`, `road (#3a2a1a)`
-- Landmark tiles: bold accent color, colored terrain character
+- 网格：61 列 × 61 行（`repeat(61, 1.6ch)` × `repeat(61, 1.2em)`）
+- 字体：`monospace`，`0.75rem`
+- 玩家标记：`@` 字符
+- 当前格：`2px solid var(--game-accent)` 描边
+- 遮蔽（未探索）格：`visibility: hidden`
+- 地形背景：`森林（#1a3a1a）`、`平原（#3a3a1a）`、`荒地（#2a2a2a）`、`道路（#3a2a1a）`
+- 地标格：粗体强调色，彩色地形字符
 
-## Do's and Don'ts
+## 注意事项
 
-- Do use the shared `Button` component for all game actions; don't inline button styles with Tailwind
-- Do reference `var(--game-*)` CSS tokens for colors, fonts, spacing; don't hardcode values
-- Do use CSS Modules (`.module.css`) for component-scoped styles; don't use global class names for isolated components
-- Do maintain the monochrome palette; don't add colored highlights for UI elements
-- Do use font-weight (600/700) or underlines for emphasis; don't add colored highlights
-- Don't duplicate small button patterns (like +/- in WorkersPanel, World HUD, Path); extract shared tokens
-- Don't mix border-radius values; buttons 4px, modals 8px, small action buttons 3px (legacy)
-- Don't mix transition durations; standardize on `0.15s ease` for interactive elements
-- Don't use border for layout separation; only buttons and modals have borders
-- Don't use Tailwind color classes directly (e.g. `text-gray-500`); always use `text-(--game-*)`
-- Don't add new CSS animations without registering keyframes in `index.css`
+- ✅ 所有游戏操作应使用共享的 `Button` 组件，不要用 Tailwind 内联按钮样式
+- ✅ 颜色、字体、间距应引用 `var(--game-*)` CSS 令牌，不要硬编码值
+- ✅ 组件级样式应使用 CSS Modules（`.module.css`），不要对隔离组件使用全局类名
+- ✅ 保持单色调色板，不要为 UI 元素添加彩色高亮
+- ✅ 使用字重（600/700）或下划线进行强调，不要添加彩色高亮
+- ❌ 不要重复小型按钮样式（如工人面板、世界 HUD、小径中的 +/- 按钮），应提取共享令牌
+- ❌ 不要混用圆角值——按钮 4px、弹窗 8px、小型操作按钮 3px（历史遗留）
+- ❌ 不要混用过渡时长——交互元素统一 `0.15s ease`
+- ❌ 不要使用边框进行布局分割——仅按钮和弹窗使用边框
+- ❌ 不要直接使用 Tailwind 颜色类（如 `text-gray-500`），始终使用 `text-(--game-*)`
+- ❌ 不要添加未在 `index.css` 注册关键帧的新 CSS 动画

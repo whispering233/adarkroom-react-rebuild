@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+### Added
+- UI规则文件：CHANGELOG.md
+
 ## [v0.2.0] - 2026-06-19
 
 ### Added
