@@ -1,6 +1,6 @@
 # A Dark Room — React 重构练习
 
-基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的 React + TypeScript 重构项目，用于练习现代前端工程化技术栈。
+基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的 React + TypeScript 重构扩展项目。
 
 ## 技术栈
 
