@@ -54,7 +54,7 @@
 
 .worldMap {
   display: grid;
-  grid-template-columns: repeat(61, 1.2em);
+  grid-template-columns: repeat(61, minmax(0, 1.2em));
   grid-template-rows: repeat(61, 1.2em);
   font-family: var(--game-font);
   font-size: 0.75rem;
@@ -79,10 +79,10 @@
   visibility: hidden;
 }
 
-.forest  { background: #2a2a2a; color: #e0e0e0; }
-.field   { background: #3a3a3a; color: #c0c0c0; }
-.barrens { background: #1a1a1a; color: #888888; }
-.road    { background: #222222; color: #aaaaaa; }
+.forest  { color: var(--game-text-body); opacity: 1; }
+.field   { color: var(--game-text-body); opacity: 0.85; }
+.barrens { color: var(--game-text-body); opacity: 0.6; }
+.road    { color: var(--game-text-body); opacity: 0.7; }
 
 .current {
   outline: 2px solid var(--game-accent);
