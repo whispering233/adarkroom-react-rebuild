@@ -10,6 +10,11 @@
 ### Added
 - UI规则文件：CHANGELOG.md
 
+### Fixed
+- 世界地图css样式统一
+- 世界地图布局优化
+- react hook 修复
+
 ## [v0.2.0] - 2026-06-19
 
 ### Added
