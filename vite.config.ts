@@ -9,6 +9,7 @@ export default defineConfig({
   base: './', // 支持静态部署
   test: {
     globals: true,
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    environment: 'jsdom',
   },
 })

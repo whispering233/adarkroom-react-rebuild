@@ -52,102 +52,13 @@
 
 /* ── Map ────────────────────────────────── */
 
-.worldMap {
-  display: grid;
-  grid-template-columns: repeat(62, 1fr);
-  grid-template-rows: repeat(62, 1fr);
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
-  overflow: hidden;
-  font-family: var(--game-font);
-  font-size: 0.75rem;
-  user-select: none;
-  padding: 0.5rem;
-  scrollbar-width: thin;
-}
-
 .mapContainer {
   flex: 1;
   min-height: 0;
   overflow: hidden;
 }
 
-.axisX,
-.axisY {
-  font-size: 8px;
-  color: var(--game-text-muted);
-  text-align: center;
-  user-select: none;
-  pointer-events: none;
-  cursor: default;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+.mapCanvas {
+  display: block;
+  image-rendering: pixelated;
 }
-
-.axisCorner {
-  background: var(--game-border);
-  pointer-events: none;
-  user-select: none;
-}
-
-.tile {
-  cursor: pointer;
-  text-align: center;
-  position: relative;
-}
-
-.masked {
-  visibility: hidden;
-}
-
-.forest  { color: var(--game-text-body); opacity: 1; }
-.field   { color: var(--game-text-body); opacity: 0.85; }
-.barrens { color: var(--game-text-body); opacity: 0.6; }
-.road    { color: var(--game-text-body); opacity: 0.7; }
-
-.current {
-  outline: 2px solid var(--game-accent);
-  outline-offset: -1px;
-  z-index: 1;
-}
-.landmark {
-  color: var(--game-accent);
-  font-weight: bold;
-}
-
-/* ── Coordinate axis labels ─────────────── */
-
-.axisCorner {
-  text-align: center;
-  font-size: 0.6rem;
-  color: var(--game-text-muted);
-  user-select: none;
-}
-
-.axisX {
-  text-align: center;
-  font-size: 0.6rem;
-  color: var(--game-text-muted);
-  user-select: none;
-}
-
-.axisY {
-  text-align: center;
-  font-size: 0.6rem;
-  color: var(--game-text-muted);
-  user-select: none;
-}
-
-/* ── Map scroll container ───────────────── */
-
-.mapContainer {
-  flex: 1;
-  overflow: auto;
-  min-height: 0;
-}
-
-

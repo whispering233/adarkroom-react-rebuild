@@ -36,7 +36,7 @@ export const TERRAINS: TerrainDef[] = [
   {
     type: 'forest',
     weight: 0.15,
-    char: ';',
+    char: '▓',
     cssClass: 'forest',
     narrateOnEnter: {
       field: 'world.narrate.forest_to_field',
@@ -46,7 +46,7 @@ export const TERRAINS: TerrainDef[] = [
   {
     type: 'field',
     weight: 0.35,
-    char: ',',
+    char: '▒',
     cssClass: 'field',
     narrateOnEnter: {
       forest: 'world.narrate.field_to_forest',
@@ -56,7 +56,7 @@ export const TERRAINS: TerrainDef[] = [
   {
     type: 'barrens',
     weight: 0.5,
-    char: '.',
+    char: '░',
     cssClass: 'barrens',
     narrateOnEnter: {
       field: 'world.narrate.barrens_to_field',

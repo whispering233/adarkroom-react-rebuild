@@ -1,13 +1,13 @@
 /**
  * World — 世界探索场景
  *
- * 61×61 CSS Grid 地图 + 四向行走（WASD / 方向键 / 点击）
+ * Canvas 地图 + 四向行走（WASD / 方向键）
  * + 补给消耗 + 随机遭遇战 + 地标事件触发。
  *
  * 复用现有 EventOverlay + CombatOverlay——事件通过 dispatch(startEvent) 触发，
  * CombatOverlay 由 EventOverlay 按 scene.combat=true 自动渲染。
  */
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useGameState,
@@ -20,6 +20,7 @@ import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
 import { lightMap } from '../world/generator'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
 import styles from './World.module.css'
+import { renderViewport } from '../world/renderViewport'
 
 export function World() {
   const { t } = useTranslation()
@@ -199,76 +200,141 @@ export function World() {
     [dispatch],
   )
 
-  // ── 地图渲染（CSS Grid） ────────────────────────────
-  const mapCells = useMemo(() => {
-    if (!wr || !pw) return null
-    const cells: React.ReactNode[] = []
-    const size = tiles.length
+  // ── Canvas 地图渲染 ──────────────────────────────────
+  const VIEWPORT_SIZE = 15
 
-    // Axis corner (0, 0)
-    cells.push(
-      <span key="corner" className={styles.axisCorner}>&nbsp;</span>,
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const cellSizeRef = useRef(0)
+  const canvasReadyRef = useRef(false)
+
+  const drawRef = useRef((_ctx: CanvasRenderingContext2D, _cellSize: number) => {})
+  drawRef.current = (ctx: CanvasRenderingContext2D, cellSize: number) => {
+    const s = stateRef.current
+    const pw = s.game.world
+    const wr = s.game.worldRuntime
+    if (!pw || !wr) return
+
+    const tiles = pw.tiles
+    const mask = wr.mask
+    const curPos = wr.curPos
+
+    const gcs = getComputedStyle(document.documentElement)
+    const themeColors = {
+      textPrimary: gcs.getPropertyValue('--game-text-primary').trim(),
+      textMuted: gcs.getPropertyValue('--game-text-muted').trim(),
+      bg: gcs.getPropertyValue('--game-bg-primary').trim(),
+      cellBg: gcs.getPropertyValue('--game-accent-soft').trim(),
+      accent: gcs.getPropertyValue('--game-accent').trim(),
+    }
+
+    const descriptors = renderViewport(
+      tiles, mask, curPos,
+      tiles.length,
+      VIEWPORT_SIZE,
+      themeColors,
     )
 
-    // X-axis (row 0, columns 1..61)
-    for (let x = 0; x < size; x++) {
-      const label = x % 5 === 0 ? String(x) : ''
-      cells.push(
-        <span key={`axisX-${x}`} className={styles.axisX}>{label}</span>,
-      )
-    }
+    const dpr = window.devicePixelRatio || 1
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
 
-    // Map rows: Y-axis label + tile cells
-    for (let y = 0; y < size; y++) {
-      // Y-axis label (col 0)
-      const yLabel = y % 5 === 0 ? String(y) : ''
-      cells.push(
-        <span key={`axisY-${y}`} className={styles.axisY}>{yLabel}</span>,
-      )
+    for (const d of descriptors) {
+      const relX = d.worldX - curPos[0] + VIEWPORT_SIZE
+      const relY = d.worldY - curPos[1] + VIEWPORT_SIZE
+      const x = relX * cellSize
+      const y = relY * cellSize
 
-      // Tiles (col 1..61)
-      for (let x = 0; x < size; x++) {
-        const tile = tiles[x][y]
-        const masked = !mask[x][y]
-        const isCur = curPos[0] === x && curPos[1] === y
-        const td = TERRAINS.find(t => t.type === tile.terrain)
-        const lm = tile.landmark ? LANDMARKS.find(l => l.type === tile.landmark) : null
-
-        const cls = [
-          styles.tile,
-          masked ? styles.masked : '',
-          td && td.cssClass in styles ? styles[td.cssClass as keyof typeof styles] ?? '' : '',
-          isCur ? styles.current : '',
-          tile.landmark && !isCur ? styles.landmark : '',
-        ].filter(Boolean).join(' ')
-
-        let char = '&nbsp;'
-        if (!masked) {
-          if (isCur) char = '@'
-          else if (tile.landmark) char = lm?.char ?? '?'
-          else char = td?.char ?? '?'
-        }
-
-        cells.push(
-          <span
-            key={`${x}-${y}`}
-            className={cls}
-            title={lm && !masked ? t(lm.labelKey) : undefined}
-            onClick={() => {
-              const dx = x - curPos[0]
-              const dy = y - curPos[1]
-              if (Math.abs(dx) + Math.abs(dy) === 1) {
-                move([Math.sign(dx), Math.sign(dy)] as readonly [number, number])
-              }
-            }}
-            dangerouslySetInnerHTML={{ __html: char }}
-          />,
-        )
+      if (d.bgColor) {
+        ctx.fillStyle = d.bgColor
+        ctx.fillRect(x, y, cellSize, cellSize)
       }
+
+      // Player: draw strokeRect border
+      if (d.isPlayer) {
+        ctx.strokeStyle = themeColors.accent
+        ctx.lineWidth = 2
+        ctx.strokeRect(x, y, cellSize, cellSize)
+      }
+
+      // Landmark: draw strokeRect border around the cell
+      if (d.isLandmark) {
+        ctx.strokeStyle = d.textColor
+        ctx.lineWidth = 1
+        ctx.strokeRect(x, y, cellSize, cellSize)
+      }
+
+      // Per-tile font: bold for landmarks, normal otherwise
+      ctx.font = d.isLandmark
+        ? 'bold 12px "Courier New", Courier, monospace'
+        : '12px "Courier New", Courier, monospace'
+      ctx.fillStyle = d.textColor
+      ctx.fillText(d.char, x + cellSize / 2, y + cellSize / 2)
     }
-    return cells
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tiles, mask, curPos, t])
+  }
+
+  // ResizeObserver → 响应容器大小变化，适配 cellSize + DPR
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !wr || !pw) return
+
+    const container = canvas.parentElement
+    if (!container) return
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+
+      const { width: w, height: h } = entry.contentRect
+      const totalTiles = VIEWPORT_SIZE * 2 + 1
+      const newCellSize = Math.max(6, Math.floor(Math.min(w, h) / totalTiles))
+
+      if (newCellSize === cellSizeRef.current && canvasReadyRef.current) return
+      cellSizeRef.current = newCellSize
+
+      const dpr = window.devicePixelRatio || 1
+      const logicalSize = newCellSize * totalTiles
+
+      canvas.width = Math.round(logicalSize * dpr)
+      canvas.height = Math.round(logicalSize * dpr)
+      canvas.style.width = `${logicalSize}px`
+      canvas.style.height = `${logicalSize}px`
+
+      canvasReadyRef.current = true
+
+      const ctx = canvas.getContext('2d')
+      if (ctx) drawRef.current(ctx, newCellSize)
+    })
+
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [wr, pw])
+
+  // 地图数据变化 → 重新绘制
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !canvasReadyRef.current) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    drawRef.current(ctx, cellSizeRef.current)
+  }, [tiles, mask, curPos])
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const canvas = canvasRef.current
+      if (!canvas || !canvasReadyRef.current) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      drawRef.current(ctx, cellSizeRef.current)
+    })
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div className={styles.worldPanel}>
@@ -316,7 +382,7 @@ export function World() {
 
           {/* Map */}
           <div className={styles.mapContainer}>
-            <div className={styles.worldMap}>{mapCells}</div>
+            <canvas ref={canvasRef} className={styles.mapCanvas} />
           </div>
         </>
       ) : (

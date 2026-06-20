@@ -348,15 +348,16 @@ box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4)
 
 **文件：** `src/rooms/World.tsx` + `World.module.css`
 
-世界场景中的 CSS Grid 世界地图格。
+世界场景中的 Canvas 渲染世界地图，使用 b/w Unicode 块字符模式（无彩色地形）。
 
-- 网格：61 列 × 61 行（`repeat(61, 1.6ch)` × `repeat(61, 1.2em)`）
+- 网格：61 列 × 61 行，Canvas 渲染
 - 字体：`monospace`，`0.75rem`
-- 玩家标记：`@` 字符
-- 当前格：`2px solid var(--game-accent)` 描边
-- 遮蔽（未探索）格：`visibility: hidden`
-- 地形背景：`森林（#1a3a1a）`、`平原（#3a3a1a）`、`荒地（#2a2a2a）`、`道路（#3a2a1a）`
-- 地标格：粗体强调色，彩色地形字符
+- 玩家标记：`@` 字符（Canvas fillText）
+- 当前格：`2px solid var(--game-accent)` 描边（Canvas strokeRect）
+- 遮蔽（未探索）格：以主题背景色（`--game-bg-primary`）填充实体方块
+- 地形块字符：森林=`▓`（U+2593），田野=`▒`（U+2592），荒地=`░`（U+2591），道路=`#`
+- 地标强调：粗体地名字符，附加白色 `strokeRect` 边框描边
+- 点击移动：已移除（保留供未来实现）
 
 ## 注意事项
 
