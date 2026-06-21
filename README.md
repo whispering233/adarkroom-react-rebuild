@@ -1,4 +1,4 @@
-# A Dark Room — React 重构练习
+# A Dark Room — React 重构扩展
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的 React + TypeScript 重构扩展项目。
 

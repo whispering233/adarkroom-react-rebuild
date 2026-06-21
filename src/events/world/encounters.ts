@@ -99,8 +99,8 @@ const strangeBird: EventDef = {
   },
 }
 
-// registerEvent(snarlingBeast)
-// registerEvent(gauntMan)
-// registerEvent(strangeBird)
+registerEvent(snarlingBeast)
+registerEvent(gauntMan)
+registerEvent(strangeBird)
 
 export const WORLD_ENCOUNTERS: EventDef[] = [snarlingBeast, gauntMan, strangeBird]
