@@ -29,8 +29,8 @@
 - **DESIGN.md**: 项目根目录 DESIGN.md 文件记录了完整的 UI 设计规范，所有 UI 开发前应先阅读
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
-- **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。renderViewport 返回 TileDescriptor[]（role + char），覆盖边界墙 `|`、玩家 `@`、地标字符、普通地形格 `.`，输出 63×63（VIEWPORT_RADIUS=31）。renderTiles 零分支纯函数根据 TileRole + TILE_CONFIG 数据驱动渲染到 Canvas。World.tsx 中 draw 回调约 5 行。
-- **世界渲染数据驱动**：通过 TileRole（'boundary'|'player'|'landmark'|'terrain'）声明角色，TILE_CONFIG 映射角色 → font + CSS 变量名，renderTiles 运行时读取 CSS 变量实现主题自适应。addLandmark/terrainCharMap 查找表提高每帧性能。
+- **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。RenderCell 接口（vx/vy/char/font/fillStyle）封装自包含渲染数据，与游戏语义解耦。renderViewport 内部解析 CSS 变量→fillStyle，输出 RenderCell[]；renderTiles 纯执行器，直接使用 cell.* 渲染，跳过空字符。地图尺寸以 MapDef.size 为准（默认 DEFAULT_MAP_RADIUS=30，地图 61×61，视口 63×63）。void 地形保留为扩展点（char=''）。
+- **世界渲染数据驱动**：TileRole（'boundary'|'player'|'landmark'|'terrain'）声明角色，TILE_CONFIG 映射角色→font + CSS 变量名。LandmarkDef.footprint 支持多格占位（如 village 3×3、city/ship 2×2），纯视觉铺色，不影响游戏逻辑。terrainCharMap/landmarkDefMap 查找表提高每帧性能。
 
 ## Key module map
 

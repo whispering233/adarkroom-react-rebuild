@@ -12,8 +12,8 @@ function getDistance(state: import('../../state/types').GameState): number {
   const wr = state.game.worldRuntime
   if (!wr) return 0
   return (
-    Math.abs(wr.curPos[0] - WORLD.RADIUS) +
-    Math.abs(wr.curPos[1] - WORLD.RADIUS)
+    Math.abs(wr.curPos[0] - WORLD.DEFAULT_MAP_RADIUS) +
+    Math.abs(wr.curPos[1] - WORLD.DEFAULT_MAP_RADIUS)
   )
 }
 

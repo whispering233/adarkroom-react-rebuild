@@ -16,7 +16,7 @@ type DispatchFn = (action: GameAction) => void
 
 // ─── 地形 / 地标 ──────────────────────────────────────
 
-export type TerrainType = 'forest' | 'field' | 'barrens' | 'road'
+export type TerrainType = 'forest' | 'field' | 'barrens' | 'road' | 'void'
 
 export type LandmarkType =
   | 'village' | 'ironMine' | 'coalMine' | 'sulphurMine'
@@ -80,6 +80,8 @@ export interface LandmarkDef {
    *   此设计支持无限深度：新地图内地标同样可返回 nextMapId 继续下钻，
    *   LEAVE_MAP 逐层出栈返回。
    */
+  /** 多格 footprint 尺寸（默认 {w:1,h:1} 表示单格） */
+  footprint?: { w: number; h: number }
   onEnter?: TileEffectFn
 }
 

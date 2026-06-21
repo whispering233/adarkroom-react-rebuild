@@ -433,7 +433,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       if (!draft.game.world) {
         const worldDef = {
           id: 'world',
-          size: WORLD.RADIUS,
+          size: WORLD.DEFAULT_MAP_RADIUS,
           terrainTypes: TERRAINS,
           landmarks: LANDMARKS,
           encounterPool: [],
@@ -451,7 +451,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       const maxW = getMaxWater(draft)
       const maxH = getMaxHealth(draft)
       draft.game.worldRuntime = {
-        curPos: [WORLD.RADIUS, WORLD.RADIUS],
+        curPos: [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS],
         water: maxW,
         health: maxH,
         maxHealth: maxH,
@@ -470,7 +470,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       lightMap(
         draft.game.world.tiles,
         draft.game.worldRuntime.mask,
-        [WORLD.RADIUS, WORLD.RADIUS],
+        [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS],
         WORLD.LIGHT_RADIUS,
       )
       break

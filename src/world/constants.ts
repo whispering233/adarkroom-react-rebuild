@@ -8,7 +8,7 @@ import type { TerrainDef, LandmarkDef } from './types'
 // ─── 世界常量 ─────────────────────────────────────────
 
 export const WORLD = {
-  RADIUS: 30,
+  DEFAULT_MAP_RADIUS: 30,
   VIEWPORT_RADIUS: 31,
   LIGHT_RADIUS: 2,
   STICKINESS: 0.5,
@@ -70,6 +70,12 @@ export const TERRAINS: TerrainDef[] = [
     char: '#',
     cssClass: 'road',
   },
+  {
+    type: 'void',
+    weight: 0,
+    char: '',
+    cssClass: 'void',
+  },
 ]
 
 // ─── 地标配置 ─────────────────────────────────────────
@@ -83,6 +89,7 @@ export const LANDMARKS: LandmarkDef[] = [
     minRadius: 0,
     maxRadius: 0,
     sceneId: 'setpiece.village',
+    footprint: { w: 3, h: 3 },
   },
   {
     type: 'ironMine',
@@ -146,6 +153,7 @@ export const LANDMARKS: LandmarkDef[] = [
     minRadius: 20,
     maxRadius: 45,
     sceneId: 'setpiece.city',
+    footprint: { w: 2, h: 2 },
   },
   {
     type: 'outpost',
@@ -164,6 +172,7 @@ export const LANDMARKS: LandmarkDef[] = [
     minRadius: 28,
     maxRadius: 28,
     sceneId: 'setpiece.ship',
+    footprint: { w: 2, h: 2 },
   },
   {
     type: 'borehole',

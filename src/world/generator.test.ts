@@ -8,7 +8,7 @@ import type { MapDef, MapTile } from './types'
 function createTestMapDef(overrides?: Partial<MapDef>): MapDef {
   return {
     id: 'test',
-    size: WORLD.RADIUS, // 30
+    size: WORLD.DEFAULT_MAP_RADIUS, // 30
     terrainTypes: TERRAINS.filter(t => t.weight > 0),
     landmarks: LANDMARKS,
     encounterPool: [],
