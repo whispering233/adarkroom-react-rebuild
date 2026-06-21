@@ -43,3 +43,5 @@ origin-adarkroom/
 # 编辑器语言服务器缓存（非本项目语言）
 .clj-kondo/
 .lsp/
+
+doc/specs
