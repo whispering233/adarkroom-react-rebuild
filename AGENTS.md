@@ -19,6 +19,7 @@
 ## Architecture
 
 - 入口链：`index.html` → `src/main.tsx` → i18n init → `<ErrorBoundary><GameProvider><App /></GameProvider></ErrorBoundary>`
+- **GameProvider 初始化优先级**：`initialState` prop > localStorage 存档 > `INITIAL_STATE`，存档加载时做 shape merge 填充新增字段
 - **状态管理**：`useImmerReducer`（来自 `use-immer` 包，非原生 `useReducer`）。Reducer 内直接修改 draft，Immer 自动生成不可变副本。唯一例外：`LOAD_SAVE` 用 `return` 替换整个 state
 - **资源变更**：**绝对不要**直接修改 `draft.stores[key]`。必须走 `modifyResource(draft, key, delta)`，它在内部累加到 `_pendingDeltas`，由 `INCOME_TICK` 统一 flush
 - **场景路由**：`App.tsx` 中的 `SCENES` 对象映射（`Partial<Record<RoomName, ComponentType>>`），新增场景在此注册即可
@@ -45,12 +46,12 @@
 
 ## Critical gotchas
 
-### `RUN_MODE: 'debug'` — 资源初始化陷阱
+### `RUN_MODE` — 资源初始化陷阱
 
-`src/config.ts` 第 14 行：`RUN_MODE: 'debug'`。在 debug 模式下，`getInitialStores()` 返回所有资源为 `MAX_STORE`（而非 `def.initial`）。这意味着：
+`src/config.ts` 中 `CONFIG.RUN_MODE` 默认为 `'normal'`。若切换为 `'debug'`，`getInitialStores()` 会返回所有资源为 `MAX_STORE`（而非 `def.initial`）。这意味着：
 
-- **测试中 `expect(state.stores.wood).toBe(0)` 会失败**（得到 `MAX_STORE`）
-- 如需正常模式测试，改为 `'normal'` 或测试中显式覆盖 stores
+- **debug 模式下 `expect(state.stores.wood).toBe(0)` 会失败**（得到 `MAX_STORE`）
+- 如需正常模式测试但 project 当前为 debug，改为 `'normal'` 或测试中显式覆盖 stores
 
 ### `verbatimModuleSyntax` — 必须用 `import type`
 
@@ -88,7 +89,7 @@ type X = (typeof X)[keyof typeof X]
 - **人口增长**：GameLoop 中 popTimer 随机 30~180s，上限 = `huts × HUT_ROOM`
 - **localStorage key 前缀**：`adr-theme`（主题）、`adr-speed`（倍速）、`adr-font-size`（字体，范围 12-24px）
 - **存档版本**：`INITIAL_STATE.version = 1.3`，跨版本迁移兼容性判断
-- **测试**：Vitest `globals: true`，文件匹配 `src/**/*.test.ts`，配置在 `vite.config.ts` 的 `test` 字段
+- **测试**：Vitest `globals: true`，文件匹配 `src/**/*.test.{ts,tsx}`，配置在 `vite.config.ts` 的 `test` 字段，环境 `jsdom`
 - **Lint**：ESLint flat config（`eslint.config.js`），插件 `typescript-eslint` + `react-hooks` + `react-refresh`
 
 ## ESM & Package
@@ -97,9 +98,12 @@ type X = (typeof X)[keyof typeof X]
 - `pnpm-workspace.yaml` 中 `allowBuilds: { esbuild: true }` 是 esbuild 原生依赖构建所需
 - 包管理器固定为 pnpm（通过 `pnpm-lock.yaml` 锁定）
 
-## Release workflow
+## CI / Deploy
 
-Release notes source: `CHANGELOG.md` (Keep a Changelog format). When a `v*` tag is pushed, `.github/workflows/release.yml` runs `hermannm/release-from-changelog@v0.2.6` which parses the matching `## [vX.Y.Z]` section and creates a GitHub Release.
+- **GitHub Pages**：push 到 `main` 分支时，`.github/workflows/deploy.yml` 自动 `pnpm build` 并部署到 GitHub Pages（`base: './'` 确保子路径可用）
+- **Release**：推送 `v*` tag 时，`.github/workflows/release.yml` 从 `CHANGELOG.md` 解析对应版本段落创建 GitHub Release
+
+## Release workflow
 
 ### Release steps (for AI agents)
 
