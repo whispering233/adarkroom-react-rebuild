@@ -29,7 +29,7 @@
 - **DESIGN.md**: 项目根目录 DESIGN.md 文件记录了完整的 UI 设计规范，所有 UI 开发前应先阅读
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
-- **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。renderViewport 返回 TileDescriptor[]（role + char），覆盖边界墙 `|`、玩家 `@`、地标字符、普通地形格 `.`，输出始终 31×31（VIEWPORT_RADIUS=15）。renderTiles 零分支纯函数根据 TileRole + TILE_CONFIG 数据驱动渲染到 Canvas。World.tsx 中 draw 回调约 5 行。
+- **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。renderViewport 返回 TileDescriptor[]（role + char），覆盖边界墙 `|`、玩家 `@`、地标字符、普通地形格 `.`，输出 63×63（VIEWPORT_RADIUS=31）。renderTiles 零分支纯函数根据 TileRole + TILE_CONFIG 数据驱动渲染到 Canvas。World.tsx 中 draw 回调约 5 行。
 - **世界渲染数据驱动**：通过 TileRole（'boundary'|'player'|'landmark'|'terrain'）声明角色，TILE_CONFIG 映射角色 → font + CSS 变量名，renderTiles 运行时读取 CSS 变量实现主题自适应。addLandmark/terrainCharMap 查找表提高每帧性能。
 
 ## Key module map
@@ -66,6 +66,14 @@
 const X = { A: 'a', B: 'b' } as const
 type X = (typeof X)[keyof typeof X]
 ```
+
+### `noUnusedLocals` / `noUnusedParameters` — 未使用导入/参数导致构建失败
+
+`tsconfig.app.json` 中 `noUnusedLocals` 和 `noUnusedParameters` 均为 `true`。任何未使用的 import 或未使用的函数参数都会导致 `tsc -b` 失败，进而阻断整个 `pnpm build`（构建链为 `tsc -b && vite build`）。本地热更新（`pnpm dev`）不受影响，**但 CI 必炸**。
+
+### `_globalTick` — 游戏规范时钟
+
+`state._globalTick` 是游戏逻辑时钟，由 `INCOME_TICK` 每次递增。**不要**用 `Date.now()` 替代。App.tsx 的 auto-save `useEffect` 依赖它触发，StoresPanel 的趋势计算和 NarrativePanel/World 的叙事时间戳也以它为锚点。
 
 ### 状态更新必须通过 dispatch
 
