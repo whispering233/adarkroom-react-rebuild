@@ -211,21 +211,7 @@ export function World() {
         const wr = s.game.worldRuntime
         if (!pw || !wr) return () => {}
 
-        const curPos = wr.curPos
-
-        const gcs = getComputedStyle(document.documentElement)
-        const themeColors = {
-          textPrimary: gcs.getPropertyValue('--game-text-primary').trim(),
-          textMuted: gcs.getPropertyValue('--game-text-muted').trim(),
-          bg: gcs.getPropertyValue('--game-bg-primary').trim(),
-          cellBg: gcs.getPropertyValue('--game-accent-soft').trim(),
-          accent: gcs.getPropertyValue('--game-accent').trim(),
-        }
-
-        const descriptors = renderViewport(
-          pw.tiles, curPos, themeColors,
-        )
-
+        const descriptors = renderViewport(pw.tiles, wr.curPos)
         return (ctx: CanvasRenderingContext2D, cellSize: number) => {
           renderTiles(ctx, descriptors, cellSize)
         }

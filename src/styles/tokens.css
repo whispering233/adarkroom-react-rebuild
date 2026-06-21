@@ -17,6 +17,7 @@
   --game-text-primary: #000000;
   --game-text-body: #333333;
   --game-text-muted: #333333;
+  --game-terrain: rgba(0, 0, 0, 0.15);
 
   /* 强调（通过加粗/下划线实现视觉区分，此处仅保留文字色） */
   --game-accent: #000000;
@@ -60,6 +61,7 @@
   --game-text-primary: #e0e0e0;
   --game-text-body: #c8c8c8;
   --game-text-muted: #666666;
+  --game-terrain: rgba(255, 255, 255, 0.08);
 
   --game-accent: #e0e0e0;
   --game-accent-soft: rgba(255, 255, 255, 0.08);

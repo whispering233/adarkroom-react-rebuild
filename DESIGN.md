@@ -346,18 +346,23 @@ box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4)
 
 ### World Map Tile
 
-**文件：** `src/rooms/World.tsx` + `World.module.css`
+**文件：** `src/world/WorldCanvasScene.ts`（独立 Canvas 渲染模块）+ `src/world/renderViewport.ts`（纯数据变换 + Canvas 渲染 + TILE_CONFIG）
 
-世界场景中的 Canvas 渲染世界地图，使用 b/w Unicode 块字符模式（无彩色地形）。
+世界场景（`src/rooms/World.tsx`）挂载 WorldCanvasScene 进行 Canvas 渲染，每帧 clearRect 重新绘制。
 
-- 网格：61 列 × 61 行，Canvas 渲染
-- 字体：`monospace`，`0.75rem`
-- 玩家标记：`@` 字符（Canvas fillText）
-- 当前格：`2px solid var(--game-accent)` 描边（Canvas strokeRect）
-- 遮蔽（未探索）格：以主题背景色（`--game-bg-primary`）填充实体方块
-- 地形块字符：森林=`▓`（U+2593），田野=`▒`（U+2592），荒地=`░`（U+2591），道路=`#`
-- 地标强调：粗体地名字符，附加白色 `strokeRect` 边框描边
-- 点击移动：已移除（保留供未来实现）
+- **视口**：31×31（VIEWPORT_RADIUS=15），以玩家位置为中心，vx/vy 视口坐标 0..30
+- **渲染管道**：World.tsx 中的 draw 回调（约 5 行）→ renderViewport（纯函数，零 DOM/Canvas 依赖）→ TileDescriptor[] → renderTiles（Canvas fillText，零分支绘制循环）
+- **数据驱动**：通过 TileRole（`'boundary'|'player'|'landmark'|'terrain'`）声明字符角色，TILE_CONFIG 单源映射角色 → font + CSS 变量名，renderTiles 运行时通过 `getComputedStyle` 读取 CSS 变量实现主题自适应
+- **字符规则**：
+  - 边界墙：`|`（超出地图范围，`--game-text-muted`）
+  - 玩家：`@`（`--game-text-primary`）
+  - 地标：对应字符（村庄 `A`、铁矿 `I`、煤矿 `C`、硫矿 `S` 等，`--game-accent`，bold 12px）
+  - 普通地形：`.`（`--game-terrain`，所有已探索格）
+- **查找表**：`terrainCharMap` / `landmarkCharMap` 预构建在模块加载时，renderViewport 每帧 O(1) 查表
+- **Canvas 驱动**：WorldCanvasScene 使用 SceneState 对象模式 + rAF 循环 + 自检门禁（`state !== st` 防止陈旧回调泄漏）+ mount/unmount 生命周期
+- **Cell 尺寸**：固定计算 `Math.max(6, floor(min(w,h) / 31))`，DPR 缩放（`canvas.width = logicalSize * dpr`），不支持动态 cellSize 切换
+- **自适应**：ResizeObserver 监听容器尺寸变化自动重算 cellSize 并重绘；MutationObserver 监听 `data-theme` 属性变化自动重绘
+- **CSS 令牌**：`--game-terrain: rgba(0,0,0,0.15)`（浅色） / `rgba(255,255,255,0.08)`（暗色）
 
 ## 注意事项
 

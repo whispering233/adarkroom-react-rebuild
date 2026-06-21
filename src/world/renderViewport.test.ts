@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderViewport, renderTiles, type TileDescriptor, type ThemeColors } from './renderViewport'
+import { renderViewport, renderTiles, type TileDescriptor } from './renderViewport'
 import { WORLD, LANDMARKS } from './constants'
 import type { MapTile, TerrainType, LandmarkType } from './types'
 
@@ -7,16 +7,6 @@ import type { MapTile, TerrainType, LandmarkType } from './types'
 
 const VIEWPORT_RADIUS = WORLD.VIEWPORT_RADIUS
 const VIEWPORT_TOTAL = VIEWPORT_RADIUS * 2 + 1 // 31
-
-// ─── 默认主题色 ─────────────────────────────────────────
-
-const defaultTheme: ThemeColors = {
-  textPrimary: '#fff',
-  textMuted: '#888',
-  bg: '#000',
-  cellBg: '#333',
-  accent: '#ff0',
-}
 
 // ─── 辅助函数 ──────────────────────────────────────────
 
@@ -33,15 +23,20 @@ function createMap(size: number, fill: MapTile): MapTile[][] {
 // ─── 测试套件 ──────────────────────────────────────────
 
 describe('renderViewport', () => {
-  it('emits only player tile when centered on open terrain with no landmarks', () => {
+  it('renders boundary |, player @, and terrain . for centered position with no landmarks', () => {
     const mapSize = 61
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
-    // Terrain tiles are skipped — only player @ is emitted
-    expect(result.length).toBe(1)
-    expect(result[0].isPlayer).toBe(true)
+    const result = renderViewport(tiles, playerPos)
+    // All 63x63 cells now have a TileDescriptor: 248 boundary | + 1 player @ + 3720 terrain .
+    const boundaries = result.filter(t => t.char === '|')
+    expect(boundaries.length).toBe(248)
+    const playerTile = result.find(t => t.char === '@')
+    expect(playerTile).toBeDefined()
+    expect(playerTile!.role).toBe('player')
+    const terrainTiles = result.filter(t => t.char === '.')
+    expect(terrainTiles.length).toBe(3720)
   })
 
   it('places player @ at viewport center for centered position', () => {
@@ -49,14 +44,13 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
-    const playerTile = result.find(t => t.isPlayer)
+    const result = renderViewport(tiles, playerPos)
+    const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.char).toBe('@')
     expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
     expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
-    expect(playerTile!.textColor).toBe(defaultTheme.textPrimary)
-    expect(playerTile!.bgColor).toBe(defaultTheme.cellBg)
+    expect(playerTile!.role).toBe('player')
   })
 
   it('adds boundary walls on left/top when player at map origin [0,0]', () => {
@@ -64,10 +58,10 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [0, 0]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const result = renderViewport(tiles, playerPos)
 
     // Player at viewport center
-    const playerTile = result.find(t => t.isPlayer)
+    const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
     expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
@@ -76,16 +70,16 @@ describe('renderViewport', () => {
     const leftBoundary = result.filter(t => t.vx < VIEWPORT_RADIUS)
     expect(leftBoundary.length).toBeGreaterThan(0)
     for (const tile of leftBoundary) {
-      expect(tile.char).toBe('█')
-      expect(tile.isPlayer).toBe(false)
+      expect(tile.char).toBe('|')
+      expect(tile.role).toBe('boundary')
     }
 
     // All tiles with vy < VIEWPORT_RADIUS are top-boundary
     const topBoundary = result.filter(t => t.vy < VIEWPORT_RADIUS)
     expect(topBoundary.length).toBeGreaterThan(0)
     for (const tile of topBoundary) {
-      expect(tile.char).toBe('█')
-      expect(tile.isPlayer).toBe(false)
+      expect(tile.char).toBe('|')
+      expect(tile.role).toBe('boundary')
     }
   })
 
@@ -94,10 +88,10 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [60, 60]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const result = renderViewport(tiles, playerPos)
 
     // Player at viewport center
-    const playerTile = result.find(t => t.isPlayer)
+    const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
     expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
@@ -106,55 +100,55 @@ describe('renderViewport', () => {
     const rightBoundary = result.filter(t => t.vx > VIEWPORT_RADIUS)
     expect(rightBoundary.length).toBeGreaterThan(0)
     for (const tile of rightBoundary) {
-      expect(tile.char).toBe('█')
-      expect(tile.isPlayer).toBe(false)
+      expect(tile.char).toBe('|')
+      expect(tile.role).toBe('boundary')
     }
 
     const bottomBoundary = result.filter(t => t.vy > VIEWPORT_RADIUS)
     expect(bottomBoundary.length).toBeGreaterThan(0)
     for (const tile of bottomBoundary) {
-      expect(tile.char).toBe('█')
-      expect(tile.isPlayer).toBe(false)
+      expect(tile.char).toBe('|')
+      expect(tile.role).toBe('boundary')
     }
   })
 
-  it('excludes terrain tiles (only player + boundary + landmark in output)', () => {
+  it('includes terrain tiles with char . when no landmarks present', () => {
     const mapSize = 61
     // No landmarks, just field terrain
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const result = renderViewport(tiles, playerPos)
 
-    // All tiles in-bounds → only player tile (no boundary, no landmarks, no terrain)
-    expect(result.length).toBe(1)
-    expect(result[0].isPlayer).toBe(true)
-    expect(result[0].char).toBe('@')
+    // All 63x63 = 3969 cells now have a TileDescriptor
+    expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
+    const dotTiles = result.filter(t => t.char === '.')
+    expect(dotTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1 - 248)
+    const playerTile = result.find(t => t.char === '@')
+    expect(playerTile).toBeDefined()
+    expect(playerTile!.role).toBe('player')
   })
 
-  it('includes landmark tiles with accent color and correct char', () => {
+  it('includes landmark tiles with landmark role and correct char', () => {
     const mapSize = 61
     const tiles = createMap(mapSize, createTile('field', 'village'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const result = renderViewport(tiles, playerPos)
 
     // Player at (30,30) — one tile
     // But that tile has landmark=village; player takes precedence
-    // All other tiles have landmark=village → landmark tiles everywhere
-    // Total tiles = player(1) + landmarks(31² - 1 - 0 boundary) = 1 + 960 = 961
+    // All other in-bounds tiles have landmark=village → landmark tiles
+    // Total = player(1) + boundaries(248) + landmarks(3969-1-248=3720)
     expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
 
-    const landmarkTiles = result.filter(t => t.isLandmark && !t.isPlayer)
-    // All non-player tiles should be landmarks
-    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
+    const landmarkTiles = result.filter(t => t.role === 'landmark')
+    // 3720 non-player, non-boundary landmark tiles
+    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1 - 248)
 
     for (const t of landmarkTiles) {
       expect(t.char).toBe('A') // village char from LANDMARKS
-      expect(t.textColor).toBe(defaultTheme.accent)
-      expect(t.bgColor).toBe('')
-      expect(t.isLandmark).toBe(true)
-      expect(t.landmarkType).toBe('village')
+      expect(t.role).toBe('landmark')
     }
   })
 
@@ -168,11 +162,11 @@ describe('renderViewport', () => {
     const lmDef = LANDMARKS.find(lm => lm.type === 'ironMine')!
     tiles[6][5] = createTile('field', 'ironMine')
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
-    const lmTile = result.find(t => t.isLandmark)
+    const result = renderViewport(tiles, playerPos)
+    const lmTile = result.find(t => t.char === lmDef.char)
     expect(lmTile).toBeDefined()
     expect(lmTile!.char).toBe(lmDef.char)
-    expect(lmTile!.landmarkType).toBe('ironMine')
+    expect(lmTile!.role).toBe('landmark')
     // vx = wx - xStart = 6 - (5 - 15) = 6 - (-10) = 16
     expect(lmTile!.vx).toBe(VIEWPORT_RADIUS + 1)
   })
@@ -182,12 +176,11 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field', 'ironMine'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos, defaultTheme)
-    const playerTile = result.find(t => t.isPlayer)
+    const result = renderViewport(tiles, playerPos)
+    const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
-    expect(playerTile!.isPlayer).toBe(true)
-    expect(playerTile!.isLandmark).toBe(false)
     expect(playerTile!.char).toBe('@')
+    expect(playerTile!.role).toBe('player')
   })
 
   it('does not mutate input arrays', () => {
@@ -199,7 +192,7 @@ describe('renderViewport', () => {
       row.map(t => ({ ...t })),
     )
 
-    renderViewport(tiles, playerPos, defaultTheme)
+    renderViewport(tiles, playerPos)
 
     expect(tiles).toEqual(originalTiles)
   })
@@ -220,14 +213,8 @@ describe('renderTiles', () => {
   it('calls fillText for non-empty chars', () => {
     const ctx = createMockCtx()
     const descriptors: TileDescriptor[] = [
-      {
-        vx: 0, vy: 0, char: '@', textColor: '#fff', bgColor: '#333',
-        isPlayer: true, isLandmark: false,
-      },
-      {
-        vx: 1, vy: 0, char: 'A', textColor: '#ff0', bgColor: '',
-        isPlayer: false, isLandmark: true, landmarkType: 'village',
-      },
+      { vx: 0, vy: 0, char: '@', role: 'player' },
+      { vx: 1, vy: 0, char: 'A', role: 'landmark' },
     ]
     const cellSize = 16
 
@@ -241,10 +228,7 @@ describe('renderTiles', () => {
   it('skips empty char ("")', () => {
     const ctx = createMockCtx()
     const descriptors: TileDescriptor[] = [
-      {
-        vx: 0, vy: 0, char: '', textColor: '#888', bgColor: '',
-        isPlayer: false, isLandmark: false,
-      },
+      { vx: 0, vy: 0, char: '', role: 'terrain' },
     ]
 
     renderTiles(ctx, descriptors, 16)
@@ -255,10 +239,7 @@ describe('renderTiles', () => {
   it('skips space char (" ")', () => {
     const ctx = createMockCtx()
     const descriptors: TileDescriptor[] = [
-      {
-        vx: 0, vy: 0, char: ' ', textColor: '#888', bgColor: '',
-        isPlayer: false, isLandmark: false,
-      },
+      { vx: 0, vy: 0, char: ' ', role: 'terrain' },
     ]
 
     renderTiles(ctx, descriptors, 16)
@@ -269,28 +250,16 @@ describe('renderTiles', () => {
   it('skips empty and space but renders others in mixed list', () => {
     const ctx = createMockCtx()
     const descriptors: TileDescriptor[] = [
-      {
-        vx: 0, vy: 0, char: ' ', textColor: '#888', bgColor: '',
-        isPlayer: false, isLandmark: false,
-      },
-      {
-        vx: 1, vy: 0, char: '@', textColor: '#fff', bgColor: '#333',
-        isPlayer: true, isLandmark: false,
-      },
-      {
-        vx: 2, vy: 0, char: '', textColor: '#888', bgColor: '',
-        isPlayer: false, isLandmark: false,
-      },
-      {
-        vx: 3, vy: 0, char: '█', textColor: '#888', bgColor: '',
-        isPlayer: false, isLandmark: false,
-      },
+      { vx: 0, vy: 0, char: ' ', role: 'terrain' },
+      { vx: 1, vy: 0, char: '@', role: 'player' },
+      { vx: 2, vy: 0, char: '', role: 'terrain' },
+      { vx: 3, vy: 0, char: '|', role: 'boundary' },
     ]
 
     renderTiles(ctx, descriptors, 16)
 
     expect(ctx.fillText).toHaveBeenCalledTimes(2)
     expect(ctx.fillText).toHaveBeenCalledWith('@', 24, 8)
-    expect(ctx.fillText).toHaveBeenCalledWith('█', 56, 8)
+    expect(ctx.fillText).toHaveBeenCalledWith('|', 56, 8)
   })
 })

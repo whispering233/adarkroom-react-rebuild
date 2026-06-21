@@ -29,6 +29,8 @@
 - **DESIGN.md**: 项目根目录 DESIGN.md 文件记录了完整的 UI 设计规范，所有 UI 开发前应先阅读
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
+- **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。renderViewport 返回 TileDescriptor[]（role + char），覆盖边界墙 `|`、玩家 `@`、地标字符、普通地形格 `.`，输出始终 31×31（VIEWPORT_RADIUS=15）。renderTiles 零分支纯函数根据 TileRole + TILE_CONFIG 数据驱动渲染到 Canvas。World.tsx 中 draw 回调约 5 行。
+- **世界渲染数据驱动**：通过 TileRole（'boundary'|'player'|'landmark'|'terrain'）声明角色，TILE_CONFIG 映射角色 → font + CSS 变量名，renderTiles 运行时读取 CSS 变量实现主题自适应。addLandmark/terrainCharMap 查找表提高每帧性能。
 
 ## Key module map
 
@@ -42,7 +44,7 @@
 | `src/events/` | 随机事件系统（调度器 + 注册表 + 场景数据） |
 | `src/combat/` | 战斗系统（事件驱动，CombatOverlay 自包含） |
 | `src/i18n/` | i18next 国际化（`zh.json`/`en.json`，默认中文） |
-| `src/world/` | 世界地图生成 + 地形/地标效果 |
+| `src/world/` | 世界地图生成 + Canvas 渲染管道（WorldCanvasScene / renderViewport / renderTiles） |
 
 ## Critical gotchas
 
