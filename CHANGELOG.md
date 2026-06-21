@@ -9,6 +9,7 @@
 
 ### Added
 - UI规则文件：CHANGELOG.md
+- 重构world模块：使用canvas渲染world map，添加可变视觉窗口，给大地图做准备
 
 ### Fixed
 - 世界地图css样式统一

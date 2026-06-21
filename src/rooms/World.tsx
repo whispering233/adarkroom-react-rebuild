@@ -42,7 +42,7 @@ export function World() {
   const outfit = state.outfit ?? {}
 
   // ── 补给消耗 ────────────────────────────────────────
-  const consumeSupplies = (): boolean => {
+  const consumeSupplies = useCallback((): boolean => {
     let survived = true
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
@@ -94,10 +94,10 @@ export function World() {
       return false
     }
     return true
-  }
+  }, [dispatch, t])
 
   // ── 随机遭遇战 ──────────────────────────────────────
-  const checkFight = () => {
+  const checkFight = useCallback(() => {
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
       if (!w) return
@@ -106,7 +106,7 @@ export function World() {
       const chance = WORLD.FIGHT_CHANCE * (d.character.perks?.stealthy ? 0.5 : 1)
       if (Math.random() < chance) {
         w.fightCounter = 0
-        const available = WORLD_ENCOUNTERS.filter(e => e.isAvailable(state))
+        const available = WORLD_ENCOUNTERS.filter(e => e.isAvailable(stateRef.current))
         if (available.length > 0) {
           const enc = available[Math.floor(Math.random() * available.length)]
           // Defer dispatch outside draft
@@ -114,7 +114,7 @@ export function World() {
         }
       }
     }))
-  }
+  }, [dispatch])
 
   // ── 移动逻辑 ────────────────────────────────────────
   const move = useCallback((dir: readonly [number, number]) => {
@@ -157,7 +157,7 @@ export function World() {
 
     if (!consumeSupplies()) return
     checkFight()
-  }, [dispatch])
+  }, [dispatch, t, consumeSupplies, checkFight])
 
   // ── 键盘监听 ────────────────────────────────────────
   const handleKey = useCallback(
