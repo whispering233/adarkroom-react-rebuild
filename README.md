@@ -175,6 +175,9 @@ git push origin vX.Y.Z
 
 推送后 GitHub Actions 自动创建 Release 页面，正文即为 CHANGELOG 中对应版本段落。
 
+## 可参考
+rot.js、libtcod、Brogue、Cogmind
+
 ## License
 
 原始项目 (c) Michael Townsend / doublespeakgames — [MPL-2.0](https://github.com/doublespeakgames/adarkroom/blob/master/LICENSE)
