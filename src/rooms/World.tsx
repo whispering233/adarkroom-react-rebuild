@@ -20,7 +20,8 @@ import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
 import { lightMap } from '../world/generator'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
 import styles from './World.module.css'
-import { renderViewport } from '../world/renderViewport'
+import { renderViewport, renderTiles } from '../world/renderViewport'
+import { createWorldCanvasScene } from '../world/WorldCanvasScene'
 
 export function World() {
   const { t } = useTranslation()
@@ -35,9 +36,6 @@ export function World() {
   const pw = state.game.world
 
   // ── 数据提取（空值安全）───────────────────────────────
-  const tiles = pw?.tiles ?? []
-  const mask = wr?.mask ?? []
-  const curPos = wr?.curPos ?? [0, 0]
   const water = wr?.water ?? 0
   const health = wr?.health ?? 0
   const maxHealth = wr?.maxHealth ?? 0
@@ -200,141 +198,47 @@ export function World() {
     [dispatch],
   )
 
-  // ── Canvas 地图渲染 ──────────────────────────────────
-  const VIEWPORT_SIZE = 15
-
+  // ── Canvas 场景 ──────────────────────────────────
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const cellSizeRef = useRef(0)
-  const canvasReadyRef = useRef(false)
+  const sceneRef = useRef<ReturnType<typeof createWorldCanvasScene> | null>(null)
 
-  const drawRef = useRef((_ctx: CanvasRenderingContext2D, _cellSize: number) => {})
-  drawRef.current = (ctx: CanvasRenderingContext2D, cellSize: number) => {
-    const s = stateRef.current
-    const pw = s.game.world
-    const wr = s.game.worldRuntime
-    if (!pw || !wr) return
-
-    const tiles = pw.tiles
-    const mask = wr.mask
-    const curPos = wr.curPos
-
-    const gcs = getComputedStyle(document.documentElement)
-    const themeColors = {
-      textPrimary: gcs.getPropertyValue('--game-text-primary').trim(),
-      textMuted: gcs.getPropertyValue('--game-text-muted').trim(),
-      bg: gcs.getPropertyValue('--game-bg-primary').trim(),
-      cellBg: gcs.getPropertyValue('--game-accent-soft').trim(),
-      accent: gcs.getPropertyValue('--game-accent').trim(),
-    }
-
-    const descriptors = renderViewport(
-      tiles, mask, curPos,
-      tiles.length,
-      VIEWPORT_SIZE,
-      themeColors,
-    )
-
-    const dpr = window.devicePixelRatio || 1
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    for (const d of descriptors) {
-      const relX = d.worldX - curPos[0] + VIEWPORT_SIZE
-      const relY = d.worldY - curPos[1] + VIEWPORT_SIZE
-      const x = relX * cellSize
-      const y = relY * cellSize
-
-      if (d.bgColor) {
-        ctx.fillStyle = d.bgColor
-        ctx.fillRect(x, y, cellSize, cellSize)
-      }
-
-      // Player: draw strokeRect border
-      if (d.isPlayer) {
-        ctx.strokeStyle = themeColors.accent
-        ctx.lineWidth = 2
-        ctx.strokeRect(x, y, cellSize, cellSize)
-      }
-
-      // Landmark: draw strokeRect border around the cell
-      if (d.isLandmark) {
-        ctx.strokeStyle = d.textColor
-        ctx.lineWidth = 1
-        ctx.strokeRect(x, y, cellSize, cellSize)
-      }
-
-      // Per-tile font: bold for landmarks, normal otherwise
-      ctx.font = d.isLandmark
-        ? 'bold 12px "Courier New", Courier, monospace'
-        : '12px "Courier New", Courier, monospace'
-      ctx.fillStyle = d.textColor
-      ctx.fillText(d.char, x + cellSize / 2, y + cellSize / 2)
-    }
-  }
-
-  // ResizeObserver → 响应容器大小变化，适配 cellSize + DPR
+  // 创建 scene（仅在挂载时一次，避免 render 期间捕获 ref）
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !wr || !pw) return
+    sceneRef.current = createWorldCanvasScene({
+      draw: () => {
+        const s = stateRef.current
+        const pw = s.game.world
+        const wr = s.game.worldRuntime
+        if (!pw || !wr) return () => {}
 
-    const container = canvas.parentElement
-    if (!container) return
+        const curPos = wr.curPos
 
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0]
-      if (!entry) return
+        const gcs = getComputedStyle(document.documentElement)
+        const themeColors = {
+          textPrimary: gcs.getPropertyValue('--game-text-primary').trim(),
+          textMuted: gcs.getPropertyValue('--game-text-muted').trim(),
+          bg: gcs.getPropertyValue('--game-bg-primary').trim(),
+          cellBg: gcs.getPropertyValue('--game-accent-soft').trim(),
+          accent: gcs.getPropertyValue('--game-accent').trim(),
+        }
 
-      const { width: w, height: h } = entry.contentRect
-      const totalTiles = VIEWPORT_SIZE * 2 + 1
-      const newCellSize = Math.max(6, Math.floor(Math.min(w, h) / totalTiles))
+        const descriptors = renderViewport(
+          pw.tiles, curPos, themeColors,
+        )
 
-      if (newCellSize === cellSizeRef.current && canvasReadyRef.current) return
-      cellSizeRef.current = newCellSize
-
-      const dpr = window.devicePixelRatio || 1
-      const logicalSize = newCellSize * totalTiles
-
-      canvas.width = Math.round(logicalSize * dpr)
-      canvas.height = Math.round(logicalSize * dpr)
-      canvas.style.width = `${logicalSize}px`
-      canvas.style.height = `${logicalSize}px`
-
-      canvasReadyRef.current = true
-
-      const ctx = canvas.getContext('2d')
-      if (ctx) drawRef.current(ctx, newCellSize)
+        return (ctx: CanvasRenderingContext2D, cellSize: number) => {
+          renderTiles(ctx, descriptors, cellSize)
+        }
+      },
     })
-
-    observer.observe(container)
-    return () => observer.disconnect()
-  }, [wr, pw])
-
-  // 地图数据变化 → 重新绘制
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !canvasReadyRef.current) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    drawRef.current(ctx, cellSizeRef.current)
-  }, [tiles, mask, curPos])
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const canvas = canvasRef.current
-      if (!canvas || !canvasReadyRef.current) return
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      drawRef.current(ctx, cellSizeRef.current)
-    })
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    })
-
-    return () => observer.disconnect()
+    return () => { sceneRef.current = null }
   }, [])
+
+  // 挂载/卸载 canvas 场景（仅在 worldRuntime 存在时）
+  useEffect(() => {
+    if (!canvasRef.current || !wr || !sceneRef.current) return
+    return sceneRef.current.mount(canvasRef.current)
+  }, [wr])
 
   return (
     <div className={styles.worldPanel}>

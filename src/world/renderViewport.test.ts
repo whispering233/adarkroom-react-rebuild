@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest'
-import { renderViewport, type ThemeColors } from './renderViewport'
-import { TERRAINS, LANDMARKS } from './constants'
+import { describe, it, expect, vi } from 'vitest'
+import { renderViewport, renderTiles, type TileDescriptor, type ThemeColors } from './renderViewport'
+import { WORLD, LANDMARKS } from './constants'
 import type { MapTile, TerrainType, LandmarkType } from './types'
+
+// ─── 常量 ──────────────────────────────────────────────
+
+const VIEWPORT_RADIUS = WORLD.VIEWPORT_RADIUS
+const VIEWPORT_TOTAL = VIEWPORT_RADIUS * 2 + 1 // 31
 
 // ─── 默认主题色 ─────────────────────────────────────────
 
@@ -25,417 +30,267 @@ function createMap(size: number, fill: MapTile): MapTile[][] {
   )
 }
 
-function createMask(size: number, visible: boolean): boolean[][] {
-  return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => visible),
-  )
-}
-
 // ─── 测试套件 ──────────────────────────────────────────
 
 describe('renderViewport', () => {
-  it('returns (2*viewportSize+1)² tiles for centered position', () => {
+  it('emits only player tile when centered on open terrain with no landmarks', () => {
     const mapSize = 61
-    const viewportSize = 5
     const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    // 11×11 = 121
-    expect(result.length).toBe(121)
-  })
-
-  it('returns (2*viewportSize+1)² for viewportSize=0 (just player)', () => {
-    const mapSize = 61
-    const viewportSize = 0
-    const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [30, 30]
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+    // Terrain tiles are skipped — only player @ is emitted
     expect(result.length).toBe(1)
     expect(result[0].isPlayer).toBe(true)
-    expect(result[0].worldX).toBe(30)
-    expect(result[0].worldY).toBe(30)
   })
 
-  it('clamps viewport at top-left map edge', () => {
-    const mapSize = 10
-    const viewportSize = 5
+  it('places player @ at viewport center for centered position', () => {
+    const mapSize = 61
     const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [0, 0]
+    const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    // [0,0] ~ [5,5] = 6×6 = 36
-    expect(result.length).toBe(36)
-
-    // 确认 X 边界
-    const xs = result.map(t => t.worldX)
-    expect(Math.min(...xs)).toBe(0)
-    expect(Math.max(...xs)).toBe(5)
-
-    // 确认 Y 边界
-    const ys = result.map(t => t.worldY)
-    expect(Math.min(...ys)).toBe(0)
-    expect(Math.max(...ys)).toBe(5)
-  })
-
-  it('clamps viewport at bottom-right map edge', () => {
-    const mapSize = 10
-    const viewportSize = 5
-    const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [9, 9]
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    // [4,4] ~ [9,9] = 6×6 = 36
-    expect(result.length).toBe(36)
-
-    const xs = result.map(t => t.worldX)
-    expect(Math.min(...xs)).toBe(4)
-    expect(Math.max(...xs)).toBe(9)
-
-    const ys = result.map(t => t.worldY)
-    expect(Math.min(...ys)).toBe(4)
-    expect(Math.max(...ys)).toBe(9)
-  })
-
-  it('clamps viewport at left map edge (player at x=0)', () => {
-    const mapSize = 10
-    const viewportSize = 3
-    const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [0, 5]
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    // X: [0, 3] = 4 cols, Y: [2, 8] = 7 rows → 28
-    expect(result.length).toBe(4 * 7)
-  })
-
-  it('renders player tile with @ and cellBg', () => {
-    const mapSize = 10
-    const viewportSize = 2
-    const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [5, 5]
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
+    const result = renderViewport(tiles, playerPos, defaultTheme)
     const playerTile = result.find(t => t.isPlayer)
     expect(playerTile).toBeDefined()
     expect(playerTile!.char).toBe('@')
+    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
+    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
     expect(playerTile!.textColor).toBe(defaultTheme.textPrimary)
     expect(playerTile!.bgColor).toBe(defaultTheme.cellBg)
-    expect(playerTile!.isLandmark).toBe(false)
-    expect(playerTile!.worldX).toBe(5)
-    expect(playerTile!.worldY).toBe(5)
   })
 
-  it('renders masked tiles with space and theme bg color', () => {
-    const mapSize = 10
-    const viewportSize = 2
+  it('adds boundary walls on left/top when player at map origin [0,0]', () => {
+    const mapSize = 61
     const tiles = createMap(mapSize, createTile('field'))
-    // 只有玩家位置可见，其余全被遮盖
-    const mask = createMask(mapSize, false)
-    const playerPos: [number, number] = [5, 5]
-    mask[5][5] = true
+    const playerPos: [number, number] = [0, 0]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+
+    // Player at viewport center
     const playerTile = result.find(t => t.isPlayer)
     expect(playerTile).toBeDefined()
-    expect(playerTile!.char).toBe('@')
+    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
+    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
 
-    const maskedTiles = result.filter(t => !t.isPlayer)
-    expect(maskedTiles.length).toBeGreaterThan(0)
-    for (const t of maskedTiles) {
-      expect(t.char).toBe(' ')
-      expect(t.bgColor).toBe(defaultTheme.bg)
-      expect(t.isLandmark).toBe(false)
-      expect(t.isPlayer).toBe(false)
+    // All tiles with vx < VIEWPORT_RADIUS are left-boundary
+    const leftBoundary = result.filter(t => t.vx < VIEWPORT_RADIUS)
+    expect(leftBoundary.length).toBeGreaterThan(0)
+    for (const tile of leftBoundary) {
+      expect(tile.char).toBe('█')
+      expect(tile.isPlayer).toBe(false)
+    }
+
+    // All tiles with vy < VIEWPORT_RADIUS are top-boundary
+    const topBoundary = result.filter(t => t.vy < VIEWPORT_RADIUS)
+    expect(topBoundary.length).toBeGreaterThan(0)
+    for (const tile of topBoundary) {
+      expect(tile.char).toBe('█')
+      expect(tile.isPlayer).toBe(false)
     }
   })
 
-  it('renders landmark tiles with accent color and correct char', () => {
-    const mapSize = 10
-    const viewportSize = 3
-    const tiles = createMap(mapSize, createTile('field', 'village'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [5, 5]
+  it('adds boundary walls on right/bottom when player at map corner [60,60]', () => {
+    const mapSize = 61
+    const tiles = createMap(mapSize, createTile('field'))
+    const playerPos: [number, number] = [60, 60]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    const landmarkTiles = result.filter(t => t.isLandmark)
-    expect(landmarkTiles.length).toBeGreaterThan(0)
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+
+    // Player at viewport center
+    const playerTile = result.find(t => t.isPlayer)
+    expect(playerTile).toBeDefined()
+    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
+    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
+
+    // All tiles with vx > VIEWPORT_RADIUS are right/bottom-boundary
+    const rightBoundary = result.filter(t => t.vx > VIEWPORT_RADIUS)
+    expect(rightBoundary.length).toBeGreaterThan(0)
+    for (const tile of rightBoundary) {
+      expect(tile.char).toBe('█')
+      expect(tile.isPlayer).toBe(false)
+    }
+
+    const bottomBoundary = result.filter(t => t.vy > VIEWPORT_RADIUS)
+    expect(bottomBoundary.length).toBeGreaterThan(0)
+    for (const tile of bottomBoundary) {
+      expect(tile.char).toBe('█')
+      expect(tile.isPlayer).toBe(false)
+    }
+  })
+
+  it('excludes terrain tiles (only player + boundary + landmark in output)', () => {
+    const mapSize = 61
+    // No landmarks, just field terrain
+    const tiles = createMap(mapSize, createTile('field'))
+    const playerPos: [number, number] = [30, 30]
+
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+
+    // All tiles in-bounds → only player tile (no boundary, no landmarks, no terrain)
+    expect(result.length).toBe(1)
+    expect(result[0].isPlayer).toBe(true)
+    expect(result[0].char).toBe('@')
+  })
+
+  it('includes landmark tiles with accent color and correct char', () => {
+    const mapSize = 61
+    const tiles = createMap(mapSize, createTile('field', 'village'))
+    const playerPos: [number, number] = [30, 30]
+
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+
+    // Player at (30,30) — one tile
+    // But that tile has landmark=village; player takes precedence
+    // All other tiles have landmark=village → landmark tiles everywhere
+    // Total tiles = player(1) + landmarks(31² - 1 - 0 boundary) = 1 + 960 = 961
+    expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
+
+    const landmarkTiles = result.filter(t => t.isLandmark && !t.isPlayer)
+    // All non-player tiles should be landmarks
+    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
+
     for (const t of landmarkTiles) {
-      expect(t.char).toBe('A') // LANDMARKS 中 village 的 char
+      expect(t.char).toBe('A') // village char from LANDMARKS
       expect(t.textColor).toBe(defaultTheme.accent)
       expect(t.bgColor).toBe('')
+      expect(t.isLandmark).toBe(true)
       expect(t.landmarkType).toBe('village')
     }
   })
 
-  it('renders terrain tiles with muted text color and transparent bg', () => {
-    const mapSize = 10
-    const viewportSize = 2
-    const tiles = createMap(mapSize, createTile('forest'))
-    const mask = createMask(mapSize, true)
+  it('renders correct chars for all landmark types', () => {
+    const mapSize = 61
     const playerPos: [number, number] = [5, 5]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    const terrainTiles = result.filter(t => !t.isPlayer && !t.isLandmark)
-    expect(terrainTiles.length).toBeGreaterThan(0)
-    for (const t of terrainTiles) {
-      expect(t.char).toBe('▓') // TERRAINS 中 forest 的 char (Unicode block)
-      expect(t.textColor).toBe(defaultTheme.textMuted)
-      expect(t.bgColor).toBe('')
-      expect(t.isLandmark).toBe(false)
-    }
+    // Place a specific landmark at a known nearby position
+    const tiles = createMap(mapSize, createTile('field'))
+    // Place one landmark at (6,5) — one step right of player
+    const lmDef = LANDMARKS.find(lm => lm.type === 'ironMine')!
+    tiles[6][5] = createTile('field', 'ironMine')
+
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const lmTile = result.find(t => t.isLandmark)
+    expect(lmTile).toBeDefined()
+    expect(lmTile!.char).toBe(lmDef.char)
+    expect(lmTile!.landmarkType).toBe('ironMine')
+    // vx = wx - xStart = 6 - (5 - 15) = 6 - (-10) = 16
+    expect(lmTile!.vx).toBe(VIEWPORT_RADIUS + 1)
   })
 
   it('player on landmark shows @ (player takes precedence)', () => {
-    const mapSize = 10
-    const viewportSize = 1
+    const mapSize = 61
     const tiles = createMap(mapSize, createTile('field', 'ironMine'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [5, 5]
+    const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    const playerTile = result.find(t => t.worldX === 5 && t.worldY === 5)
+    const result = renderViewport(tiles, playerPos, defaultTheme)
+    const playerTile = result.find(t => t.isPlayer)
     expect(playerTile).toBeDefined()
     expect(playerTile!.isPlayer).toBe(true)
-    expect(playerTile!.isLandmark).toBe(false) // 玩家优先，不标记为地标
+    expect(playerTile!.isLandmark).toBe(false)
     expect(playerTile!.char).toBe('@')
-  })
-
-  it('tiles are ordered row by row (y-outer, x-inner)', () => {
-    const mapSize = 10
-    const viewportSize = 2
-    const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [5, 5]
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-    for (let i = 1; i < result.length; i++) {
-      const prev = result[i - 1]
-      const curr = result[i]
-      // 同一行从左到右，或下一行开始
-      expect(
-        curr.worldY > prev.worldY ||
-        (curr.worldY === prev.worldY && curr.worldX > prev.worldX),
-      ).toBe(true)
-    }
-  })
-
-  it('renders all terrain types with correct chars from TERRAINS config', () => {
-    const mapSize = 10
-    const viewportSize = 2
-    const playerPos: [number, number] = [5, 5]
-    const mask = createMask(mapSize, true)
-
-    const terrains: TerrainType[] = ['forest', 'field', 'barrens', 'road']
-    for (const terrain of terrains) {
-      const tiles = createMap(mapSize, createTile(terrain))
-      const result = renderViewport(
-        tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-      )
-      const expectedChar = TERRAINS.find(td => td.type === terrain)!.char
-      const sampleTile = result.find(t => !t.isPlayer && !t.isLandmark)
-      expect(sampleTile!.char).toBe(expectedChar)
-    }
-  })
-
-  it('renders all landmark types with correct chars from LANDMARKS config', () => {
-    const mapSize = 20
-    const viewportSize = 1
-    const playerPos: [number, number] = [5, 5]
-    const mask = createMask(mapSize, true)
-
-    const landmarkTests: Array<{ type: LandmarkType; expected: string }> = [
-      { type: 'village', expected: 'A' },
-      { type: 'ironMine', expected: 'I' },
-      { type: 'coalMine', expected: 'C' },
-      { type: 'sulphurMine', expected: 'S' },
-      { type: 'house', expected: 'H' },
-      { type: 'cave', expected: 'V' },
-      { type: 'town', expected: 'O' },
-      { type: 'city', expected: 'Y' },
-      { type: 'outpost', expected: 'P' },
-      { type: 'ship', expected: 'W' },
-      { type: 'borehole', expected: 'B' },
-      { type: 'battlefield', expected: 'F' },
-      { type: 'swamp', expected: 'M' },
-      { type: 'cache', expected: 'U' },
-      { type: 'executioner', expected: 'X' },
-    ]
-
-    for (const { type, expected } of landmarkTests) {
-      const tiles = createMap(mapSize, createTile('field', type))
-      const result = renderViewport(
-        tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-      )
-      const lmTile = result.find(t => t.isLandmark)
-      expect(lmTile).toBeDefined()
-      expect(lmTile!.char).toBe(expected)
-      expect(lmTile!.landmarkType).toBe(type)
-    }
-  })
-
-  it('uses TERRAINS constants for char lookup, not hardcoded', () => {
-    // 验证 chars 从 TERRAINS 读取而非硬编码
-    const mapSize = 5
-    const viewportSize = 2
-    const mask = createMask(mapSize, true)
-    const playerPos: [number, number] = [2, 2]
-
-    // 所有格初始为普通 barrens（无地标）
-    const tiles = createMap(mapSize, createTile('barrens'))
-
-    // 在特定位置放置不同地形/地标
-    tiles[1][2] = createTile('field')        // (x=1, y=2) field
-    tiles[2][3] = createTile('forest')       // (x=2, y=3) forest
-    tiles[3][2] = createTile('barrens', 'cave') // (x=3, y=2) cave 地标
-    tiles[3][3] = createTile('road')         // (x=3, y=3) road
-
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
-
-    // barrens（默认填充）
-    const barrensTile = result.find(t => t.worldX === 0 && t.worldY === 0)
-    expect(barrensTile!.isLandmark).toBe(false)
-    expect(barrensTile!.char).toBe(
-      TERRAINS.find(td => td.type === 'barrens')!.char,
-    )
-
-    // field
-    const fieldTile = result.find(t => t.worldX === 1 && t.worldY === 2)
-    expect(fieldTile!.isLandmark).toBe(false)
-    expect(fieldTile!.char).toBe(
-      TERRAINS.find(td => td.type === 'field')!.char,
-    )
-
-    // forest
-    const forestTile = result.find(t => t.worldX === 2 && t.worldY === 3)
-    expect(forestTile!.isLandmark).toBe(false)
-    expect(forestTile!.char).toBe(
-      TERRAINS.find(td => td.type === 'forest')!.char,
-    )
-
-    // road
-    const roadTile = result.find(t => t.worldX === 3 && t.worldY === 3)
-    expect(roadTile!.isLandmark).toBe(false)
-    expect(roadTile!.char).toBe(
-      TERRAINS.find(td => td.type === 'road')!.char,
-    )
-
-    // cave landmark
-    const caveTile = result.find(t => t.isLandmark)
-    expect(caveTile).toBeDefined()
-    expect(caveTile!.char).toBe(
-      LANDMARKS.find(lm => lm.type === 'cave')!.char,
-    )
-    expect(caveTile!.worldX).toBe(3)
-    expect(caveTile!.worldY).toBe(2)
   })
 
   it('does not mutate input arrays', () => {
     const mapSize = 10
-    const viewportSize = 2
     const tiles = createMap(mapSize, createTile('field'))
-    const mask = createMask(mapSize, true)
     const playerPos: [number, number] = [5, 5]
 
-    // 深拷贝参考
     const originalTiles: MapTile[][] = tiles.map(row =>
       row.map(t => ({ ...t })),
     )
-    const originalMask: boolean[][] = mask.map(row => [...row])
 
-    renderViewport(tiles, mask, playerPos, mapSize, viewportSize, defaultTheme)
+    renderViewport(tiles, playerPos, defaultTheme)
 
     expect(tiles).toEqual(originalTiles)
-    expect(mask).toEqual(originalMask)
+  })
+})
+
+// ─── renderTiles ───────────────────────────────────────
+
+describe('renderTiles', () => {
+  function createMockCtx(): CanvasRenderingContext2D {
+    // Provide minimal mock with only the props renderTiles touches
+    return {
+      font: '',
+      fillStyle: '',
+      fillText: vi.fn(),
+    } as unknown as CanvasRenderingContext2D
+  }
+
+  it('calls fillText for non-empty chars', () => {
+    const ctx = createMockCtx()
+    const descriptors: TileDescriptor[] = [
+      {
+        vx: 0, vy: 0, char: '@', textColor: '#fff', bgColor: '#333',
+        isPlayer: true, isLandmark: false,
+      },
+      {
+        vx: 1, vy: 0, char: 'A', textColor: '#ff0', bgColor: '',
+        isPlayer: false, isLandmark: true, landmarkType: 'village',
+      },
+    ]
+    const cellSize = 16
+
+    renderTiles(ctx, descriptors, cellSize)
+
+    expect(ctx.fillText).toHaveBeenCalledTimes(2)
+    expect(ctx.fillText).toHaveBeenCalledWith('@', 8, 8)
+    expect(ctx.fillText).toHaveBeenCalledWith('A', 24, 8)
   })
 
-  it('correctly handles mixed terrain in single viewport', () => {
-    // 构建一个 3×3 地图，玩家在中心 (1,1)，各种地形混合
-    const mapSize = 3
-    const viewportSize = 1
-    const mask = createMask(mapSize, true)
-
-    // tiles[x][y] — x 为行（水平坐标），y 为列（垂直坐标）
-    const tiles: MapTile[][] = [
-      /* x=0 */[createTile('forest'),    createTile('field'),   createTile('barrens')],
-      /* x=1 */[createTile('field'),     createTile('road'),    createTile('forest')],
-      /* x=2 */[createTile('barrens'),   createTile('forest'),  createTile('field', 'house')],
+  it('skips empty char ("")', () => {
+    const ctx = createMockCtx()
+    const descriptors: TileDescriptor[] = [
+      {
+        vx: 0, vy: 0, char: '', textColor: '#888', bgColor: '',
+        isPlayer: false, isLandmark: false,
+      },
     ]
 
-    const playerPos: [number, number] = [1, 1] // road tile
+    renderTiles(ctx, descriptors, 16)
 
-    const result = renderViewport(
-      tiles, mask, playerPos, mapSize, viewportSize, defaultTheme,
-    )
+    expect(ctx.fillText).not.toHaveBeenCalled()
+  })
 
-    expect(result.length).toBe(9)
+  it('skips space char (" ")', () => {
+    const ctx = createMockCtx()
+    const descriptors: TileDescriptor[] = [
+      {
+        vx: 0, vy: 0, char: ' ', textColor: '#888', bgColor: '',
+        isPlayer: false, isLandmark: false,
+      },
+    ]
 
-    // 玩家在 [1,1] -> tiles[1][1] = road
-    const playerTile = result.find(t => t.isPlayer)!
-    expect(playerTile.worldX).toBe(1)
-    expect(playerTile.worldY).toBe(1)
-    expect(playerTile.char).toBe('@')
+    renderTiles(ctx, descriptors, 16)
 
-    // 地标 house 在 [2,2] -> tiles[2][2]
-    const houseTile = result.find(t => t.isLandmark)!
-    expect(houseTile.worldX).toBe(2)
-    expect(houseTile.worldY).toBe(2)
-    expect(houseTile.char).toBe('H')
-    expect(houseTile.landmarkType).toBe('house')
+    expect(ctx.fillText).not.toHaveBeenCalled()
+  })
 
-    // tiles[0][0] = forest 在 (x=0, y=0)
-    const forestTileNW = result.find(
-      t => t.worldX === 0 && t.worldY === 0,
-    )
-    expect(forestTileNW!.char).toBe(
-      TERRAINS.find(td => td.type === 'forest')!.char,
-    )
+  it('skips empty and space but renders others in mixed list', () => {
+    const ctx = createMockCtx()
+    const descriptors: TileDescriptor[] = [
+      {
+        vx: 0, vy: 0, char: ' ', textColor: '#888', bgColor: '',
+        isPlayer: false, isLandmark: false,
+      },
+      {
+        vx: 1, vy: 0, char: '@', textColor: '#fff', bgColor: '#333',
+        isPlayer: true, isLandmark: false,
+      },
+      {
+        vx: 2, vy: 0, char: '', textColor: '#888', bgColor: '',
+        isPlayer: false, isLandmark: false,
+      },
+      {
+        vx: 3, vy: 0, char: '█', textColor: '#888', bgColor: '',
+        isPlayer: false, isLandmark: false,
+      },
+    ]
 
-    // tiles[0][1] = field 在 (x=0, y=1)
-    const fieldTileN = result.find(
-      t => t.worldX === 0 && t.worldY === 1,
-    )
-    expect(fieldTileN!.char).toBe(
-      TERRAINS.find(td => td.type === 'field')!.char,
-    )
+    renderTiles(ctx, descriptors, 16)
 
-    // tiles[1][2] = forest 在 (x=1, y=2)
-    const forestTileS = result.find(
-      t => t.worldX === 1 && t.worldY === 2,
-    )
-    expect(forestTileS!.char).toBe(
-      TERRAINS.find(td => td.type === 'forest')!.char,
-    )
-    expect(forestTileS!.textColor).toBe(defaultTheme.textMuted)
+    expect(ctx.fillText).toHaveBeenCalledTimes(2)
+    expect(ctx.fillText).toHaveBeenCalledWith('@', 24, 8)
+    expect(ctx.fillText).toHaveBeenCalledWith('█', 56, 8)
   })
 })

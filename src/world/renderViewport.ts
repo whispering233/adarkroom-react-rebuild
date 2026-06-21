@@ -1,20 +1,22 @@
 /**
  * World — Viewport 渲染器（纯函数）
  *
- * renderViewport() 以玩家位置为中心截取 viewportSize 范围的地图可见区域，
- * 为每个格子计算 char/textColor/bgColor，供 Canvas 绘制层消费。
+ * renderViewport() 以玩家位置为中心截取 VIEWPORT_TOTAL 范围的地图可见区域，
+ * 为玩家、地标和边界墙格子计算 char/textColor/bgColor。
+ *
+ * 普通地形格不生成 TileDescriptor（跳过以节省 Canvas fillText 调用）。
  *
  * 本模块无 DOM/Canvas/React 依赖，纯数据变换。
  */
 
 import type { MapTile } from './types'
-import { TERRAINS, LANDMARKS } from './constants'
+import { TERRAINS, LANDMARKS, WORLD } from './constants'
 
 // ─── 类型导出 ──────────────────────────────────────────
 
 export interface TileDescriptor {
-  worldX: number
-  worldY: number
+  vx: number
+  vy: number
   char: string
   textColor: string
   bgColor: string
@@ -30,6 +32,16 @@ export interface ThemeColors {
   cellBg: string
   accent: string
 }
+
+// ─── 常量 ──────────────────────────────────────────────
+
+const VIEWPORT_RADIUS = WORLD.VIEWPORT_RADIUS
+const VIEWPORT_TOTAL = VIEWPORT_RADIUS * 2 + 1 // 31
+
+const BOUNDARY_CHAR = '|'
+
+const FONT_NORMAL = '12px "Courier New", Courier, monospace'
+const FONT_LANDMARK = 'bold 12px "Courier New", Courier, monospace'
 
 // ─── 查找表（一次构建，多次复用）────────────────────────
 
@@ -47,46 +59,38 @@ for (const lm of LANDMARKS) {
 
 export function renderViewport(
   tiles: MapTile[][],
-  mask: boolean[][],
   playerPos: [number, number],
-  mapSize: number,
-  viewportSize: number,
   themeColors: ThemeColors,
 ): TileDescriptor[] {
   const [px, py] = playerPos
-
-  // 计算可见范围（以玩家为中心，viewportSize 为半宽/半高），边界钳制在 [0, mapSize-1]
-  const xStart = Math.max(0, px - viewportSize)
-  const xEnd = Math.min(mapSize - 1, px + viewportSize)
-  const yStart = Math.max(0, py - viewportSize)
-  const yEnd = Math.min(mapSize - 1, py + viewportSize)
+  const mapSize = tiles.length
+  const xStart = px - VIEWPORT_RADIUS
+  const yStart = py - VIEWPORT_RADIUS
 
   const result: TileDescriptor[] = []
 
-  for (let wy = yStart; wy <= yEnd; wy++) {
-    for (let wx = xStart; wx <= xEnd; wx++) {
-      const isPlayer = wx === px && wy === py
-      const isMasked = !mask[wx][wy]
+  for (let vy = 0; vy < VIEWPORT_TOTAL; vy++) {
+    for (let vx = 0; vx < VIEWPORT_TOTAL; vx++) {
+      const wx = xStart + vx
+      const wy = yStart + vy
 
-      // 1. 被迷雾遮挡的格子
-      if (isMasked) {
+      // 边界墙：超出地图范围
+      if (wx < 0 || wx >= mapSize || wy < 0 || wy >= mapSize) {
         result.push({
-          worldX: wx,
-          worldY: wy,
-          char: ' ',
+          vx, vy,
+          char: BOUNDARY_CHAR,
           textColor: themeColors.textMuted,
-          bgColor: themeColors.bg,
+          bgColor: '',
           isPlayer: false,
           isLandmark: false,
         })
         continue
       }
 
-      // 2. 玩家所在格（优先于地标/地形显示）
-      if (isPlayer) {
+      // 玩家格
+      if (wx === px && wy === py) {
         result.push({
-          worldX: wx,
-          worldY: wy,
+          vx, vy,
           char: '@',
           textColor: themeColors.textPrimary,
           bgColor: themeColors.cellBg,
@@ -99,11 +103,10 @@ export function renderViewport(
       const tile = tiles[wx][wy]
       const lmType = tile.landmark
 
-      // 3. 地标格
+      // 地标格
       if (lmType && landmarkCharMap[lmType]) {
         result.push({
-          worldX: wx,
-          worldY: wy,
+          vx, vy,
           char: landmarkCharMap[lmType],
           textColor: themeColors.accent,
           bgColor: '',
@@ -114,18 +117,40 @@ export function renderViewport(
         continue
       }
 
-      // 4. 普通地形格
+      // 普通地形格
       result.push({
-        worldX: wx,
-        worldY: wy,
-        char: terrainCharMap[tile.terrain] ?? '?',
-        textColor: themeColors.textMuted,
-        bgColor: '',
-        isPlayer: false,
-        isLandmark: false,
-      })
+          vx, vy,
+          char: '.',
+          textColor: themeColors.cellBg,
+          bgColor: '',
+          isPlayer: false,
+          isLandmark: false
+        })
     }
   }
 
   return result
+}
+
+// ─── Canvas 渲染函数 ──────────────────────────────────
+
+/**
+ * 将 TileDescriptor[] 渲染到 Canvas。
+ * 跳过空字符（char === '' || char === ' '），不会生成 fillText(' ') 伪影。
+ */
+export function renderTiles(
+  ctx: CanvasRenderingContext2D,
+  descriptors: TileDescriptor[],
+  cellSize: number,
+): void {
+  for (const d of descriptors) {
+    if (!d.char || d.char === ' ') continue
+
+    const x = d.vx * cellSize
+    const y = d.vy * cellSize
+
+    ctx.font = d.isLandmark ? FONT_LANDMARK : FONT_NORMAL
+    ctx.fillStyle = d.textColor
+    ctx.fillText(d.char, x + cellSize / 2, y + cellSize / 2)
+  }
 }

@@ -9,6 +9,7 @@ import type { TerrainDef, LandmarkDef } from './types'
 
 export const WORLD = {
   RADIUS: 30,
+  VIEWPORT_RADIUS: 31,
   LIGHT_RADIUS: 2,
   STICKINESS: 0.5,
   FIGHT_CHANCE: 0.20,
