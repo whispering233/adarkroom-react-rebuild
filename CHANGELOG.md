@@ -6,9 +6,13 @@
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
 ## [Unreleased]
+- Added
+- Changed
+- Fixed
+- Removed
 
 ### Added
-- 世界地图：解耦地图逻辑和渲染逻辑，支持多格地块、异形地块
+- 世界地图：解耦地图逻辑和渲染逻辑，支持多格地块、异形地块、路径记录
 
 ### Removed
 - 世界地图：移除地图固定大小，支持地图大小传参
