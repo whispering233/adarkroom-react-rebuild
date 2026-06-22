@@ -69,7 +69,11 @@ pnpm test
 │   │   ├── StoresPanel.tsx    # 右栏折叠面板（建筑/库存/武器 + 趋势 + 人口）
 │   │   ├── Toolbar.tsx        # 右下角工具栏（1×–5×速度/字体/主题）
 │   │   ├── WorkersPanel.tsx   # 工人分配面板（grid-cols-2 + hover tooltip）
-│   │   └── WorkersPanel.module.css
+│   │   ├── WorkersPanel.module.css
+│   │   ├── WorldHUD.tsx       # World 右栏面板（状态/装备/治疗）
+│   │   ├── WorldHUD.module.css
+│   │   ├── WorldInfo.tsx      # World 顶部信息栏（地图名称/天气）
+│   │   └── WorldInfo.module.css
 │   ├── rooms/                # 场景组件
 │   │   ├── Room.tsx           # 暗室（火堆操作 + 建造分栏）
 │   │   ├── Outside.tsx        # 野外（伐木 + 检查陷阱 + WorkersPanel）
@@ -134,7 +138,7 @@ pnpm test
 - 📊 **趋势面板**：资源分类 + 纯箭头（↑/↓）趋势 + 固定占位防跳变
 - 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
 - 🚶 **小径（Path）**：出发准备场景，从仓库选择装备装入背包（受容量/重量/库存约束），护甲/水量展示
-- 🗺️ **世界（World）**：Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport 纯函数管道，31×31 视口），四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，地标事件触发
+- 🗺️ **世界（World）**：通过小径出发进入，Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport 纯函数管道，31×31 视口）。右栏切换为 WorldHUD（状态/装备/治疗），顶部 WorldInfo 栏显示地图名称和天气。四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，地标事件触发。导航栏隐藏 World 标签，只能通过小径→出发进入
 - 🎲 **随机事件**：Room（商人/乞丐/流浪者...）+ Outside（陷阱被毁/火灾/瘟疫/袭击...）+ World（野兽/枯瘦男/异鸟遭遇战），纯数据配置，isAvailable 条件 + DAG 场景图
 - ⚔️ **战斗系统**：CombatOverlay 自包含（HP 条/武器网格/敌攻定时器/治疗/掉落），事件场景声明 `combat: true` 即可触发
 - 🎨 **主题切换**：浅色/暗色，localStorage 持久化

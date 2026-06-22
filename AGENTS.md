@@ -22,7 +22,7 @@
 - **GameProvider 初始化优先级**：`initialState` prop > localStorage 存档 > `INITIAL_STATE`，存档加载时做 shape merge 填充新增字段
 - **状态管理**：`useImmerReducer`（来自 `use-immer` 包，非原生 `useReducer`）。Reducer 内直接修改 draft，Immer 自动生成不可变副本。唯一例外：`LOAD_SAVE` 用 `return` 替换整个 state
 - **资源变更**：**绝对不要**直接修改 `draft.stores[key]`。必须走 `modifyResource(draft, key, delta)`，它在内部累加到 `_pendingDeltas`，由 `INCOME_TICK` 统一 flush
-- **场景路由**：`App.tsx` 中的 `SCENES` 对象映射（`Partial<Record<RoomName, ComponentType>>`），新增场景在此注册即可
+- **场景路由**：`App.tsx` 中的 `SCENES` 对象映射（`Partial<Record<RoomName, ComponentType>>`），新增场景在此注册即可。World 不在导航标签中，仅通过小径→出发进入；进入 World 时 Header 隐藏，替换为 WorldInfo 栏
 - **数据驱动**：新增资源/建筑/职业只需在 `config.ts` 加一行配置，UI 自动渲染。`evaluateUnlock()` 声明式解锁条件评估
 - **冷却系统**：所有按钮冷却由 `state.cooldown[id]` 驱动，无组件级定时器。`START_COOLDOWN` → `INCOME_TICK` 递减 → 归零时自动发放 reward
 - **CSS 三层架构**：Tailwind v4（`@import "tailwindcss"` 指令，非旧版 `@tailwind` 指令）+ `tokens.css`（设计 Token `var(--game-*)`）+ CSS Modules（`.module.css` 组件级隔离）
@@ -31,6 +31,7 @@
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
 - **世界地图渲染**：WorldCanvasScene 作为独立模块，零 React 依赖，使用 SceneState 对象模式 + rAF 循环 + mount/unmount 生命周期。RenderCell 接口（vx/vy/char/font/fillStyle）封装自包含渲染数据，与游戏语义解耦。renderViewport 内部解析 CSS 变量→fillStyle，输出 RenderCell[]；renderTiles 纯执行器，直接使用 cell.* 渲染，跳过空字符。地图尺寸以 MapDef.size 为准（默认 DEFAULT_MAP_RADIUS=30，地图 61×61，视口以配置为准）。void 地形保留为扩展点（char=''）。
 - **世界渲染数据驱动**：TileRole（'boundary'|'player'|'landmark'|'terrain'）声明角色，TILE_CONFIG 映射角色→font + CSS 变量名。LandmarkDef.footprint 支持多格占位（如 village 3×3、city/ship 2×2），纯视觉铺色，不影响游戏逻辑。terrainCharMap/landmarkDefMap 查找表提高每帧性能。
+- **右栏条件切换**：当 `currentRoom === 'world'` 时，右栏渲染 WorldHUD（状态/装备/治疗）代替 StoresPanel
 
 ## Key module map
 
@@ -43,6 +44,8 @@
 | `src/rooms/` | 场景组件 + `craftables/` 制造系统（纯数据配置） |
 | `src/events/` | 随机事件系统（调度器 + 注册表 + 场景数据） |
 | `src/combat/` | 战斗系统（事件驱动，CombatOverlay 自包含） |
+| `src/components/WorldHUD.tsx` | World HUD 面板（状态/装备/治疗，World 场景右栏） |
+| `src/components/WorldInfo.tsx` | World 信息栏（地图名称、天气，World 场景顶部） |
 | `src/i18n/` | i18next 国际化（`zh.json`/`en.json`，默认中文） |
 | `src/world/` | 世界地图生成 + Canvas 渲染管道（WorldCanvasScene / renderViewport / renderTiles） |
 
@@ -90,6 +93,10 @@ type X = (typeof X)[keyof typeof X]
 ### Vite `base: './'`
 
 构建产物使用相对路径，可直接部署到任意子目录。`public/` 中的资源引用也使用相对路径。
+
+### World 场景访问
+
+World 场景只能通过小径（Path）→ 出发（embark）进入，导航栏无 World 标签。从 World 返回通过村庄（village）地标实现，无直接返回按钮。
 
 ## Conventions
 
