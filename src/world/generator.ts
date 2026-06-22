@@ -13,6 +13,7 @@ import { WORLD, LANDMARKS } from './constants'
 export interface GenerateResult {
   tiles: MapTile[][]
   mask: boolean[][]
+  traveled: boolean[][]
 }
 
 export function generateMap(mapDef: MapDef): GenerateResult {
@@ -57,7 +58,11 @@ export function generateMap(mapDef: MapDef): GenerateResult {
   const mask = createMask(size)
   lightMap(mask, spawnPos, WORLD.LIGHT_RADIUS)
 
-  return { tiles, mask }
+  // 6. 生成 traveled 网格（初始全 false，出生点标记为已踩踏）
+  const traveled = createMask(size)
+  traveled[spawnPos[0]][spawnPos[1]] = true
+
+  return { tiles, mask, traveled }
 }
 
 // ─── 地形填充 ─────────────────────────────────────────

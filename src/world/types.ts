@@ -106,6 +106,7 @@ export interface PersistentWorldData {
   tiles: MapTile[][]
   mask: boolean[][]
   explored: boolean[][]
+  traveled: boolean[][]
   usedOutposts: Record<string, boolean>
 }
 
@@ -116,6 +117,7 @@ export interface WorldMapStackEntry {
   pos: [number, number]
   mask: boolean[][]
   explored: boolean[][]
+  traveled: boolean[][]
   usedOutposts: Record<string, boolean>
 }
 
@@ -133,6 +135,8 @@ export interface WorldRuntimeState {
   mask: boolean[][]
   /** 临时 explored 副本（goHome 提交，die 丢弃） */
   explored: boolean[][]
+  /** 临时 traveled 副本（goHome 提交，die 丢弃） */
+  traveled: boolean[][]
   /** 临时 usedOutposts 副本 */
   usedOutposts: Record<string, boolean>
   /** 本次行程发现的矿场（setpiece 事件设置，goHome 时提交解锁） */

@@ -440,12 +440,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         isAvailable: () => true,
       }
       if (!draft.game.world) {
-        const { tiles, mask } = generateMap(worldDef)
+        const { tiles, mask, traveled } = generateMap(worldDef)
         draft.game.world = {
           mapId: 'world',
           tiles,
           mask,
           explored: createMask(tiles.length),
+          traveled,
           usedOutposts: {},
         }
       }
@@ -465,6 +466,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         thirst: false,
         mask: draft.game.world.mask.map(row => [...row]),
         explored: draft.game.world.explored.map(row => [...row]),
+        traveled: draft.game.world.traveled.map(row => [...row]),
         usedOutposts: { ...draft.game.world.usedOutposts },
         minesFound: {},
         mapStack: [],
@@ -496,6 +498,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         if (draft.game.world) {
           draft.game.world.mask = wr.mask
           draft.game.world.explored = wr.explored
+          draft.game.world.traveled = wr.traveled
           draft.game.world.usedOutposts = wr.usedOutposts
           if (wr.minesFound?.iron && !draft.game.buildings['iron mine']) {
             draft.game.buildings['iron mine'] = 1
@@ -531,12 +534,14 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         pos: [...wr.curPos],
         mask: wr.mask,
         explored: wr.explored.map(row => [...row]),
+        traveled: wr.traveled.map(row => [...row]),
         usedOutposts: { ...wr.usedOutposts },
       })
       draft.game.world!.mapId = action.mapId
       wr.curPos = action.pos ?? [0, 0]
       wr.mask = createNewMask(draft.game.world!.tiles.length, wr.curPos)
       wr.explored = createMask(draft.game.world!.tiles.length)
+      wr.traveled = createMask(draft.game.world!.tiles.length)
       wr.usedOutposts = {}
       break
     }
@@ -550,6 +555,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         wr.curPos = prev.pos
         wr.mask = prev.mask
         wr.explored = prev.explored
+        wr.traveled = prev.traveled
         wr.usedOutposts = prev.usedOutposts
       }
       break

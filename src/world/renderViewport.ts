@@ -69,6 +69,7 @@ export function renderViewport(
   playerPos: [number, number],
   mask: boolean[][],
   explored?: boolean[][],
+  traveled?: boolean[][],
 ): RenderCell[] {
   const [px, py] = playerPos
   const mapSize = tiles.length
@@ -133,7 +134,7 @@ export function renderViewport(
         continue
       }
 
-      const terrainChar = tile.terrain === 'void' ? '' : '.'
+      const terrainChar = tile.terrain === 'void' ? '' : (traveled?.[wx]?.[wy] ? ';' : '.')
       result.push({
         vx, vy,
         char: terrainChar,

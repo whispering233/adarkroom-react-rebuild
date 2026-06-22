@@ -139,6 +139,7 @@ export function World() {
       w.curPos = [nx, ny]
       lightMap(w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
       lightMap(w.explored, [nx, ny], WORLD.LIGHT_RADIUS)
+      w.traveled[nx][ny] = true
 
       if (prevTile.terrain !== newTile.terrain) {
         const td = TERRAINS.find(td => td.type === newTile.terrain)
@@ -214,7 +215,7 @@ export function World() {
         const wr = s.game.worldRuntime
         if (!pw || !wr) return () => {}
 
-        const descriptors = renderViewport(pw.tiles, wr.curPos, wr.mask, wr.explored)
+        const descriptors = renderViewport(pw.tiles, wr.curPos, wr.mask, wr.explored, wr.traveled)
         return (ctx: CanvasRenderingContext2D, cellSize: number) => {
           renderTiles(ctx, descriptors, cellSize)
         }
