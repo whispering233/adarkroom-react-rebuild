@@ -464,6 +464,11 @@
     "use_meds": "use meds",
     "use_hypo": "use hypo",
     "return_home": "return home",
+    "info": {
+      "map": "Map",
+      "weather": "Weather",
+      "weather_clear": "Clear"
+    },
     "starvation": "starvation sets in...",
     "thirst": "the thirst becomes unbearable...",
     "narrate": {

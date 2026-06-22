@@ -1,0 +1,25 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--game-text-muted);
+  flex-shrink: 0;
+}
+
+.label {
+  color: var(--game-text-muted);
+}
+
+.value {
+  color: var(--game-text-primary);
+  font-weight: 600;
+}
+
+.separator {
+  width: 1px;
+  height: 1em;
+  background: var(--game-text-muted);
+  opacity: 0.4;
+}

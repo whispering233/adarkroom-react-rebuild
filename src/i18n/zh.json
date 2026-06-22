@@ -463,6 +463,11 @@
     "use_meds": "用药",
     "use_hypo": "注射",
     "return_home": "回村",
+    "info": {
+      "map": "地图",
+      "weather": "天气",
+      "weather_clear": "晴朗"
+    },
     "starvation": "饥饿袭来...",
     "thirst": "口渴难耐...",
     "narrate": {

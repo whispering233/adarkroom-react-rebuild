@@ -15,7 +15,6 @@ const ROOM_ORDER: RoomNameType[] = [
   RoomName.Room,
   RoomName.Outside,
   RoomName.Path,
-  RoomName.World,
   RoomName.Fabricator,
   RoomName.Ship,
 ]

@@ -19,6 +19,7 @@ import { Outside } from './rooms/Outside'
 import { Path } from './rooms/Path'
 import { World } from './rooms/World'
 import { WorldHUD } from './components/WorldHUD'
+import { WorldInfo } from './components/WorldInfo'
 
 /** 场景路由表 — 新增场景只需在此注册即可 */
 const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
@@ -81,7 +82,10 @@ function App() {
 
         {/* 中栏 — 交互操作 */}
         <div className="relative flex flex-col h-full overflow-y-auto">
-          <Header />
+          {!isWorld && <Header />}
+          {isWorld && (
+            <WorldInfo mapName={fullState.game.world?.mapId ?? 'world'} />
+          )}
           {/* 事件弹窗覆盖层 */}
           {activeEvent && <EventOverlay />}
           <main className="flex-1 flex flex-col">
