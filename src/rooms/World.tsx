@@ -245,7 +245,7 @@ export function World() {
               <span className={styles.hudValue}>{water}</span>
             </div>
             <div className={styles.hudItem}>
-              <span className={styles.hudLabel}>{t('cured meat')}</span>
+              <span className={styles.hudLabel}>{t('stores.cured_meat')}</span>
               <span className={styles.hudValue}>{outfit['cured meat'] ?? 0}</span>
             </div>
             <button

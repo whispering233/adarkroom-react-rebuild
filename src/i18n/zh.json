@@ -184,6 +184,25 @@
       "max": "你已经有一个军械库了"
     }
   },
+  "combat": {
+    "you": "你",
+    "enemy": "敌人",
+    "defeat": "你被击败了...",
+    "victory": "你胜利了！",
+    "eat_meat": "吃肉干",
+    "use_meds": "用药",
+    "flee": "逃跑",
+    "verb": {
+      "punch": "拳击",
+      "throw": "投掷",
+      "swing": "挥砍",
+      "slash": "劈斩",
+      "shoot": "射击",
+      "blast": "轰击",
+      "lob": "投弹",
+      "tangle": "缠绕"
+    }
+  },
   "narrative": {
     "source": {
       "cost.fire_light": "点火消耗",

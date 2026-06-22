@@ -12,6 +12,10 @@ import { WORLD } from '../world/constants'
 import { Button } from '../components/Button'
 import styles from './Path.module.css'
 
+function resourceI18nKey(key: string): string {
+  return `stores.${key.replace(/ /g, '_')}`
+}
+
 export function Path() {
   const { t } = useTranslation()
   const state = useGameState()
@@ -130,7 +134,7 @@ export function Path() {
 
           return (
             <div key={key} className={styles.outfitRow}>
-              <span className={styles.itemName}>{t(key)}</span>
+              <span className={styles.itemName}>{t(resourceI18nKey(key))}</span>
               <span className={styles.itemCount}>{count}</span>
               <div className={styles.itemBtnGroup}>
                 <button

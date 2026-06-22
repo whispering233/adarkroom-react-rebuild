@@ -184,6 +184,25 @@
       "max": "you already have an armoury"
     }
   },
+  "combat": {
+    "you": "You",
+    "enemy": "Enemy",
+    "defeat": "You have been defeated...",
+    "victory": "You are victorious!",
+    "eat_meat": "eat meat",
+    "use_meds": "use meds",
+    "flee": "flee",
+    "verb": {
+      "punch": "punch",
+      "throw": "throw",
+      "swing": "swing",
+      "slash": "slash",
+      "shoot": "shoot",
+      "blast": "blast",
+      "lob": "lob",
+      "tangle": "tangle"
+    }
+  },
   "narrative": {
     "source": {
       "cost.fire_light": "Light fire",
