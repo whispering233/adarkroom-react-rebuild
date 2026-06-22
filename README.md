@@ -146,19 +146,6 @@ pnpm test
 - 🌐 **国际化**：中/英，自动匹配浏览器语言
 - 🛡️ **ErrorBoundary**：顶层错误捕获，防白屏
 
-## 重构目标
-
-原始项目是一个纯 JavaScript 文字冒险游戏。本重构练习逐步将其改造为：
-
-- 组件化的 React 架构
-- 类型安全的 TypeScript
-- 函数式状态管理（Immer + useReducer）
-- **声明式数据驱动**（RESOURCES / Craftables / WORKER_INCOME / TRAP_DROPS 配置表，新增资源/建筑/工人职业只需加一行）
-- 可静态部署的 SPA
-- 响应式 UI（Tailwind + CSS Modules）
-
-详见 [`doc/`](doc/) 目录下的架构分析、阶段方案和 TODO 清单。
-
 ## 可参考
 rot.js、libtcod、Brogue、Cogmind
 
