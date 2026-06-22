@@ -192,6 +192,8 @@
     "eat_meat": "eat meat",
     "use_meds": "use meds",
     "flee": "flee",
+    "fled": "You fled...",
+    "continue": "continue",
     "verb": {
       "punch": "punch",
       "throw": "throw",
