@@ -155,26 +155,6 @@ pnpm test
 
 详见 [`doc/`](doc/) 目录下的架构分析、阶段方案和 TODO 清单。
 
-## 发版
-
-本项目使用 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 格式的 `CHANGELOG.md` 作为版本说明的唯一来源。推送 `v*` 格式的 tag 后，GitHub Actions 自动从 CHANGELOG 解析对应版本段落创建 [GitHub Release](https://github.com/whispering233/adarkroom-react-rebuild/releases)。
-
-### 发版步骤
-
-1. 在 `CHANGELOG.md` 中将 `[Unreleased]` 下的内容移到新版本标题下（如 `## [v0.2.0] - 2026-06-20`）
-2. 修改 `package.json` 中的 `version` 字段
-3. 打 tag 并推送：
-
-```bash
-git add CHANGELOG.md package.json
-git commit -m "chore(release): bump version to vX.Y.Z"
-git tag vX.Y.Z
-git push origin main
-git push origin vX.Y.Z
-```
-
-推送后 GitHub Actions 自动创建 Release 页面，正文即为 CHANGELOG 中对应版本段落。
-
 ## 可参考
 rot.js、libtcod、Brogue、Cogmind
 

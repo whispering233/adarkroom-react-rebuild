@@ -32,6 +32,7 @@ coverage/
 
 # 原始项目参考（只读分析用）
 origin-adarkroom/
+origin-adarkroom/
 
 # Reasonix agent 本地状态
 .reasonix/
