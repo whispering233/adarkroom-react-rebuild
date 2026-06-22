@@ -453,6 +453,11 @@
   },
   "world": {
     "not_available": "World not generated",
+    "hud": {
+      "status": "Status",
+      "equipment": "Equipment",
+      "actions": "Actions"
+    },
     "hp": "HP",
     "water": "Water",
     "eat_meat": "eat meat",

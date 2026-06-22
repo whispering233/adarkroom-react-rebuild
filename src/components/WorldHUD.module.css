@@ -1,0 +1,63 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+  font-size: 0.8rem;
+}
+
+.section {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--game-text-muted);
+}
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--game-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.15rem 0;
+}
+
+.statLabel {
+  color: var(--game-text-body);
+}
+
+.statValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--game-text-primary);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--game-btn-border);
+  border-radius: 3px;
+  background: var(--game-btn-bg);
+  color: var(--game-btn-text);
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-align: left;
+  transition: background 0.1s;
+}
+.btn:hover:not(:disabled) {
+  background: var(--game-btn-hover-bg);
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

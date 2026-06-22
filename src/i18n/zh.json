@@ -452,6 +452,11 @@
   },
   "world": {
     "not_available": "世界尚未生成",
+    "hud": {
+      "status": "状态",
+      "equipment": "装备",
+      "actions": "操作"
+    },
     "hp": "生命",
     "water": "水",
     "eat_meat": "吃肉干",

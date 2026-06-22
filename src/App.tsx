@@ -18,6 +18,7 @@ import { Room } from './rooms/Room'
 import { Outside } from './rooms/Outside'
 import { Path } from './rooms/Path'
 import { World } from './rooms/World'
+import { WorldHUD } from './components/WorldHUD'
 
 /** 场景路由表 — 新增场景只需在此注册即可 */
 const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
@@ -33,6 +34,7 @@ function App() {
   const currentRoom = state.currentRoom
   const activeEvent = state.game.activeEvent
   const Scene = SCENES[currentRoom]
+  const isWorld = currentRoom === RoomName.World
 
   // ── auto-save (10s real-time throttle, skip during combat/events) ──
   const lastSaveRef = useRef<number>(0)
@@ -94,7 +96,16 @@ function App() {
 
         {/* 右栏 — 游戏数据 */}
         <aside className="p-4 overflow-y-auto">
-          <StoresPanel />
+          {isWorld ? (
+            <WorldHUD
+              health={fullState.game.worldRuntime?.health ?? 0}
+              maxHealth={fullState.game.worldRuntime?.maxHealth ?? 100}
+              water={fullState.game.worldRuntime?.water ?? 0}
+              outfit={fullState.outfit ?? {}}
+            />
+          ) : (
+            <StoresPanel />
+          )}
         </aside>
         <Toolbar />
       </div>

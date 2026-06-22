@@ -36,12 +36,6 @@ export function World() {
   const wr = state.game.worldRuntime
   const pw = state.game.world
 
-  // ── 数据提取（空值安全）───────────────────────────────
-  const water = wr?.water ?? 0
-  const health = wr?.health ?? 0
-  const maxHealth = wr?.maxHealth ?? 0
-  const outfit = state.outfit ?? {}
-
   // ── 补给消耗 ────────────────────────────────────────
   const consumeSupplies = useCallback((): boolean => {
     let survived = true
@@ -187,21 +181,6 @@ export function World() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [handleKey])
 
-  // ── 治疗 ────────────────────────────────────────────
-  const heal = useCallback(
-    (type: 'meat' | 'meds' | 'hypo', amount: number) => {
-      dispatch(applyRecipe(d => {
-        const w = d.game.worldRuntime
-        if (!w) return
-        const key = type === 'meat' ? 'cured meat' : type === 'meds' ? 'medicine' : 'hypo'
-        if ((d.outfit[key] ?? 0) <= 0) return
-        d.outfit[key] = (d.outfit[key] ?? 0) - 1
-        w.health = Math.min(w.maxHealth, w.health + amount)
-      }))
-    },
-    [dispatch],
-  )
-
   // ── Canvas 场景 ──────────────────────────────────
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<ReturnType<typeof createWorldCanvasScene> | null>(null)
@@ -233,52 +212,9 @@ export function World() {
   return (
     <div className={styles.worldPanel}>
       {wr && pw ? (
-        <>
-          {/* HUD */}
-          <div className={styles.worldHUD}>
-            <div className={styles.hudItem}>
-              <span className={styles.hudLabel}>{t('world.hp')}</span>
-              <span className={styles.hudValue}>{health}/{maxHealth}</span>
-            </div>
-            <div className={styles.hudItem}>
-              <span className={styles.hudLabel}>{t('world.water')}</span>
-              <span className={styles.hudValue}>{water}</span>
-            </div>
-            <div className={styles.hudItem}>
-              <span className={styles.hudLabel}>{t('stores.cured_meat')}</span>
-              <span className={styles.hudValue}>{outfit['cured meat'] ?? 0}</span>
-            </div>
-            <button
-              className={styles.healBtn}
-              onClick={() => heal('meat', WORLD.MEAT_HEAL)}
-              disabled={(outfit['cured meat'] ?? 0) <= 0}
-            >
-              {t('world.eat_meat')}
-            </button>
-            <button
-              className={styles.healBtn}
-              onClick={() => heal('meds', WORLD.MEDS_HEAL)}
-              disabled={(outfit.medicine ?? 0) <= 0}
-            >
-              {t('world.use_meds')}
-            </button>
-            <button
-              className={styles.healBtn}
-              onClick={() => heal('hypo', WORLD.HYPO_HEAL)}
-              disabled={(outfit.hypo ?? 0) <= 0}
-            >
-              {t('world.use_hypo')}
-            </button>
-            <button className={styles.healBtn} onClick={() => dispatch(returnFromWorld(false))}>
-              {t('world.return_home')}
-            </button>
-          </div>
-
-          {/* Map */}
-          <div className={styles.mapContainer}>
-            <canvas ref={canvasRef} className={styles.mapCanvas} />
-          </div>
-        </>
+        <div className={styles.mapContainer}>
+          <canvas ref={canvasRef} className={styles.mapCanvas} />
+        </div>
       ) : (
         <div>{t('world.not_available')}</div>
       )}

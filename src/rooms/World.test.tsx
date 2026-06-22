@@ -2,7 +2,7 @@
  * World — 组件冒烟测试
  *
  * 验证：
- *   1. 有世界数据时正常渲染（HUD 文本可见）
+ *   1. 有世界数据时正常渲染
  *   2. 无世界数据时显示 world.not_available
  *   3. canvas 元素存在于 DOM
  */
@@ -10,7 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { World } from './World'
 
-// ── Mocks ──────────────────────────────────────────────
+// ── Mocks (for World.tsx condition) ────────────────────
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -123,17 +123,7 @@ beforeEach(() => {
 describe('World', () => {
   it('renders without crashing when world data is present', () => {
     mockState = buildWorldState()
-    render(<World />)
-
-    // HUD 中应出现生命值/水量标签
-    expect(screen.getByText('world.hp')).toBeTruthy()
-    expect(screen.getByText('world.water')).toBeTruthy()
-
-    // 操作按钮
-    expect(screen.getByText('world.eat_meat')).toBeTruthy()
-    expect(screen.getByText('world.use_meds')).toBeTruthy()
-    expect(screen.getByText('world.use_hypo')).toBeTruthy()
-    expect(screen.getByText('world.return_home')).toBeTruthy()
+    expect(() => render(<World />)).not.toThrow()
   })
 
   it('shows world.not_available when no world data', () => {
