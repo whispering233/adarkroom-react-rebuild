@@ -19,7 +19,7 @@ import { TERRAINS, LANDMARKS, WORLD } from './constants'
 
 // ─── 类型 ──────────────────────────────────────────────
 
-type TileRole = 'boundary' | 'player' | 'landmark' | 'terrain'
+type TileRole = 'boundary' | 'player' | 'landmark' | 'terrain' | 'traveled'
 
 export interface RenderCell {
   vx: number
@@ -39,6 +39,7 @@ const TILE_CONFIG: Record<TileRole, { font: string; fillVar: string }> = {
   player:   { font: FONT_NORMAL_VAL, fillVar: '--game-text-primary' },
   landmark: { font: FONT_LANDMARK_VAL, fillVar: '--game-accent' },
   terrain:  { font: FONT_NORMAL_VAL, fillVar: '--game-terrain' },
+  traveled:  { font: FONT_NORMAL_VAL, fillVar: '--game-terrain-traveled' },
 }
 
 // ─── 常量 ──────────────────────────────────────────────
@@ -83,6 +84,7 @@ export function renderViewport(
     player:   gcs.getPropertyValue(TILE_CONFIG.player.fillVar).trim(),
     landmark: gcs.getPropertyValue(TILE_CONFIG.landmark.fillVar).trim(),
     terrain:  gcs.getPropertyValue(TILE_CONFIG.terrain.fillVar).trim(),
+    traveled:  gcs.getPropertyValue(TILE_CONFIG.traveled.fillVar).trim(),
   }
   const mutedFill = fillStyleFor.boundary // --game-text-muted
 
@@ -135,11 +137,12 @@ export function renderViewport(
       }
 
       const terrainChar = tile.terrain === 'void' ? '' : (traveled?.[wx]?.[wy] ? ';' : '.')
+      const terrainFillStyle = traveled?.[wx]?.[wy] ? fillStyleFor.traveled : fillStyleFor.terrain
       result.push({
         vx, vy,
         char: terrainChar,
         font: TILE_CONFIG.terrain.font,
-        fillStyle: isDimmed ? mutedFill : fillStyleFor.terrain,
+        fillStyle: terrainFillStyle,
       })
     }
   }
