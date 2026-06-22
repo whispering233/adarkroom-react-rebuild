@@ -125,6 +125,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
     const s0 = await runReducer(
       INITIAL_STATE,
       applyRecipe(d => {
+        d.stores.wood = 0
         d.income.builder = { delay: 2, stores: { wood: 3 }, timeLeft: 2 }
       }),
     )
@@ -147,7 +148,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
     const s1 = await runReducer(
       INITIAL_STATE,
       applyRecipe(d => {
-        d.stores.wood += 10
+        d.stores.wood = 10
         d.stores.fur += 5
       }),
     )
@@ -197,16 +198,17 @@ describe('state 模块 (useImmerReducer 版)', () => {
       }),
     )
     // 检查 INITIAL_STATE 未被修改
-    expect(INITIAL_STATE.stores.wood).toBe(0)
+    expect(INITIAL_STATE.stores.wood).toBe(10000) // per config: wood.initial = 10000
     expect(INITIAL_STATE).toEqual(original)
   })
 
   // ── 边界条件 ─────────────────────────────────────────
 
   it('stores 负数保护：wood 不会低于 0', async () => {
-    const { lightFire } = await import('./reducer')
+    const { lightFire, applyRecipe } = await import('./reducer')
     const { INITIAL_STATE } = await import('./types')
-    const s1 = await runReducer(INITIAL_STATE, lightFire()) // wood=0, 扣 5
+    const s0 = await runReducer(INITIAL_STATE, applyRecipe(d => { d.stores.wood = 0 }))
+    const s1 = await runReducer(s0, lightFire()) // wood=0, 扣 5
     expect(s1.stores.wood).toBe(0) // 不能为负
   })
 
@@ -227,7 +229,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
 
   it('初始状态全默认值', async () => {
     const { INITIAL_STATE, FireLevel, TempLevel } = await import('./types')
-    expect(INITIAL_STATE.stores.wood).toBe(0)
+    expect(INITIAL_STATE.stores.wood).toBe(10000) // per config: wood.initial = 10000
     expect(INITIAL_STATE.game.fire).toBe(FireLevel.Dead)
     expect(INITIAL_STATE.game.temperature).toBe(TempLevel.Freezing)
     expect(INITIAL_STATE.game.builder.level).toBe(0)
@@ -492,6 +494,7 @@ describe('state 模块 (useImmerReducer 版)', () => {
     const s0 = await runReducer(
       INITIAL_STATE,
       applyRecipe(d => {
+        d.stores.wood = 0
         d.game.population = 3 // all gatherers
         d.game.workers = {}
       }),

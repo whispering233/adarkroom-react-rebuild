@@ -5,6 +5,11 @@
  * 为每个格子计算 char/font/fillStyle 并返回 RenderCell[]。
  * 需要 DOM（getComputedStyle）来解析 CSS 变量为实际颜色值。
  *
+ * @param tiles - 地图地块二维数组
+ * @param playerPos - 当前玩家位置 [x, y]
+ * @param mask - 可见性掩码二维数组，true=可见；不可见且未探索的格子跳过
+ * @param explored - 可选，是否曾被探索过；true 且 mask=false 的格子以 muted 颜色渲染
+ *
  * renderTiles() 将 RenderCell[] 渲染到 Canvas，直接使用 cell.font/cell.fillStyle，
  * 无样式查找逻辑。
  */
@@ -62,6 +67,8 @@ for (const lm of LANDMARKS) {
 export function renderViewport(
   tiles: MapTile[][],
   playerPos: [number, number],
+  mask: boolean[][],
+  explored?: boolean[][],
 ): RenderCell[] {
   const [px, py] = playerPos
   const mapSize = tiles.length
@@ -76,6 +83,7 @@ export function renderViewport(
     landmark: gcs.getPropertyValue(TILE_CONFIG.landmark.fillVar).trim(),
     terrain:  gcs.getPropertyValue(TILE_CONFIG.terrain.fillVar).trim(),
   }
+  const mutedFill = fillStyleFor.boundary // --game-text-muted
 
   const result: RenderCell[] = []
 
@@ -106,30 +114,22 @@ export function renderViewport(
         continue
       }
 
+      const isVisible = mask[wx]?.[wy] ?? false
+      const isExplored = explored?.[wx]?.[wy] ?? false
+      if (!isVisible && !isExplored) continue
+      const isDimmed = !isVisible && isExplored
+
       const tile = tiles[wx][wy]
       const lmType = tile.landmark
 
-      // 地标格
+      // 地标格（footprint 展开已在生成阶段完成）
       if (lmType && landmarkCharMap[lmType]) {
-        const lmDef = landmarkDefMap[lmType]
-        const fp = lmDef.footprint ?? { w: 1, h: 1 }
-        for (let dy = 0; dy < fp.h; dy++) {
-          for (let dx = 0; dx < fp.w; dx++) {
-            const fwx = wx + dx
-            const fwy = wy + dy
-            const fvx = fwx - xStart
-            const fvy = fwy - yStart
-            if (fvx >= 0 && fvx < VIEWPORT_TOTAL && fvy >= 0 && fvy < VIEWPORT_TOTAL) {
-              result.push({
-                vx: fvx,
-                vy: fvy,
-                char: (dx === 0 && dy === 0) ? landmarkCharMap[lmType]! : '',
-                font: TILE_CONFIG.landmark.font,
-                fillStyle: fillStyleFor.landmark,
-              })
-            }
-          }
-        }
+        result.push({
+          vx, vy,
+          char: landmarkCharMap[lmType]!,
+          font: TILE_CONFIG.landmark.font,
+          fillStyle: isDimmed ? mutedFill : fillStyleFor.landmark,
+        })
         continue
       }
 
@@ -138,7 +138,7 @@ export function renderViewport(
         vx, vy,
         char: terrainChar,
         font: TILE_CONFIG.terrain.font,
-        fillStyle: fillStyleFor.terrain,
+        fillStyle: isDimmed ? mutedFill : fillStyleFor.terrain,
       })
     }
   }

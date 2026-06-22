@@ -22,6 +22,7 @@ import { WORLD_ENCOUNTERS } from '../events/world/encounters'
 import styles from './World.module.css'
 import { renderViewport, renderTiles } from '../world/renderViewport'
 import { createWorldCanvasScene } from '../world/WorldCanvasScene'
+import { isTilePassable } from '../world'
 
 export function World() {
   const { t } = useTranslation()
@@ -130,12 +131,14 @@ export function World() {
 
     const prevTile = tiles[curPos[0]][curPos[1]]
     const newTile = tiles[nx][ny]
+    if (!isTilePassable(newTile)) return
 
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
       if (!w) return
       w.curPos = [nx, ny]
-      lightMap(d.game.world!.tiles, w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
+      lightMap(w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
+      lightMap(w.explored, [nx, ny], WORLD.LIGHT_RADIUS)
 
       if (prevTile.terrain !== newTile.terrain) {
         const td = TERRAINS.find(td => td.type === newTile.terrain)
@@ -211,7 +214,7 @@ export function World() {
         const wr = s.game.worldRuntime
         if (!pw || !wr) return () => {}
 
-        const descriptors = renderViewport(pw.tiles, wr.curPos)
+        const descriptors = renderViewport(pw.tiles, wr.curPos, wr.mask, wr.explored)
         return (ctx: CanvasRenderingContext2D, cellSize: number) => {
           renderTiles(ctx, descriptors, cellSize)
         }

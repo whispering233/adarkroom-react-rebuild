@@ -6,7 +6,7 @@
  */
 
 import type { MapTile, MapDef } from './types'
-import { WORLD } from './constants'
+import { WORLD, LANDMARKS } from './constants'
 
 // ─── 主入口 ───────────────────────────────────────────
 
@@ -17,12 +17,32 @@ export interface GenerateResult {
 
 export function generateMap(mapDef: MapDef): GenerateResult {
   const size = mapDef.size * 2 + 1
+
+  // 解析出生点坐标（默认地图中心），然后钳制到有效范围
+  let spawnPosX = mapDef.spawnPos?.[0] ?? mapDef.size
+  let spawnPosY = mapDef.spawnPos?.[1] ?? mapDef.size
+  if (spawnPosX >= size) spawnPosX = size - 1
+  if (spawnPosX < 0) spawnPosX = 0
+  if (spawnPosY >= size) spawnPosY = size - 1
+  if (spawnPosY < 0) spawnPosY = 0
+  const spawnPos: [number, number] = [spawnPosX, spawnPosY]
+
   const tiles: MapTile[][] = Array.from({ length: size }, () =>
     Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
   )
 
-  // 1. 中心放 village（terrain 固定为 forest）
-  tiles[mapDef.size][mapDef.size] = { terrain: 'forest', landmark: 'village' }
+  // 1. 出生点放 village（terrain 固定为 forest）— 3×3 footprint 展开
+  const villageDef = LANDMARKS.find(l => l.type === 'village')
+  const fp = villageDef?.footprint ?? { w: 1, h: 1 }
+  for (let dy = 0; dy < fp.h; dy++) {
+    for (let dx = 0; dx < fp.w; dx++) {
+      const vx = spawnPos[0] + dx
+      const vy = spawnPos[1] + dy
+      if (vx < size && vy < size) {
+        tiles[vx][vy] = { terrain: 'forest', landmark: 'village' }
+      }
+    }
+  }
 
   // 2. 螺旋向外填充地形
   fillTerrain(tiles, mapDef)
@@ -33,9 +53,9 @@ export function generateMap(mapDef: MapDef): GenerateResult {
   // 4. 画道路
   drawRoads(tiles, mapDef)
 
-  // 5. 生成 mask（初始仅中心 LIGHT_RADIUS 范围可见）
+  // 5. 生成 mask（初始仅出生点 LIGHT_RADIUS 范围可见）
   const mask = createMask(size)
-  lightMap(tiles, mask, [mapDef.size, mapDef.size], WORLD.LIGHT_RADIUS)
+  lightMap(mask, spawnPos, WORLD.LIGHT_RADIUS)
 
   return { tiles, mask }
 }
@@ -64,7 +84,12 @@ function fillTerrain(tiles: MapTile[][], mapDef: MapDef): void {
       }
 
       if (x >= 0 && x < size && y >= 0 && y < size) {
-        tiles[x][y] = { terrain: chooseTile(x, y, tiles, mapDef) }
+        // 保留已有地标格，只更新 terrain（防止覆盖 village/city/ship 等 footprint 地标）
+        if (tiles[x][y].landmark) {
+          tiles[x][y].terrain = chooseTile(x, y, tiles, mapDef)
+        } else {
+          tiles[x][y] = { terrain: chooseTile(x, y, tiles, mapDef) }
+        }
       }
     }
   }
@@ -132,39 +157,63 @@ function placeLandmarks(tiles: MapTile[][], mapDef: MapDef): void {
 
   for (const lm of mapDef.landmarks) {
     if (lm.type === 'village') continue // 已在中心
+    const footprint = lm.footprint ?? { w: 1, h: 1 }
     for (let i = 0; i < lm.count; i++) {
-      const pos = findLandmarkPos(tiles, lm.minRadius, lm.maxRadius, center, size)
+      const pos = findLandmarkPos(tiles, lm.minRadius, lm.maxRadius, center, size, footprint)
       if (pos) {
-        tiles[pos[0]][pos[1]] = {
-          terrain: tiles[pos[0]][pos[1]].terrain,
-          landmark: lm.type,
+        const [px, py] = pos
+        for (let dy = 0; dy < footprint.h; dy++) {
+          for (let dx = 0; dx < footprint.w; dx++) {
+            const tx = px + dx
+            const ty = py + dy
+            if (tx < size && ty < size) {
+              tiles[tx][ty] = {
+                terrain: tiles[tx][ty].terrain,
+                landmark: lm.type,
+                blocked: false,
+              }
+            }
+          }
         }
       }
     }
   }
 }
 
-/** 在给定半径范围内随机查找一块空地形格子放置地标（最多尝试 200 次） */
+/** 在给定半径范围内随机查找一块空地形格子放置地标（最多尝试 200 次）
+ *  如果指定了 footprint，检查该位置的所有 footprint 格是否都可用。 */
 function findLandmarkPos(
   tiles: MapTile[][],
   minR: number,
   maxR: number,
   center: number,
   size: number,
+  footprint?: { w: number; h: number },
 ): [number, number] | null {
+  const fp = footprint ?? { w: 1, h: 1 }
   for (let attempt = 0; attempt < 200; attempt++) {
     const r = minR + Math.floor(Math.random() * (maxR - minR + 1))
     const xDist = Math.floor(Math.random() * (r + 1))
     const yDist = r - xDist
     const x = center + (Math.random() < 0.5 ? xDist : -xDist)
     const y = center + (Math.random() < 0.5 ? yDist : -yDist)
-    if (
-      x >= 0 && x < size && y >= 0 && y < size &&
-      !tiles[x][y].landmark &&
-      tiles[x][y].terrain !== 'road'
-    ) {
-      return [x, y]
+    if (!(x >= 0 && x < size && y >= 0 && y < size)) continue
+    // 检查所有 footprint 格
+    let valid = true
+    for (let dy = 0; dy < fp.h && valid; dy++) {
+      for (let dx = 0; dx < fp.w && valid; dx++) {
+        const fx = x + dx
+        const fy = y + dy
+        if (
+          fx >= size || fy >= size ||
+          tiles[fx][fy].landmark ||
+          tiles[fx][fy].terrain === 'road'
+        ) {
+          valid = false
+        }
+      }
     }
+    if (valid) return [x, y]
   }
   return null
 }
@@ -233,13 +282,12 @@ function drawLShapedRoad(
 
 // ─── Mask 操作 ────────────────────────────────────────
 
-function createMask(size: number): boolean[][] {
+export function createMask(size: number): boolean[][] {
   return Array.from({ length: size }, () => Array.from({ length: size }, () => false))
 }
 
 /** 以 pos 为圆心、radius 范围内揭露 mask */
 export function lightMap(
-  _tiles: MapTile[][],
   mask: boolean[][],
   pos: [number, number],
   radius: number,
@@ -259,8 +307,8 @@ export function lightMap(
 }
 
 /** 创建新 mask 并以 center 为中心揭露初始视野 */
-export function createNewMask(tiles: MapTile[][], center: [number, number]): boolean[][] {
-  const mask = createMask(tiles.length)
-  lightMap(tiles, mask, center, WORLD.LIGHT_RADIUS)
+export function createNewMask(size: number, center: [number, number]): boolean[][] {
+  const mask = createMask(size)
+  lightMap(mask, center, WORLD.LIGHT_RADIUS)
   return mask
 }

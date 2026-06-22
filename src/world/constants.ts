@@ -39,6 +39,7 @@ export const TERRAINS: TerrainDef[] = [
     weight: 0.15,
     char: '▓',
     cssClass: 'forest',
+    passable: true,
     narrateOnEnter: {
       field: 'world.narrate.forest_to_field',
       barrens: 'world.narrate.forest_to_barrens',
@@ -49,6 +50,7 @@ export const TERRAINS: TerrainDef[] = [
     weight: 0.35,
     char: '▒',
     cssClass: 'field',
+    passable: true,
     narrateOnEnter: {
       forest: 'world.narrate.field_to_forest',
       barrens: 'world.narrate.field_to_barrens',
@@ -59,6 +61,7 @@ export const TERRAINS: TerrainDef[] = [
     weight: 0.5,
     char: '░',
     cssClass: 'barrens',
+    passable: true,
     narrateOnEnter: {
       field: 'world.narrate.barrens_to_field',
       forest: 'world.narrate.barrens_to_forest',
@@ -69,12 +72,14 @@ export const TERRAINS: TerrainDef[] = [
     weight: 0,
     char: '#',
     cssClass: 'road',
+    passable: true,
   },
   {
     type: 'void',
     weight: 0,
     char: '',
     cssClass: 'void',
+    passable: false,
   },
 ]
 

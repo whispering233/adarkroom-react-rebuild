@@ -3,7 +3,7 @@
  */
 export * from './types'
 export { WORLD, TERRAINS, LANDMARKS } from './constants'
-export { generateMap, lightMap, createNewMask } from './generator'
+export { generateMap, lightMap, createNewMask, createMask } from './generator'
 export { composeEffects, getTerrainNarrationKey } from './effects'
 export { createWorldCanvasScene } from './WorldCanvasScene'
 export type { WorldCanvasSceneDrawFn, WorldCanvasSceneOptions } from './WorldCanvasScene'

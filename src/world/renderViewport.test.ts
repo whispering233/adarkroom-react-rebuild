@@ -22,6 +22,12 @@ function createMap(size: number, fill: MapTile): MapTile[][] {
   )
 }
 
+function createAllTrueMask(size: number): boolean[][] {
+  return Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => true),
+  )
+}
+
 // ─── 测试套件 ──────────────────────────────────────────
 
 describe('renderViewport', () => {
@@ -30,15 +36,15 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
-    // All 63x63 cells now have a RenderCell: 248 boundary | + 1 player @ + 3720 terrain .
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
+    // All 31x31 cells = 961: 0 boundary | + 1 player @ + 960 terrain .
     const boundaries = result.filter(t => t.char === '|')
-    expect(boundaries.length).toBe(248)
+    expect(boundaries.length).toBe(0)
     const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.font).toBe(FONT_NORMAL)
     const terrainTiles = result.filter(t => t.char === '.')
-    expect(terrainTiles.length).toBe(3720)
+    expect(terrainTiles.length).toBe(960)
   })
 
   it('places player @ at viewport center for centered position', () => {
@@ -46,7 +52,7 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
     const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.char).toBe('@')
@@ -60,7 +66,7 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [0, 0]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
     // Player at viewport center
     const playerTile = result.find(t => t.char === '@')
@@ -90,7 +96,7 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [60, 60]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
     // Player at viewport center
     const playerTile = result.find(t => t.char === '@')
@@ -120,12 +126,12 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
-    // All 63x63 = 3969 cells now have a RenderCell
+    // All 31x31 = 961 cells now have a RenderCell
     expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
     const dotTiles = result.filter(t => t.char === '.')
-    expect(dotTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1 - 248)
+    expect(dotTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
     const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.font).toBe(FONT_NORMAL)
@@ -137,17 +143,17 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field', 'ironMine'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
     // Player at (30,30) — one tile
     // But that tile has landmark=ironMine; player takes precedence
     // All other in-bounds tiles have landmark=ironMine → landmark tiles
-    // Total = player(1) + boundaries(248) + landmarks(3969-1-248=3720)
+    // Total = player(1) + landmarks(960) = 961
     expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
 
     const landmarkTiles = result.filter(t => t.char === 'I') // 'I' = ironMine char
-    // 3720 non-player, non-boundary landmark tiles
-    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1 - 248)
+    // 960 non-player landmark tiles (no boundaries at center)
+    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
 
     for (const t of landmarkTiles) {
       expect(t.char).toBe('I')
@@ -165,7 +171,7 @@ describe('renderViewport', () => {
     const lmDef = LANDMARKS.find(lm => lm.type === 'ironMine')!
     tiles[6][5] = createTile('field', 'ironMine')
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
     const lmTile = result.find(t => t.char === lmDef.char)
     expect(lmTile).toBeDefined()
     expect(lmTile!.char).toBe(lmDef.char)
@@ -174,34 +180,26 @@ describe('renderViewport', () => {
     expect(lmTile!.vx).toBe(VIEWPORT_RADIUS + 1)
   })
 
-  it('renders multi-cell footprint for 2x2 landmark (1 char cell + 3 empty cells)', () => {
+  it('renders 2x2 footprint landmark as single cell (footprint expansion done in generator)', () => {
     const mapSize = 61
     const tiles = createMap(mapSize, createTile('field'))
     // city has footprint {w:2, h:2} with char 'Y'
-    tiles[10][10] = createTile('field', 'city')
+    // Footprint expansion is done in generator, NOT in renderViewport
+    tiles[20][20] = createTile('field', 'city')
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
-    // Origin at (10,10): vx=10-(-1)=11, vy=10-(-1)=11
-    // Non-origin cells:
-    //   (11,10) → vx=12, vy=11
-    //   (10,11) → vx=11, vy=12
-    //   (11,11) → vx=12, vy=12
+    // viewport covers [15..45], city at [20][20] → vx=5, vy=5
+    const cityCells = result.filter(c => c.char === 'Y')
+    expect(cityCells).toHaveLength(1)
+    expect(cityCells[0].vx).toBe(5)
+    expect(cityCells[0].vy).toBe(5)
+    expect(cityCells[0].font).toBe(FONT_LANDMARK)
 
-    // Origin cell has the landmark char 'Y'
-    const originCell = result.filter(c => c.char === 'Y')
-    expect(originCell).toHaveLength(1)
-    expect(originCell[0].vx).toBe(11)
-    expect(originCell[0].vy).toBe(11)
-    expect(originCell[0].font).toBe(FONT_LANDMARK)
-
-    // Non-origin footprint cells have empty char
+    // No footprint empty cells should be produced by renderViewport
     const emptyCells = result.filter(c => c.char === '')
-    expect(emptyCells).toHaveLength(3)
-    // Verify they are at expected footprint positions
-    const fpPositions = emptyCells.map(c => `${c.vx},${c.vy}`).sort()
-    expect(fpPositions).toEqual(['11,12', '12,11', '12,12'])
+    expect(emptyCells).toHaveLength(0)
   })
 
   it('player on landmark shows @ (player takes precedence)', () => {
@@ -209,7 +207,7 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('field', 'ironMine'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
     const playerTile = result.find(t => t.char === '@')
     expect(playerTile).toBeDefined()
     expect(playerTile!.char).toBe('@')
@@ -221,7 +219,7 @@ describe('renderViewport', () => {
     const tiles = createMap(mapSize, createTile('void'))
     const playerPos: [number, number] = [30, 30]
 
-    const result = renderViewport(tiles, playerPos)
+    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
     // Player tile
     const playerTile = result.find(t => t.char === '@')
@@ -230,11 +228,11 @@ describe('renderViewport', () => {
     // All non-boundary, non-player tiles should have char=''
     const voidTiles = result.filter(t => t.char === '')
     // Count: all in-bounds tiles (map covers entire viewport) minus player
-    // Total cells = VIEWPORT_TOTAL^2 = 3969
-    // Boundary = 248
+    // Total cells = VIEWPORT_TOTAL^2 = 961
+    // Boundary = 0 (player at center, viewport fully within map)
     // Player = 1
-    // Void = 3969 - 248 - 1 = 3720
-    expect(voidTiles.length).toBe(3720)
+    // Void = 961 - 0 - 1 = 960
+    expect(voidTiles.length).toBe(960)
     for (const t of voidTiles) {
       expect(t.char).toBe('')
       expect(t.font).toBe(FONT_NORMAL)
@@ -250,7 +248,7 @@ describe('renderViewport', () => {
       row.map(t => ({ ...t })),
     )
 
-    renderViewport(tiles, playerPos)
+    renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
 
     expect(tiles).toEqual(originalTiles)
   })

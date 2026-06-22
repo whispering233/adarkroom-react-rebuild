@@ -69,6 +69,39 @@ describe('generateMap', () => {
     // 远角不可见
     expect(mask[0][0]).toBe(false)
   })
+
+  // ─── T6: footprint 展开 + fillTerrain 保护 ─────────
+
+  it('village 占据 3×3 footprint（9 个格子 landmark === village）', () => {
+    const mapDef = createTestMapDef()
+    const { tiles } = generateMap(mapDef)
+    const s = mapDef.size
+    // footprint 范围：anchor [s, s] → [s+2, s+2]
+    for (let dx = 0; dx < 3; dx++) {
+      for (let dy = 0; dy < 3; dy++) {
+        expect(tiles[s + dx][s + dy].landmark).toBe('village')
+        expect(tiles[s + dx][s + dy].terrain).toBe('forest')
+      }
+    }
+  })
+
+  it('fillTerrain 不覆盖 r=1 环上与 village footprint 重叠的 landmark 格', () => {
+    const mapDef = createTestMapDef()
+    const { tiles } = generateMap(mapDef)
+    const s = mapDef.size
+    // r=1 环与 3×3 footprint 重叠的格子：(31,30)、(30,31)、(31,31)
+    expect(tiles[s + 1][s].landmark).toBe('village')
+    expect(tiles[s][s + 1].landmark).toBe('village')
+    expect(tiles[s + 1][s + 1].landmark).toBe('village')
+  })
+
+  it('village footprint 外的 r=1 环格子没有 village landmark', () => {
+    const mapDef = createTestMapDef()
+    const { tiles } = generateMap(mapDef)
+    const s = mapDef.size
+    // (30,29) 不在 3×3 footprint 范围内（footprint 覆盖 [s..s+2]×[s..s+2]）
+    expect(tiles[s][s - 1].landmark).not.toBe('village')
+  })
 })
 
 // ─── lightMap ─────────────────────────────────────────
@@ -79,13 +112,10 @@ describe('lightMap', () => {
     const mask: boolean[][] = Array.from({ length: size }, () =>
       Array.from({ length: size }, () => false),
     )
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
     const pos: [number, number] = [3, 3]
     const radius = 2
 
-    lightMap(tiles, mask, pos, radius)
+    lightMap(mask, pos, radius)
 
     for (let x = 0; x < size; x++) {
       for (let y = 0; y < size; y++) {
@@ -100,14 +130,11 @@ describe('lightMap', () => {
     const mask: boolean[][] = Array.from({ length: size }, () =>
       Array.from({ length: size }, () => false),
     )
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
     const pos: [number, number] = [0, 0]
     const radius = 10 // 远超地图大小
 
     // 不应抛出异常
-    expect(() => lightMap(tiles, mask, pos, radius)).not.toThrow()
+    expect(() => lightMap(mask, pos, radius)).not.toThrow()
     // 所有在界内的格应被揭露
     for (let x = 0; x < size; x++) {
       for (let y = 0; y < size; y++) {
@@ -127,7 +154,7 @@ describe('lightMap', () => {
     // 深拷贝一份参考
     const original = tiles.map(row => row.map(t => ({ ...t })))
 
-    lightMap(tiles, mask, [2, 2], 1)
+    lightMap(mask, [2, 2], 1)
 
     for (let x = 0; x < size; x++) {
       for (let y = 0; y < size; y++) {
@@ -141,11 +168,8 @@ describe('lightMap', () => {
     const mask: boolean[][] = Array.from({ length: size }, () =>
       Array.from({ length: size }, () => false),
     )
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
 
-    lightMap(tiles, mask, [2, 2], 0)
+    lightMap(mask, [2, 2], 0)
 
     expect(mask[2][2]).toBe(true)
     expect(mask[2][3]).toBe(false)
@@ -160,11 +184,8 @@ describe('lightMap', () => {
 describe('createNewMask', () => {
   it('创建正确尺寸的 boolean[][]', () => {
     const size = 7
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
 
-    const mask = createNewMask(tiles, [3, 3])
+    const mask = createNewMask(size, [3, 3])
 
     expect(mask.length).toBe(size)
     for (const row of mask) {
@@ -179,12 +200,9 @@ describe('createNewMask', () => {
 
   it('以给定位置为中心揭露初始视野（LIGHT_RADIUS 菱形）', () => {
     const size = 7
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
     const center: [number, number] = [3, 3]
 
-    const mask = createNewMask(tiles, center)
+    const mask = createNewMask(size, center)
 
     // 菱形半径 = WORLD.LIGHT_RADIUS
     for (let x = 0; x < size; x++) {
@@ -197,12 +215,9 @@ describe('createNewMask', () => {
 
   it('在地图边缘也能正常工作', () => {
     const size = 5
-    const tiles: MapTile[][] = Array.from({ length: size }, () =>
-      Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
-    )
     const center: [number, number] = [0, 0]
 
-    const mask = createNewMask(tiles, center)
+    const mask = createNewMask(size, center)
 
     // 角落在界内的可见
     expect(mask[0][0]).toBe(true)

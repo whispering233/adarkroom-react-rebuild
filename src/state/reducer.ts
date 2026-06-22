@@ -16,8 +16,9 @@ import type { EventResult } from '../events/types'
 import type { CombatState } from '../combat/types'
 import { FireLevel, TempLevel } from './types'
 import { CONFIG, WORKER_INCOME, shouldKeepOnReturn } from '../config'
+import type { MapDef } from '../world/types'
 import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
-import { generateMap, createNewMask, lightMap } from '../world/generator'
+import { generateMap, createNewMask, createMask, lightMap } from '../world/generator'
 
 // ─── 常量 ────────────────────────────────────────────────
 
@@ -430,28 +431,30 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         modifyResource(draft, key, -count, 'cost.embark')
       }
       // 首次生成地图
+      const worldDef: MapDef = {
+        id: 'world',
+        size: WORLD.DEFAULT_MAP_RADIUS,
+        terrainTypes: TERRAINS,
+        landmarks: LANDMARKS,
+        encounterPool: [],
+        isAvailable: () => true,
+      }
       if (!draft.game.world) {
-        const worldDef = {
-          id: 'world',
-          size: WORLD.DEFAULT_MAP_RADIUS,
-          terrainTypes: TERRAINS,
-          landmarks: LANDMARKS,
-          encounterPool: [],
-          isAvailable: () => true,
-        }
         const { tiles, mask } = generateMap(worldDef)
         draft.game.world = {
           mapId: 'world',
           tiles,
           mask,
+          explored: createMask(tiles.length),
           usedOutposts: {},
         }
       }
       // 初始化运行时
       const maxW = getMaxWater(draft)
       const maxH = getMaxHealth(draft)
+      const embarkSpawnPos: [number, number] = worldDef.spawnPos ?? [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS]
       draft.game.worldRuntime = {
-        curPos: [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS],
+        curPos: embarkSpawnPos,
         water: maxW,
         health: maxH,
         maxHealth: maxH,
@@ -461,6 +464,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         starvation: false,
         thirst: false,
         mask: draft.game.world.mask.map(row => [...row]),
+        explored: draft.game.world.explored.map(row => [...row]),
         usedOutposts: { ...draft.game.world.usedOutposts },
         minesFound: {},
         mapStack: [],
@@ -468,9 +472,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       draft.features['location.world'] = true
       draft.currentRoom = 'world'
       lightMap(
-        draft.game.world.tiles,
         draft.game.worldRuntime.mask,
-        [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS],
+        embarkSpawnPos,
+        WORLD.LIGHT_RADIUS,
+      )
+      lightMap(
+        draft.game.worldRuntime.explored,
+        embarkSpawnPos,
         WORLD.LIGHT_RADIUS,
       )
       break
@@ -487,6 +495,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       } else {
         if (draft.game.world) {
           draft.game.world.mask = wr.mask
+          draft.game.world.explored = wr.explored
           draft.game.world.usedOutposts = wr.usedOutposts
           if (wr.minesFound?.iron && !draft.game.buildings['iron mine']) {
             draft.game.buildings['iron mine'] = 1
@@ -521,11 +530,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         mapId: draft.game.world!.mapId,
         pos: [...wr.curPos],
         mask: wr.mask,
+        explored: wr.explored.map(row => [...row]),
         usedOutposts: { ...wr.usedOutposts },
       })
       draft.game.world!.mapId = action.mapId
       wr.curPos = action.pos ?? [0, 0]
-      wr.mask = createNewMask(draft.game.world!.tiles, wr.curPos)
+      wr.mask = createNewMask(draft.game.world!.tiles.length, wr.curPos)
+      wr.explored = createMask(draft.game.world!.tiles.length)
       wr.usedOutposts = {}
       break
     }
@@ -538,6 +549,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         draft.game.world!.mapId = prev.mapId
         wr.curPos = prev.pos
         wr.mask = prev.mask
+        wr.explored = prev.explored
         wr.usedOutposts = prev.usedOutposts
       }
       break

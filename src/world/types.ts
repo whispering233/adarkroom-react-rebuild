@@ -9,6 +9,7 @@
 
 import type { GameState } from '../state/types'
 import type { GameAction } from '../state/reducer'
+import { TERRAINS } from './constants'
 
 // ─── Dispatch 类型别名（避免循环 import）───────────────
 
@@ -26,7 +27,7 @@ export type LandmarkType =
 export interface MapTile {
   terrain: TerrainType
   landmark?: LandmarkType
-  visited?: boolean
+  blocked?: boolean
 }
 
 // ─── 效果系统 ─────────────────────────────────────────
@@ -55,6 +56,7 @@ export interface TerrainDef {
   weight: number
   char: string
   cssClass: string
+  passable: boolean
   onEnter?: TileEffectFn
   narrateOnEnter?: Partial<Record<TerrainType, string>>
 }
@@ -93,6 +95,8 @@ export interface MapDef {
   encounterPool: string[]
   /** Path 中是否可选（解锁条件） */
   isAvailable: (state: GameState) => boolean
+  /** 可选的玩家出生点坐标（地图网格坐标，默认地图中心 [size, size]） */
+  spawnPos?: [number, number]
 }
 
 // ─── 持久化数据 ───────────────────────────────────────
@@ -101,6 +105,7 @@ export interface PersistentWorldData {
   mapId: string
   tiles: MapTile[][]
   mask: boolean[][]
+  explored: boolean[][]
   usedOutposts: Record<string, boolean>
 }
 
@@ -110,6 +115,7 @@ export interface WorldMapStackEntry {
   mapId: string
   pos: [number, number]
   mask: boolean[][]
+  explored: boolean[][]
   usedOutposts: Record<string, boolean>
 }
 
@@ -125,6 +131,8 @@ export interface WorldRuntimeState {
   thirst: boolean
   /** 临时 mask 副本（goHome 提交，die 丢弃） */
   mask: boolean[][]
+  /** 临时 explored 副本（goHome 提交，die 丢弃） */
+  explored: boolean[][]
   /** 临时 usedOutposts 副本 */
   usedOutposts: Record<string, boolean>
   /** 本次行程发现的矿场（setpiece 事件设置，goHome 时提交解锁） */
@@ -138,4 +146,12 @@ export interface WorldRuntimeState {
    * 本阶段预留：所有地标 onEnter 不返回 nextMapId，仅触发事件。
    */
   mapStack: WorldMapStackEntry[]
+}
+
+// ─── 通行判断 ─────────────────────────────────────────
+
+export function isTilePassable(tile: MapTile): boolean {
+  if (tile.blocked) return false
+  const def = TERRAINS.find(t => t.type === tile.terrain)
+  return def?.passable ?? true
 }
