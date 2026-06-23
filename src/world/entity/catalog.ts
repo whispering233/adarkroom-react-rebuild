@@ -56,6 +56,14 @@ export function getAllEntities(): WorldEntity[] {
   return Object.values(catalog)
 }
 
+/**
+ * 获取完整的 EntityCatalog（类型 ID → WorldEntity 映射）。
+ * 用于 renderViewport 等需要按 ID 查找实体的场景。
+ */
+export function getEntityCatalog(): EntityCatalog {
+  return catalog
+}
+
 // ─── 注册正式实体 ────────────────────────────────────
 // 按类型注册已实现的实体。registerEntity 是幂等的，不会覆盖已有条目。
 

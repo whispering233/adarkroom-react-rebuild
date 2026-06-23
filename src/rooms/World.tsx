@@ -2,10 +2,17 @@
  * World — 世界探索场景
  *
  * Canvas 地图 + 四向行走（WASD / 方向键）
- * + 补给消耗 + 随机遭遇战 + 地标事件触发。
+ * + 补给消耗 + 随机遭遇战 + 实体地标事件触发。
  *
  * 复用现有 EventOverlay + CombatOverlay——事件通过 dispatch(startEvent) 触发，
  * CombatOverlay 由 EventOverlay 按 scene.combat=true 自动渲染。
+ *
+ * 移动触发逻辑：
+ *   1. 通行性检查（地形 + 实体阻碍）
+ *   2. 更新玩家位置 + 光照/探索/踩踏
+ *   3. 地形变化叙事
+ *   4. 实体 onEnter 触发（entityCellMap 查找）
+ *   5. 补给消耗 + 随机遭遇战（仅当实体 onEnter 未返回 skipSupplies）
  */
 import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -14,15 +21,17 @@ import {
   useGameDispatch,
   startEvent,
   applyRecipe,
+  pushNarrative,
   returnFromWorld,
 } from '../state'
-import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
-import { lightMap } from '../world/generator'
+import { WORLD, TERRAINS } from '../world/constants'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
+import { lightMap } from '../world/generator'
 import styles from './World.module.css'
-import { renderViewport, renderTiles } from '../world/renderViewport'
+import { renderViewport, drawComposed } from '../world/renderViewport'
+import { createStyleResolver } from '../world/styleResolver'
 import { createWorldCanvasScene } from '../world/WorldCanvasScene'
-import { isTilePassable } from '../world'
+import { getEntity, getEntityCatalog } from '../world/entity/catalog'
 
 export function World() {
   const { t } = useTranslation()
@@ -118,26 +127,29 @@ export function World() {
     const pw = s.game.world
     if (!wr || !pw) return
     const curPos = wr.curPos
-    const tiles = pw.tiles
+    const terrainMap = pw.worldMap.terrainMap
+    const entityCellMap = pw.worldMap.entityCellMap
     const [nx, ny] = [curPos[0] + dir[0], curPos[1] + dir[1]]
-    const size = tiles.length
+    const size = terrainMap.length
     if (nx < 0 || nx >= size || ny < 0 || ny >= size) return
 
-    const prevTile = tiles[curPos[0]][curPos[1]]
-    const newTile = tiles[nx][ny]
-    if (!isTilePassable(newTile)) return
+    // 通行性检查（地形）
+    const terrDef = TERRAINS.find(td => td.type === terrainMap[nx][ny])
+    if (!terrDef?.passable) return
 
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
       if (!w) return
+      const prevTerrain = terrainMap[curPos[0]][curPos[1]]
+      const newTerrain = terrainMap[nx][ny]
       w.curPos = [nx, ny]
       lightMap(w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
       lightMap(w.explored, [nx, ny], WORLD.LIGHT_RADIUS)
       w.traveled[nx][ny] = true
 
-      if (prevTile.terrain !== newTile.terrain) {
-        const td = TERRAINS.find(td => td.type === newTile.terrain)
-        const narKey = td?.narrateOnEnter?.[prevTile.terrain]
+      if (prevTerrain !== newTerrain) {
+        const td = TERRAINS.find(td => td.type === newTerrain)
+        const narKey = td?.narrateOnEnter?.[prevTerrain]
         if (narKey) {
           d.narrativeLog.unshift({
             id: d._nextNarrativeId++, text: t(narKey), tick: d._globalTick,
@@ -146,11 +158,28 @@ export function World() {
       }
     }))
 
-    if (newTile.landmark) {
-      if (newTile.landmark === 'village') { dispatch(returnFromWorld(false)); return }
-      const lm = LANDMARKS.find(l => l.type === newTile.landmark)
-      if (lm) { dispatch(startEvent(lm.sceneId)) }
-      return
+    // 实体触发检查（entityCellMap 查找替代旧 tile.landmark）
+    const cell = entityCellMap.get(`${nx},${ny}`)
+    if (cell) {
+      const entity = getEntity(cell.entityId)
+      if (entity?.onEnter) {
+        const result = entity.onEnter({
+          pos: [nx, ny],
+          state: s,
+          dispatch,
+          t,
+          _globalTick: s._globalTick,
+        })
+        if (result) {
+          // 叙事文本优先分发（确保展示在任何跳转/事件之前）
+          if (result.narrations) {
+            result.narrations.forEach(n => dispatch(pushNarrative(n)))
+          }
+          if (result.returnHome) { dispatch(returnFromWorld(false)); return }
+          if (result.eventId) { dispatch(startEvent(result.eventId)) }
+          if (result.skipSupplies) return
+        }
+      }
     }
 
     if (!consumeSupplies()) return
@@ -194,9 +223,26 @@ export function World() {
         const wr = s.game.worldRuntime
         if (!pw || !wr) return () => {}
 
-        const descriptors = renderViewport(pw.tiles, wr.curPos, wr.mask, wr.explored, wr.traveled)
+        // 每帧构建 StyleResolver——从此处读取 CSS 变量，自动适配主题切换
+        const cssVars = {
+          accent: getComputedStyle(document.documentElement).getPropertyValue('--game-accent').trim(),
+          terrain: getComputedStyle(document.documentElement).getPropertyValue('--game-terrain').trim(),
+          muted: getComputedStyle(document.documentElement).getPropertyValue('--game-text-muted').trim(),
+        }
+        const styleResolver = createStyleResolver(cssVars)
+
+        const result = renderViewport(
+          pw.worldMap.terrainMap,
+          pw.worldMap.entityLayer,
+          getEntityCatalog(),
+          styleResolver,
+          wr.curPos,
+          wr.mask,
+          wr.explored,
+          wr.traveled,
+        )
         return (ctx: CanvasRenderingContext2D, cellSize: number) => {
-          renderTiles(ctx, descriptors, cellSize)
+          drawComposed(ctx, result, cellSize)
         }
       },
     })

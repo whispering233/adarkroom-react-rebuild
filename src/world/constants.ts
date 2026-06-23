@@ -85,6 +85,12 @@ export const TERRAINS: TerrainDef[] = [
 
 // ─── 地标配置 ─────────────────────────────────────────
 
+/**
+ * @deprecated 将逐步迁移至 EntityCatalog（entity/catalog.ts）。
+ * 留在原地仅因为 generator.ts 仍需 LANDMARKS 作为配置源
+ *（footprint、count、radius、autoRoad）。
+ * 待 generator 迁移使用 entity catalog 后可移除。
+ */
 export const LANDMARKS: LandmarkDef[] = [
   {
     type: 'village',

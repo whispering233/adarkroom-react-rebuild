@@ -9,6 +9,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { World } from './World'
+import type { PlacedCell } from '../world/types'
 
 // ── Mocks (for World.tsx condition) ────────────────────
 
@@ -26,20 +27,39 @@ vi.mock('../state', () => ({
   useGameDispatch: () => mockDispatch,
   startEvent: vi.fn(),
   applyRecipe: vi.fn(),
+  pushNarrative: vi.fn(),
   returnFromWorld: vi.fn(),
 }))
 
 // ── Helpers ───────────────────────────────────────────
 
-/** 构建含 7×7 地图的最小化 GameState */
+/** 构建含 7×7 地图（worldMap 格式）的最小化 GameState */
 function buildWorldState(): Record<string, unknown> {
-  const tiles = Array.from({ length: 7 }, (_, i) =>
-    Array.from({ length: 7 }, (_, j) => ({
-      terrain: 'field' as const,
-      landmark: (i === 3 && j === 3 ? 'village' as const : undefined),
-    })),
+  const size = 7
+  const terrainMap = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => 'field' as const),
   )
-  const mask = tiles.map(row => row.map(() => true))
+
+  // 实体层：village 在 (3,3) 3×3 footprint
+  const entityLayer = [
+    { entityId: 'village', anchorX: 3, anchorY: 3 },
+  ]
+
+  // 手动构建 entityCellMap（3×3 footprint）
+  const entityCellMap = new Map<string, PlacedCell>()
+  for (let dx = 0; dx < 3; dx++) {
+    for (let dy = 0; dy < 3; dy++) {
+      entityCellMap.set(`${3 + dx},${3 + dy}`, {
+        entityId: 'village',
+        anchorX: 3,
+        anchorY: 3,
+        dx,
+        dy,
+      })
+    }
+  }
+
+  const mask = terrainMap.map(row => row.map(() => true))
 
   return {
     features: {},
@@ -57,8 +77,15 @@ function buildWorldState(): Record<string, unknown> {
       workers: {},
       activeEvent: null,
       narrative: { eventsCompleted: {}, flags: {} },
-      // ── 世界数据 ──
-      world: { mapId: 'test', tiles, mask, usedOutposts: {} },
+      // ── 世界数据（worldMap 格式） ──
+      world: {
+        mapId: 'test',
+        worldMap: { size, terrainMap, entityLayer, entityCellMap },
+        mask,
+        explored: mask,
+        traveled: mask,
+        usedOutposts: {},
+      },
       worldRuntime: {
         curPos: [3, 3] as [number, number],
         water: 50,
@@ -70,6 +97,8 @@ function buildWorldState(): Record<string, unknown> {
         starvation: false,
         thirst: false,
         mask,
+        explored: mask,
+        traveled: mask,
         usedOutposts: {},
         minesFound: {},
         mapStack: [],
