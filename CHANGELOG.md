@@ -12,6 +12,28 @@
 - Removed
 
 
+## [v0.3.2] - 2026-06-24
+
+### Added
+- 地图架构重构：地形层 + 实体层分离（WorldEntity 统一接口）
+- Entity 系统：15 个地标实体，getDrawCommand() 纯函数渲染，onEnter() 触发
+- StyleResolver：全局样式映射器，Entity 不碰 CSS 变量名
+- 多格实体支持：village 3×3 箱形绘图字符统一图案
+- 存档迁移 v1.3→v1.4：原子构建+验证，旧存档无损转换
+
+### Changed
+- renderViewport：纯函数，零 DOM 访问，StyleResolver 注入
+- drawComposed：替换 renderTiles，按 (font, fillStyle) 分组批量绘制
+- World.tsx：entityCellMap 替换 tile.landmark 地标检测
+- generator.ts：输出 WorldMap（terrainMap + entityLayer）替代 MapTile[][]
+- PersistentWorldData：tiles 弃用，worldMap 替代
+
+### Removed
+- effects.ts（composeEffects / getTerrainNarrationKey 死代码）
+- TILE_CONFIG / fillStyleFor（被 StyleResolver 替代）
+- renderTiles（被 drawComposed 替代）
+
+
 ## [v0.3.1] - 2026-06-22
 
 ### Added
