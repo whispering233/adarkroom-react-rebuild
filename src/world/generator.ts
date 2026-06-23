@@ -1,18 +1,27 @@
 /**
  * World — 地图生成器（纯函数）
  *
- * generateMap() 完全纯函数：输入 MapDef → 输出 { tiles, mask }。
+ * generateMap() 完全纯函数：输入 MapDef → 输出 { worldMap, mask, explored, traveled }。
  * 方便单元测试，不依赖浏览器/React。
+ *
+ * 输出数据结构（v2）：
+ *   - worldMap.terrainMap  — TerrainType[][] 地形层（无实体信息）
+ *   - worldMap.entityLayer — PlacedEntity[] 实体层
+ *   - worldMap.entityCellMap — Map<string, PlacedCell> 实体格查找表
  */
 
-import type { MapTile, MapDef } from './types'
 import { WORLD, LANDMARKS } from './constants'
+import type { MapDef, WorldMap, PlacedEntity, TerrainType } from './types'
+import { buildEntityCellMap } from './entity/types'
+import type { EntityCatalog } from './entity/types'
+import { getAllEntities } from './entity/catalog'
 
 // ─── 主入口 ───────────────────────────────────────────
 
 export interface GenerateResult {
-  tiles: MapTile[][]
+  worldMap: WorldMap
   mask: boolean[][]
+  explored: boolean[][]
   traveled: boolean[][]
 }
 
@@ -28,31 +37,40 @@ export function generateMap(mapDef: MapDef): GenerateResult {
   if (spawnPosY < 0) spawnPosY = 0
   const spawnPos: [number, number] = [spawnPosX, spawnPosY]
 
-  const tiles: MapTile[][] = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => ({ terrain: 'barrens' as const })),
+  // 地形层：初始全 barrens
+  const terrainMap: TerrainType[][] = Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => 'barrens' as const),
   )
+
+  // 实体层：空
+  const entityLayer: PlacedEntity[] = []
 
   // 1. 出生点放 village（terrain 固定为 forest）— 3×3 footprint 展开
   const villageDef = LANDMARKS.find(l => l.type === 'village')
-  const fp = villageDef?.footprint ?? { w: 1, h: 1 }
-  for (let dy = 0; dy < fp.h; dy++) {
-    for (let dx = 0; dx < fp.w; dx++) {
+  const vfp = villageDef?.footprint ?? { w: 1, h: 1 }
+  for (let dy = 0; dy < vfp.h; dy++) {
+    for (let dx = 0; dx < vfp.w; dx++) {
       const vx = spawnPos[0] + dx
       const vy = spawnPos[1] + dy
       if (vx < size && vy < size) {
-        tiles[vx][vy] = { terrain: 'forest', landmark: 'village' }
+        terrainMap[vx][vy] = 'forest'
       }
     }
   }
+  entityLayer.push({
+    entityId: 'village',
+    anchorX: spawnPos[0],
+    anchorY: spawnPos[1],
+  })
 
   // 2. 螺旋向外填充地形
-  fillTerrain(tiles, mapDef)
+  fillTerrain(terrainMap, mapDef, entityLayer)
 
-  // 3. 放置地标
-  placeLandmarks(tiles, mapDef)
+  // 3. 放置地标（只写 entityLayer，不写 terrainMap）
+  placeLandmarks(entityLayer, terrainMap, mapDef)
 
-  // 4. 画道路
-  drawRoads(tiles, mapDef)
+  // 4. 画道路（只修改 terrainMap，不碰 entityLayer）
+  drawRoads(terrainMap, entityLayer, mapDef)
 
   // 5. 生成 mask（初始仅出生点 LIGHT_RADIUS 范围可见）
   const mask = createMask(size)
@@ -62,14 +80,29 @@ export function generateMap(mapDef: MapDef): GenerateResult {
   const traveled = createMask(size)
   traveled[spawnPos[0]][spawnPos[1]] = true
 
-  return { tiles, mask, traveled }
+  // 7. 生成 explored 网格（初始全 false）
+  const explored = createMask(size)
+
+  // 8. 构建 entityCellMap
+  const entityCatalog: EntityCatalog = {}
+  for (const e of getAllEntities()) {
+    entityCatalog[e.type] = e
+  }
+  const entityCellMap = buildEntityCellMap(entityLayer, entityCatalog)
+
+  return {
+    worldMap: { size, terrainMap, entityLayer, entityCellMap },
+    mask,
+    explored,
+    traveled,
+  }
 }
 
 // ─── 地形填充 ─────────────────────────────────────────
 
-function fillTerrain(tiles: MapTile[][], mapDef: MapDef): void {
+function fillTerrain(terrainMap: TerrainType[][], mapDef: MapDef, entityLayer: PlacedEntity[]): void {
   const center = mapDef.size
-  const size = tiles.length
+  const size = terrainMap.length
 
   for (let r = 1; r <= mapDef.size; r++) {
     for (let t = 0; t < r * 8; t++) {
@@ -89,12 +122,7 @@ function fillTerrain(tiles: MapTile[][], mapDef: MapDef): void {
       }
 
       if (x >= 0 && x < size && y >= 0 && y < size) {
-        // 保留已有地标格，只更新 terrain（防止覆盖 village/city/ship 等 footprint 地标）
-        if (tiles[x][y].landmark) {
-          tiles[x][y].terrain = chooseTile(x, y, tiles, mapDef)
-        } else {
-          tiles[x][y] = { terrain: chooseTile(x, y, tiles, mapDef) }
-        }
+        terrainMap[x][y] = chooseTile(x, y, terrainMap, mapDef, entityLayer)
       }
     }
   }
@@ -104,29 +132,34 @@ function fillTerrain(tiles: MapTile[][], mapDef: MapDef): void {
 function chooseTile(
   x: number,
   y: number,
-  tiles: MapTile[][],
+  terrainMap: TerrainType[][],
   mapDef: MapDef,
-): 'forest' | 'field' | 'barrens' {
+  entityLayer: PlacedEntity[],
+): TerrainType {
   const adjacent = [
-    y > 0 ? tiles[x][y - 1]?.terrain : null,
-    y < tiles.length - 1 ? tiles[x][y + 1]?.terrain : null,
-    x < tiles.length - 1 ? tiles[x + 1][y]?.terrain : null,
-    x > 0 ? tiles[x - 1][y]?.terrain : null,
+    y > 0 ? terrainMap[x][y - 1] : null,
+    y < terrainMap.length - 1 ? terrainMap[x][y + 1] : null,
+    x < terrainMap.length - 1 ? terrainMap[x + 1][y] : null,
+    x > 0 ? terrainMap[x - 1][y] : null,
   ]
 
-  // Village 强制邻接 forest
-  for (const adj of adjacent) {
-    if (adj === 'forest' && tiles[x][adj === tiles[x][0]?.terrain ? y - 1 : y]?.landmark === 'village') {
-      // This is overly complex — simplify: if any adjacent is village, return forest
-    }
-  }
-  // Simplification: check if any adjacent is village
-  const nearVillage = adjacent.some((_a, i) => {
-    const ax = i === 2 ? x + 1 : i === 3 ? x - 1 : x
-    const ay = i === 0 ? y - 1 : i === 1 ? y + 1 : y
-    return ax >= 0 && ax < tiles.length && ay >= 0 && ay < tiles.length
-      && tiles[ax]?.[ay]?.landmark === 'village'
-  })
+  // Village 邻接强制 forest
+  const nearVillage = (() => {
+    const villageEntity = entityLayer.find(e => e.entityId === 'village')
+    if (!villageEntity) return false
+    const villageDef = LANDMARKS.find(l => l.type === 'village')
+    const vfp = villageDef?.footprint ?? { w: 1, h: 1 }
+    return adjacent.some((_a, i) => {
+      const ax = i === 2 ? x + 1 : i === 3 ? x - 1 : x
+      const ay = i === 0 ? y - 1 : i === 1 ? y + 1 : y
+      return (
+        ax >= villageEntity.anchorX &&
+        ax < villageEntity.anchorX + vfp.w &&
+        ay >= villageEntity.anchorY &&
+        ay < villageEntity.anchorY + vfp.h
+      )
+    })
+  })()
   if (nearVillage) return 'forest'
 
   const chances: Record<string, number> = {}
@@ -156,39 +189,35 @@ function chooseTile(
 
 // ─── 地标放置 ─────────────────────────────────────────
 
-function placeLandmarks(tiles: MapTile[][], mapDef: MapDef): void {
+function placeLandmarks(
+  entityLayer: PlacedEntity[],
+  terrainMap: TerrainType[][],
+  mapDef: MapDef,
+): void {
   const center = mapDef.size
-  const size = tiles.length
+  const size = terrainMap.length
 
   for (const lm of mapDef.landmarks) {
     if (lm.type === 'village') continue // 已在中心
     const footprint = lm.footprint ?? { w: 1, h: 1 }
     for (let i = 0; i < lm.count; i++) {
-      const pos = findLandmarkPos(tiles, lm.minRadius, lm.maxRadius, center, size, footprint)
+      const pos = findLandmarkPos(entityLayer, terrainMap, lm.minRadius, lm.maxRadius, center, size, footprint)
       if (pos) {
-        const [px, py] = pos
-        for (let dy = 0; dy < footprint.h; dy++) {
-          for (let dx = 0; dx < footprint.w; dx++) {
-            const tx = px + dx
-            const ty = py + dy
-            if (tx < size && ty < size) {
-              tiles[tx][ty] = {
-                terrain: tiles[tx][ty].terrain,
-                landmark: lm.type,
-                blocked: false,
-              }
-            }
-          }
-        }
+        entityLayer.push({
+          entityId: lm.type,
+          anchorX: pos[0],
+          anchorY: pos[1],
+        })
       }
     }
   }
 }
 
-/** 在给定半径范围内随机查找一块空地形格子放置地标（最多尝试 200 次）
- *  如果指定了 footprint，检查该位置的所有 footprint 格是否都可用。 */
+/** 在给定半径范围内随机查找一块空地放置地标（最多尝试 200 次）。
+ *  通过检查 entityLayer 判断位置是否被已有实体占据，同时避免 road 格。 */
 function findLandmarkPos(
-  tiles: MapTile[][],
+  entityLayer: PlacedEntity[],
+  terrainMap: TerrainType[][],
   minR: number,
   maxR: number,
   center: number,
@@ -209,11 +238,17 @@ function findLandmarkPos(
       for (let dx = 0; dx < fp.w && valid; dx++) {
         const fx = x + dx
         const fy = y + dy
-        if (
-          fx >= size || fy >= size ||
-          tiles[fx][fy].landmark ||
-          tiles[fx][fy].terrain === 'road'
-        ) {
+        if (fx >= size || fy >= size) {
+          valid = false
+          continue
+        }
+        // 检查是否与已有实体重叠
+        if (isCellOccupiedByEntity(fx, fy, entityLayer)) {
+          valid = false
+          continue
+        }
+        // 检查是否被 road 占据
+        if (terrainMap[fx][fy] === 'road') {
           valid = false
         }
       }
@@ -223,28 +258,43 @@ function findLandmarkPos(
   return null
 }
 
+/** 判断网格坐标 (fx, fy) 是否被 entityLayer 中任何实体的 footprint 覆盖 */
+function isCellOccupiedByEntity(
+  fx: number,
+  fy: number,
+  entityLayer: PlacedEntity[],
+): boolean {
+  return entityLayer.some(e => {
+    const def = LANDMARKS.find(l => l.type === e.entityId)
+    const fp = def?.footprint ?? { w: 1, h: 1 }
+    return (
+      fx >= e.anchorX &&
+      fx < e.anchorX + fp.w &&
+      fy >= e.anchorY &&
+      fy < e.anchorY + fp.h
+    )
+  })
+}
+
 // ─── 道路绘制 ─────────────────────────────────────────
 
-function drawRoads(tiles: MapTile[][], mapDef: MapDef): void {
+function drawRoads(terrainMap: TerrainType[][], entityLayer: PlacedEntity[], mapDef: MapDef): void {
   const center = mapDef.size
 
   for (const lm of mapDef.landmarks) {
     if (!lm.autoRoad) continue
-    // 找到该地标的第一个实例
-    for (let x = 0; x < tiles.length; x++) {
-      for (let y = 0; y < tiles[x].length; y++) {
-        if (tiles[x][y].landmark === lm.type) {
-          drawLShapedRoad(tiles, [center, center], [x, y])
-          break // 只画到第一个实例
-        }
-      }
+    // 找到该地标在 entityLayer 中的第一个实例
+    const placed = entityLayer.find(e => e.entityId === lm.type)
+    if (placed) {
+      drawLShapedRoad(terrainMap, entityLayer, [center, center], [placed.anchorX, placed.anchorY])
     }
   }
 }
 
-/** 从 from 到 to 画 L 型道路（仅覆盖纯 terrain 格，不覆盖地标） */
+/** 从 from 到 to 画 L 型道路（跳过被实体占据的格，不碰 entityLayer） */
 function drawLShapedRoad(
-  tiles: MapTile[][],
+  terrainMap: TerrainType[][],
+  entityLayer: PlacedEntity[],
   from: [number, number],
   to: [number, number],
 ): void {
@@ -257,29 +307,29 @@ function drawLShapedRoad(
   if (xDist > yDist) {
     for (let i = 1; i <= xDist; i++) {
       const x = from[0] + i * xDir
-      if (!tiles[x][from[1]].landmark) {
-        tiles[x][from[1]] = { terrain: 'road' }
+      if (!isCellOccupiedByEntity(x, from[1], entityLayer)) {
+        terrainMap[x][from[1]] = 'road'
       }
     }
     const turnX = from[0] + xDist * xDir
     for (let j = 1; j <= yDist; j++) {
       const y = from[1] + j * yDir
-      if (!tiles[turnX][y].landmark) {
-        tiles[turnX][y] = { terrain: 'road' }
+      if (!isCellOccupiedByEntity(turnX, y, entityLayer)) {
+        terrainMap[turnX][y] = 'road'
       }
     }
   } else {
     for (let j = 1; j <= yDist; j++) {
       const y = from[1] + j * yDir
-      if (!tiles[from[0]][y].landmark) {
-        tiles[from[0]][y] = { terrain: 'road' }
+      if (!isCellOccupiedByEntity(from[0], y, entityLayer)) {
+        terrainMap[from[0]][y] = 'road'
       }
     }
     const turnY = from[1] + yDist * yDir
     for (let i = 1; i <= xDist; i++) {
       const x = from[0] + i * xDir
-      if (!tiles[x][turnY].landmark) {
-        tiles[x][turnY] = { terrain: 'road' }
+      if (!isCellOccupiedByEntity(x, turnY, entityLayer)) {
+        terrainMap[x][turnY] = 'road'
       }
     }
   }
