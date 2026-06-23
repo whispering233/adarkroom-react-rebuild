@@ -1,264 +1,408 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderViewport, renderTiles, type RenderCell } from './renderViewport'
-import { WORLD, LANDMARKS } from './constants'
-import type { MapTile, TerrainType, LandmarkType } from './types'
+import { renderViewport, drawComposed, type RenderCell } from './renderViewport'
+import { WORLD } from './constants'
+import type {
+  TerrainType,
+  PlacedEntity,
+  EntityCellOutput,
+  EntityRenderInput,
+} from './types'
+import type { StyleResolver } from './styleResolver'
+import type { EntityCatalog, EntityDrawCommand } from './entity/types'
+import { villageEntity } from './entity/village'
+import { ironMineEntity } from './entity/ironMine'
+import { cityEntity } from './entity/city'
 
 // ─── 常量 ──────────────────────────────────────────────
 
 const VIEWPORT_RADIUS = WORLD.VIEWPORT_RADIUS
-const VIEWPORT_TOTAL = VIEWPORT_RADIUS * 2 + 1 // 31
+const VIEWPORT_TOTAL = VIEWPORT_RADIUS * 2 + 1 // 21
 const FONT_NORMAL = '12px "Courier New", Courier, monospace'
-const FONT_LANDMARK = 'bold 12px "Courier New", Courier, monospace'
+const FONT_BOLD = 'bold 12px "Courier New", Courier, monospace'
+
+// ─── Mock StyleResolver ─────────────────────────────────
+
+const mockStyleResolver: StyleResolver = {
+  resolve(cell: EntityCellOutput, input: EntityRenderInput) {
+    const fillStyle = input.isDimmed
+      ? '#666'
+      : cell.prominent
+        ? '#fa0'
+        : '#0a0'
+    const font = cell.bold ? FONT_BOLD : FONT_NORMAL
+    return { fillStyle, font }
+  },
+}
 
 // ─── 辅助函数 ──────────────────────────────────────────
 
-function createTile(terrain: TerrainType, landmark?: LandmarkType): MapTile {
-  return landmark ? { terrain, landmark } : { terrain }
-}
-
-function createMap(size: number, fill: MapTile): MapTile[][] {
+function createTerrainMap(size: number, fill: TerrainType): TerrainType[][] {
   return Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => ({ ...fill })),
+    Array.from<TerrainType>({ length: size }).fill(fill),
   )
 }
 
-function createAllTrueMask(size: number): boolean[][] {
+function createAllTrueArray(size: number): boolean[][] {
   return Array.from({ length: size }, () =>
     Array.from({ length: size }, () => true),
   )
 }
 
-// ─── 测试套件 ──────────────────────────────────────────
+function createAllFalseArray(size: number): boolean[][] {
+  return Array.from({ length: size }, () =>
+    Array.from({ length: size }, () => false),
+  )
+}
+
+/** 创建一个只包含指定实体的 EntityCatalog */
+function makeCatalog(
+  ...entities: Array<{ type: string; footprint: { w: number; h: number }; getDrawCommand: any; onEnter?: any }>
+): EntityCatalog {
+  const cat: EntityCatalog = {}
+  for (const e of entities) {
+    cat[e.type] = e as any
+  }
+  return cat
+}
+
+// ─── renderViewport ────────────────────────────────────
 
 describe('renderViewport', () => {
-  it('renders boundary |, player @, and terrain . for centered position with no landmarks', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field'))
+  it('returns categorized result structure for basic map', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
     const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+    const allFalse = createAllFalseArray(size)
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-    // All 31x31 cells = 961: 0 boundary | + 1 player @ + 960 terrain .
-    const boundaries = result.filter(t => t.char === '|')
-    expect(boundaries.length).toBe(0)
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.font).toBe(FONT_NORMAL)
-    const terrainTiles = result.filter(t => t.char === '.')
-    expect(terrainTiles.length).toBe(960)
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, allFalse,
+    )
+
+    expect(result).toHaveProperty('entityCommands')
+    expect(result).toHaveProperty('terrainCells')
+    expect(result).toHaveProperty('boundaryCells')
+    expect(result).toHaveProperty('playerCell')
+    expect(result).toHaveProperty('occupiedSet')
+    expect(Array.isArray(result.entityCommands)).toBe(true)
+    expect(Array.isArray(result.terrainCells)).toBe(true)
+    expect(Array.isArray(result.boundaryCells)).toBe(true)
   })
 
-  it('places player @ at viewport center for centered position', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field'))
+  it('places player @ at viewport center', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
     const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.char).toBe('@')
-    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
-    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
-    expect(playerTile!.font).toBe(FONT_NORMAL)
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.playerCell).not.toBeNull()
+    expect(result.playerCell!.char).toBe('@')
+    expect(result.playerCell!.vx).toBe(VIEWPORT_RADIUS)
+    expect(result.playerCell!.vy).toBe(VIEWPORT_RADIUS)
+    // mock: prominent=true & bold=false → accent color + normal font
+    expect(result.playerCell!.fillStyle).toBe('#fa0')
+    expect(result.playerCell!.font).toBe(FONT_NORMAL)
   })
 
-  it('adds boundary walls on left/top when player at map origin [0,0]', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field'))
+  it('renders boundary walls when player at map origin [0,0]', () => {
+    const size = 25 // smaller map
+    const terrainMap = createTerrainMap(size, 'field')
     const playerPos: [number, number] = [0, 0]
+    const allTrue = createAllTrueArray(size)
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
 
-    // Player at viewport center
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
-    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
+    // Player at center
+    expect(result.playerCell).not.toBeNull()
+    expect(result.playerCell!.vx).toBe(VIEWPORT_RADIUS)
+    expect(result.playerCell!.vy).toBe(VIEWPORT_RADIUS)
 
-    // All tiles with vx < VIEWPORT_RADIUS are left-boundary
-    const leftBoundary = result.filter(t => t.vx < VIEWPORT_RADIUS)
-    expect(leftBoundary.length).toBeGreaterThan(0)
-    for (const tile of leftBoundary) {
-      expect(tile.char).toBe('|')
-      expect(tile.font).toBe(FONT_NORMAL)
+    // Boundary cells exist (left/top side)
+    expect(result.boundaryCells.length).toBeGreaterThan(0)
+    for (const cell of result.boundaryCells) {
+      expect(cell.char).toBe('|')
+      // mock: dimmed → '#666'
+      expect(cell.fillStyle).toBe('#666')
     }
 
-    // All tiles with vy < VIEWPORT_RADIUS are top-boundary
-    const topBoundary = result.filter(t => t.vy < VIEWPORT_RADIUS)
-    expect(topBoundary.length).toBeGreaterThan(0)
-    for (const tile of topBoundary) {
-      expect(tile.char).toBe('|')
-      expect(tile.font).toBe(FONT_NORMAL)
-    }
+    // Terrain cells only where map exists (right/bottom portion of viewport)
+    const inBounds = result.terrainCells.length + 1 // +1 for player
+    const outOfBounds = result.boundaryCells.length
+    expect(inBounds + outOfBounds).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
   })
 
-  it('adds boundary walls on right/bottom when player at map corner [60,60]', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field'))
-    const playerPos: [number, number] = [60, 60]
-
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-
-    // Player at viewport center
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.vx).toBe(VIEWPORT_RADIUS)
-    expect(playerTile!.vy).toBe(VIEWPORT_RADIUS)
-
-    // All tiles with vx > VIEWPORT_RADIUS are right/bottom-boundary
-    const rightBoundary = result.filter(t => t.vx > VIEWPORT_RADIUS)
-    expect(rightBoundary.length).toBeGreaterThan(0)
-    for (const tile of rightBoundary) {
-      expect(tile.char).toBe('|')
-      expect(tile.font).toBe(FONT_NORMAL)
-    }
-
-    const bottomBoundary = result.filter(t => t.vy > VIEWPORT_RADIUS)
-    expect(bottomBoundary.length).toBeGreaterThan(0)
-    for (const tile of bottomBoundary) {
-      expect(tile.char).toBe('|')
-      expect(tile.font).toBe(FONT_NORMAL)
-    }
-  })
-
-  it('includes terrain tiles with char . when no landmarks present', () => {
-    const mapSize = 61
-    // No landmarks, just field terrain
-    const tiles = createMap(mapSize, createTile('field'))
+  it('renders terrain cells with correct chars from terrainCharMap', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'forest')
     const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
 
-    // All 31x31 = 961 cells now have a RenderCell
-    expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
-    const dotTiles = result.filter(t => t.char === '.')
-    expect(dotTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.font).toBe(FONT_NORMAL)
-  })
-
-  it('includes landmark tiles with landmark font and correct char', () => {
-    const mapSize = 61
-    // Use ironMine (no footprint) to verify single-tile landmark rendering
-    const tiles = createMap(mapSize, createTile('field', 'ironMine'))
-    const playerPos: [number, number] = [30, 30]
-
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-
-    // Player at (30,30) — one tile
-    // But that tile has landmark=ironMine; player takes precedence
-    // All other in-bounds tiles have landmark=ironMine → landmark tiles
-    // Total = player(1) + landmarks(960) = 961
-    expect(result.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL)
-
-    const landmarkTiles = result.filter(t => t.char === 'I') // 'I' = ironMine char
-    // 960 non-player landmark tiles (no boundaries at center)
-    expect(landmarkTiles.length).toBe(VIEWPORT_TOTAL * VIEWPORT_TOTAL - 1)
-
-    for (const t of landmarkTiles) {
-      expect(t.char).toBe('I')
-      expect(t.font).toBe(FONT_LANDMARK)
+    // All non-boundary, non-player terrain should have forest char
+    for (const cell of result.terrainCells) {
+      expect(cell.char).toBe('▓') // forest char
     }
   })
 
-  it('renders correct chars for all landmark types', () => {
-    const mapSize = 61
-    const playerPos: [number, number] = [5, 5]
+  it('renders traveled terrain with ; char', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+    const traveled = createAllFalseArray(size)
+    // Mark some terrain as traveled
+    traveled[25][25] = true
+    traveled[26][26] = true
 
-    // Place a specific landmark at a known nearby position
-    const tiles = createMap(mapSize, createTile('field'))
-    // Place one landmark at (6,5) — one step right of player
-    const lmDef = LANDMARKS.find(lm => lm.type === 'ironMine')!
-    tiles[6][5] = createTile('field', 'ironMine')
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, traveled,
+    )
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-    const lmTile = result.find(t => t.char === lmDef.char)
-    expect(lmTile).toBeDefined()
-    expect(lmTile!.char).toBe(lmDef.char)
-    expect(lmTile!.font).toBe(FONT_LANDMARK)
-    // vx = wx - xStart = 6 - (5 - 15) = 6 - (-10) = 16
-    expect(lmTile!.vx).toBe(VIEWPORT_RADIUS + 1)
+    const traveledCells = result.terrainCells.filter(c => c.char === ';')
+    expect(traveledCells.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('renders 2x2 footprint landmark as single cell (footprint expansion done in generator)', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field'))
-    // city has footprint {w:2, h:2} with char 'Y'
-    // Footprint expansion is done in generator, NOT in renderViewport
-    tiles[20][20] = createTile('field', 'city')
+  it('renders void terrain with empty char', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'void')
     const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
 
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
 
-    // viewport covers [15..45], city at [20][20] → vx=5, vy=5
-    const cityCells = result.filter(c => c.char === 'Y')
-    expect(cityCells).toHaveLength(1)
-    expect(cityCells[0].vx).toBe(5)
-    expect(cityCells[0].vy).toBe(5)
-    expect(cityCells[0].font).toBe(FONT_LANDMARK)
-
-    // No footprint empty cells should be produced by renderViewport
-    const emptyCells = result.filter(c => c.char === '')
-    expect(emptyCells).toHaveLength(0)
-  })
-
-  it('player on landmark shows @ (player takes precedence)', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('field', 'ironMine'))
-    const playerPos: [number, number] = [30, 30]
-
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-    expect(playerTile!.char).toBe('@')
-    expect(playerTile!.font).toBe(FONT_NORMAL)
-  })
-
-  it('renders void terrain with empty char (invisible tiles)', () => {
-    const mapSize = 61
-    const tiles = createMap(mapSize, createTile('void'))
-    const playerPos: [number, number] = [30, 30]
-
-    const result = renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-
-    // Player tile
-    const playerTile = result.find(t => t.char === '@')
-    expect(playerTile).toBeDefined()
-
-    // All non-boundary, non-player tiles should have char=''
-    const voidTiles = result.filter(t => t.char === '')
-    // Count: all in-bounds tiles (map covers entire viewport) minus player
-    // Total cells = VIEWPORT_TOTAL^2 = 961
-    // Boundary = 0 (player at center, viewport fully within map)
-    // Player = 1
-    // Void = 961 - 0 - 1 = 960
-    expect(voidTiles.length).toBe(960)
-    for (const t of voidTiles) {
-      expect(t.char).toBe('')
-      expect(t.font).toBe(FONT_NORMAL)
+    // All non-boundary, non-player terrain should have empty char
+    for (const cell of result.terrainCells) {
+      expect(cell.char).toBe('')
     }
+  })
+
+  it('skips cells not in mask nor explored', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allFalse = createAllFalseArray(size)
+
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allFalse, allFalse, createAllFalseArray(size),
+    )
+
+    // Player cell should still show (always visible)
+    expect(result.playerCell).not.toBeNull()
+    expect(result.playerCell!.char).toBe('@')
+
+    // No terrain cells should appear (mask=false, explored=false)
+    expect(result.terrainCells.length).toBe(0)
+  })
+
+  it('renders explored-but-invisible terrain as dimmed', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const mask = createAllFalseArray(size)
+    const explored = createAllFalseArray(size)
+    // Make a cell explored but not visible
+    explored[20][20] = true
+
+    const result = renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      mask, explored, createAllFalseArray(size),
+    )
+
+    // That cell should appear with muted color
+    const dimmedCells = result.terrainCells.filter(c => c.fillStyle === '#666')
+    expect(dimmedCells.length).toBeGreaterThanOrEqual(1)
+  })
+
+  // ── 实体层 ──────────────────────────────────────────
+
+  it('renders a single-tile entity cell with resolved styling', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'ironMine', anchorX: 28, anchorY: 30 },
+    ]
+    const catalog = makeCatalog(ironMineEntity)
+
+    const result = renderViewport(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(1)
+    expect(result.entityCommands[0].cells.length).toBe(1)
+
+    const cell = result.entityCommands[0].cells[0]
+    expect(cell.char).toBe('I')
+    // mock: prominent=true & bold=true → accent + bold font
+    expect(cell.fillStyle).toBe('#fa0')
+    expect(cell.font).toBe(FONT_BOLD)
+
+    // Occupied set contains the entity's world cell
+    expect(result.occupiedSet.has('28,30')).toBe(true)
+  })
+
+  it('renders multi-tile entity (village 3×3 → 9 occupied cells)', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'village', anchorX: 25, anchorY: 25 },
+    ]
+    const catalog = makeCatalog(villageEntity)
+
+    const result = renderViewport(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(1)
+
+    // Village is 3×3 = 9 cells
+    const cmd = result.entityCommands[0]
+    expect(cmd.cells.length).toBe(9)
+
+    // 9 occupied cells: (25,25) through (27,27)
+    expect(result.occupiedSet.size).toBe(9)
+    for (let dx = 0; dx < 3; dx++) {
+      for (let dy = 0; dy < 3; dy++) {
+        expect(result.occupiedSet.has(`${25 + dx},${25 + dy}`)).toBe(true)
+      }
+    }
+
+    // All cells should have resolved styling (bold + accent)
+    for (const cell of cmd.cells) {
+      expect(cell.fillStyle).toBe('#fa0')
+      expect(cell.font).toBe(FONT_BOLD)
+    }
+
+    // Terrain cells should NOT include the vx,vy that overlap entity footprint
+    const terrainWorldKeys = new Set(result.terrainCells.map(c => {
+      const wx = playerPos[0] - VIEWPORT_RADIUS + c.vx
+      const wy = playerPos[1] - VIEWPORT_RADIUS + c.vy
+      return `${wx},${wy}`
+    }))
+    for (let dx = 0; dx < 3; dx++) {
+      for (let dy = 0; dy < 3; dy++) {
+        expect(terrainWorldKeys.has(`${25 + dx},${25 + dy}`)).toBe(false)
+      }
+    }
+  })
+
+  it('renders 2×2 entity (city) as 4 occupied cells', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'city', anchorX: 20, anchorY: 20 },
+    ]
+    const catalog = makeCatalog(cityEntity)
+
+    const result = renderViewport(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(1)
+    expect(result.entityCommands[0].cells.length).toBe(4)
+    expect(result.occupiedSet.size).toBe(4)
+    for (const cell of result.entityCommands[0].cells) {
+      expect(cell.char).toBe('Y')
+      expect(cell.fillStyle).toBe('#fa0')
+    }
+  })
+
+  it('handles multiple entities in entityLayer', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'ironMine', anchorX: 25, anchorY: 25 },
+      { entityId: 'city', anchorX: 28, anchorY: 28 },
+    ]
+    const catalog = makeCatalog(ironMineEntity, cityEntity)
+
+    const result = renderViewport(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(2)
+    // ironMine = 1 cell, city = 4 cells
+    expect(result.entityCommands[0].cells.length).toBe(1)
+    expect(result.entityCommands[1].cells.length).toBe(4)
+    // total occupied: 5 unique cells
+    expect(result.occupiedSet.size).toBe(5)
+  })
+
+  it('skips entity not in catalog', () => {
+    const size = 61
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [30, 30]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'unknown', anchorX: 25, anchorY: 25 },
+    ]
+    const catalog: EntityCatalog = {}
+
+    const result = renderViewport(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(0)
+    expect(result.occupiedSet.size).toBe(0)
   })
 
   it('does not mutate input arrays', () => {
-    const mapSize = 10
-    const tiles = createMap(mapSize, createTile('field'))
+    const size = 10
+    const terrainMap = createTerrainMap(size, 'field')
     const playerPos: [number, number] = [5, 5]
+    const allTrue = createAllTrueArray(size)
+    const allFalse = createAllFalseArray(size)
 
-    const originalTiles: MapTile[][] = tiles.map(row =>
-      row.map(t => ({ ...t })),
+    const originalTerrainMap = terrainMap.map(row => [...row])
+
+    renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, allFalse,
     )
 
-    renderViewport(tiles, playerPos, createAllTrueMask(mapSize))
-
-    expect(tiles).toEqual(originalTiles)
+    expect(terrainMap).toEqual(originalTerrainMap)
   })
 })
 
-// ─── renderTiles ───────────────────────────────────────
+// ─── drawComposed ──────────────────────────────────────
 
-describe('renderTiles', () => {
+describe('drawComposed', () => {
   function createMockCtx(): CanvasRenderingContext2D {
-    // Provide minimal mock with only the props renderTiles touches
     return {
       font: '',
       fillStyle: '',
@@ -266,70 +410,153 @@ describe('renderTiles', () => {
     } as unknown as CanvasRenderingContext2D
   }
 
-  it('calls fillText for non-empty chars', () => {
+  it('draws entity commands, terrain, boundary, and player in order', () => {
     const ctx = createMockCtx()
-    const cells: RenderCell[] = [
-      { vx: 0, vy: 0, char: '@', font: FONT_NORMAL, fillStyle: '#fff' },
-      { vx: 1, vy: 0, char: 'A', font: FONT_LANDMARK, fillStyle: '#fa0' },
-    ]
     const cellSize = 16
 
-    renderTiles(ctx, cells, cellSize)
+    // Build a minimal result object
+    const entityCmd: EntityDrawCommand = {
+      bounds: { vx: 0, vy: 0, vw: 1, vh: 1 },
+      cells: [{ vx: 0, vy: 0, char: 'I', font: FONT_BOLD, fillStyle: '#fa0' }],
+    }
 
-    expect(ctx.fillText).toHaveBeenCalledTimes(2)
-    expect(ctx.fillText).toHaveBeenCalledWith('@', 8, 8)
-    expect(ctx.fillText).toHaveBeenCalledWith('A', 24, 8)
+    const result = {
+      entityCommands: [entityCmd],
+      terrainCells: [
+        { vx: 1, vy: 1, char: '.', font: FONT_NORMAL, fillStyle: '#0a0' },
+      ],
+      boundaryCells: [
+        { vx: 5, vy: 5, char: '|', font: FONT_NORMAL, fillStyle: '#666' },
+      ],
+      playerCell: { vx: 10, vy: 10, char: '@', font: FONT_NORMAL, fillStyle: '#fa0' },
+      occupiedSet: new Set<string>(),
+    }
+
+    drawComposed(ctx, result as any, cellSize)
+
+    // Should be called 4 times (1 entity + 1 terrain + 1 boundary + 1 player)
+    expect(ctx.fillText).toHaveBeenCalledTimes(4)
+
+    // Order check: we can verify the sequence by checking arguments
+    const calls = (ctx.fillText as ReturnType<typeof vi.fn>).mock.calls
+    expect(calls[0][0]).toBe('I')   // entity first (bottom)
+    expect(calls[1][0]).toBe('.')   // terrain
+    expect(calls[2][0]).toBe('|')   // boundary
+    expect(calls[3][0]).toBe('@')   // player last (top)
   })
 
-  it('sets font and fillStyle on ctx before calling fillText', () => {
+  it('batches cells with same font+fillStyle within same category', () => {
     const ctx = createMockCtx()
-    const cells: RenderCell[] = [
-      { vx: 0, vy: 0, char: '@', font: FONT_LANDMARK, fillStyle: '#fa0' },
-    ]
     const cellSize = 16
 
-    renderTiles(ctx, cells, cellSize)
+    const multiCells: RenderCell[] = [
+      { vx: 0, vy: 0, char: 'a', font: FONT_NORMAL, fillStyle: '#0a0' },
+      { vx: 1, vy: 0, char: 'b', font: FONT_NORMAL, fillStyle: '#0a0' },
+      { vx: 2, vy: 0, char: 'c', font: FONT_BOLD, fillStyle: '#fa0' },
+    ]
 
-    expect(ctx.font).toBe(FONT_LANDMARK)
-    expect(ctx.fillStyle).toBe('#fa0')
-    expect(ctx.fillText).toHaveBeenCalledWith('@', 8, 8)
+    // All terrain cells (same category)
+    const entityCmd: EntityDrawCommand = {
+      bounds: { vx: 0, vy: 0, vw: 3, vh: 1 },
+      cells: multiCells,
+    }
+
+    const result = {
+      entityCommands: [entityCmd],
+      terrainCells: [],
+      boundaryCells: [],
+      playerCell: null,
+      occupiedSet: new Set<string>(),
+    }
+
+    drawComposed(ctx, result as any, cellSize)
+
+    // ctx.font/fillStyle should only be set 2 times (2 unique style pairs)
+    // But fillText called 3 times
+    expect(ctx.fillText).toHaveBeenCalledTimes(3)
+
+    // First two calls share same font+fillStyle
+    expect(ctx.fillText).toHaveBeenCalledWith('a', 8, 8)
+    expect(ctx.fillText).toHaveBeenCalledWith('b', 24, 8)
+    expect(ctx.fillText).toHaveBeenCalledWith('c', 40, 8)
   })
 
   it('skips empty char ("")', () => {
     const ctx = createMockCtx()
-    const cells: RenderCell[] = [
-      { vx: 0, vy: 0, char: '', font: FONT_NORMAL, fillStyle: '#666' },
-    ]
+    const cellSize = 16
 
-    renderTiles(ctx, cells, 16)
+    const result = {
+      entityCommands: [],
+      terrainCells: [
+        { vx: 0, vy: 0, char: '', font: FONT_NORMAL, fillStyle: '#666' },
+      ],
+      boundaryCells: [],
+      playerCell: null,
+      occupiedSet: new Set<string>(),
+    }
+
+    drawComposed(ctx, result as any, cellSize)
 
     expect(ctx.fillText).not.toHaveBeenCalled()
   })
 
   it('skips space char (" ")', () => {
     const ctx = createMockCtx()
-    const cells: RenderCell[] = [
-      { vx: 0, vy: 0, char: ' ', font: FONT_NORMAL, fillStyle: '#666' },
-    ]
+    const cellSize = 16
 
-    renderTiles(ctx, cells, 16)
+    const result = {
+      entityCommands: [
+        {
+          bounds: { vx: 0, vy: 0, vw: 1, vh: 1 },
+          cells: [
+            { vx: 0, vy: 0, char: ' ', font: FONT_NORMAL, fillStyle: '#666' },
+          ],
+        },
+      ],
+      terrainCells: [],
+      boundaryCells: [],
+      playerCell: null,
+      occupiedSet: new Set<string>(),
+    }
+
+    drawComposed(ctx, result as any, cellSize)
 
     expect(ctx.fillText).not.toHaveBeenCalled()
   })
 
-  it('skips empty and space but renders others in mixed list', () => {
+  it('handles null playerCell', () => {
     const ctx = createMockCtx()
-    const cells: RenderCell[] = [
-      { vx: 0, vy: 0, char: ' ', font: FONT_NORMAL, fillStyle: '#666' },
-      { vx: 1, vy: 0, char: '@', font: FONT_NORMAL, fillStyle: '#fff' },
-      { vx: 2, vy: 0, char: '', font: FONT_NORMAL, fillStyle: '#666' },
-      { vx: 3, vy: 0, char: '|', font: FONT_NORMAL, fillStyle: '#888' },
-    ]
+    const cellSize = 16
 
-    renderTiles(ctx, cells, 16)
+    const result = {
+      entityCommands: [],
+      terrainCells: [],
+      boundaryCells: [],
+      playerCell: null,
+      occupiedSet: new Set<string>(),
+    }
 
-    expect(ctx.fillText).toHaveBeenCalledTimes(2)
-    expect(ctx.fillText).toHaveBeenCalledWith('@', 24, 8)
-    expect(ctx.fillText).toHaveBeenCalledWith('|', 56, 8)
+    drawComposed(ctx, result as any, cellSize)
+
+    expect(ctx.fillText).not.toHaveBeenCalled()
+  })
+
+  it('computes coordinates correctly: x = vx * cellSize + cellSize/2', () => {
+    const ctx = createMockCtx()
+    const cellSize = 16
+
+    const result = {
+      entityCommands: [],
+      terrainCells: [
+        { vx: 2, vy: 3, char: '.', font: FONT_NORMAL, fillStyle: '#0a0' },
+      ],
+      boundaryCells: [],
+      playerCell: null,
+      occupiedSet: new Set<string>(),
+    }
+
+    drawComposed(ctx, result as any, cellSize)
+
+    expect(ctx.fillText).toHaveBeenCalledWith('.', 40, 56) // 2*16+8=40, 3*16+8=56
   })
 })

@@ -56,19 +56,6 @@ export function getAllEntities(): WorldEntity[] {
   return Object.values(catalog)
 }
 
-// ─── 辅助：创建占位实体 ──────────────────────────────
-
-function placeholder(type: string, w: number, h: number): WorldEntity {
-  return {
-    type,
-    footprint: { w, h },
-    getDrawCommand: () => ({
-      bounds: { vx: 0, vy: 0, vw: w, vh: h },
-      cells: [],
-    }),
-  }
-}
-
 // ─── 注册正式实体 ────────────────────────────────────
 // 按类型注册已实现的实体。registerEntity 是幂等的，不会覆盖已有条目。
 
