@@ -5,6 +5,7 @@
  *   - 地块=地形+可选地标，非字符编码
  *   - 效果系统通过 TileEffectFn 延迟求值 + composeEffects 组合
  *   - Portal Landmark 通过 nextMapId + mapStack 支持无限深度跳转（预留）
+ *   - 实体层 (PlacedEntity) 与地形层 (TerrainType[][]) 分离
  */
 
 import type { GameState } from '../state/types'
@@ -24,20 +25,102 @@ export type LandmarkType =
   | 'house' | 'cave' | 'town' | 'city' | 'outpost' | 'ship'
   | 'borehole' | 'battlefield' | 'swamp' | 'cache' | 'executioner'
 
+/**
+ * @deprecated 将在后续 wave 中删除。新代码使用 WorldMap + PlacedEntity 替代。
+ * MapTile 目前仍被 generator.ts / renderViewport.ts / World.tsx 使用，
+ * 待 Wave 2-5 逐步迁移后再移除。
+ */
 export interface MapTile {
   terrain: TerrainType
   landmark?: LandmarkType
   blocked?: boolean
 }
 
-// ─── 效果系统 ─────────────────────────────────────────
+// ─── 实体层类型 ───────────────────────────────────────
 
+/** 放置在地图上的实体实例 */
+export interface PlacedEntity {
+  /** 实体类型 ID（关联到 WorldEntity.type） */
+  entityId: string
+  /** footprint 左上角锚点 X（地图网格坐标） */
+  anchorX: number
+  /** footprint 左上角锚点 Y（地图网格坐标） */
+  anchorY: number
+  /** 是否阻挡移动（默认 false） */
+  blocked?: boolean
+}
+
+/** entityCellMap 中单个格子的值 */
+export interface PlacedCell {
+  entityId: string
+  anchorX: number
+  anchorY: number
+  /** 相对于 anchor 的 X 偏移（0-based） */
+  dx: number
+  /** 相对于 anchor 的 Y 偏移（0-based） */
+  dy: number
+}
+
+/** 地图运行时数据结构 — 地形层 + 实体层 */
+export interface WorldMap {
+  /** 地图边长（terrainMap 是 size × size） */
+  size: number
+  /** 地形层二维数组（字符串枚举，不含实体信息） */
+  terrainMap: TerrainType[][]
+  /** 实体层 — 所有已放置实体的列表 */
+  entityLayer: PlacedEntity[]
+  /** 实体格查找表 — key = "${x},${y}"，value = PlacedCell */
+  entityCellMap: Map<string, PlacedCell>
+}
+
+// ─── 实体触发上下文 ───────────────────────────────────
+
+export interface EntityTriggerContext {
+  pos: [number, number]
+  state: GameState
+  dispatch: (action: GameAction) => void
+  t: (key: string) => string
+  _globalTick: number
+}
+
+export interface EntityTriggerResult {
+  eventId?: string
+  narrations?: string[]
+  encounters?: string[]
+  modifiers?: Record<string, number>
+  nextMapId?: string
+  nextPos?: [number, number]
+  returnHome?: boolean
+  skipSupplies?: boolean
+}
+
+// ─── 实体渲染接口 ─────────────────────────────────────
+
+export interface EntityRenderInput {
+  isDimmed: boolean
+}
+
+export interface EntityCellOutput {
+  char: string
+  prominent: boolean
+  bold: boolean
+}
+
+// ─── 效果系统（旧，保留兼容）──────────────────────────
+
+/**
+ * @deprecated 将逐步被 EntityTriggerContext / EntityTriggerResult 替代。
+ * 目前仍在 LandmarkDef.onEnter / TerrainDef.onEnter 中使用。
+ */
 export interface TileContext {
   pos: [number, number]
   dispatch: DispatchFn
   state: GameState
 }
 
+/**
+ * @deprecated 将逐步被 EntityTriggerResult 替代。
+ */
 export interface TileEffectResult {
   narrations?: string[]
   encounters?: string[]
@@ -47,6 +130,9 @@ export interface TileEffectResult {
   nextPos?: [number, number]
 }
 
+/**
+ * @deprecated 将逐步被 WorldEntity.onEnter 替代。
+ */
 export type TileEffectFn = (ctx: TileContext) => TileEffectResult
 
 // ─── 地图配置 ─────────────────────────────────────────
@@ -103,7 +189,9 @@ export interface MapDef {
 
 export interface PersistentWorldData {
   mapId: string
-  tiles: MapTile[][]
+  /** @deprecated 使用 worldMap 替代。保留以供 v1.3→v1.4 迁移使用。 */
+  tiles?: MapTile[][]
+  worldMap: WorldMap
   mask: boolean[][]
   explored: boolean[][]
   traveled: boolean[][]
@@ -115,6 +203,8 @@ export interface PersistentWorldData {
 export interface WorldMapStackEntry {
   mapId: string
   pos: [number, number]
+  terrainMap: TerrainType[][]
+  entityLayer: PlacedEntity[]
   mask: boolean[][]
   explored: boolean[][]
   traveled: boolean[][]
@@ -154,6 +244,7 @@ export interface WorldRuntimeState {
 
 // ─── 通行判断 ─────────────────────────────────────────
 
+/** @deprecated 将逐步替换为实体层 + 地形层联合判断 */
 export function isTilePassable(tile: MapTile): boolean {
   if (tile.blocked) return false
   const def = TERRAINS.find(t => t.type === tile.terrain)
