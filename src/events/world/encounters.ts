@@ -21,7 +21,7 @@ function getCurTerrain(state: import('../../state/types').GameState): string {
   const wr = state.game.worldRuntime
   const pw = state.game.world
   if (!wr || !pw) return ''
-  return pw.tiles[wr.curPos[0]][wr.curPos[1]].terrain
+  return pw.worldMap.terrainMap[wr.curPos[0]][wr.curPos[1]]
 }
 
 /** Snarling Beast — Tier 1, Forest */
