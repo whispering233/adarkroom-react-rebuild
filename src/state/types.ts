@@ -285,5 +285,5 @@ export const INITIAL_STATE: GameState = {
   _nextNarrativeId: 1,
   combat: null,
   _globalTick: 0,
-  version: 1.3,
+  version: 1.4,
 }

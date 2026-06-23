@@ -102,7 +102,7 @@ describe('saveManager', () => {
     // Use INITIAL_STATE spread to pass all required fields
     const result = migrateSave({ ...INITIAL_STATE } as unknown as Record<string, unknown>)
     expect(result).not.toBeNull()
-    expect(result?.version).toBe(1.3)
+    expect(result?.version).toBe(1.4)
 
     const resultHigher = migrateSave({ ...INITIAL_STATE, version: 2.0 } as unknown as Record<string, unknown>)
     expect(resultHigher).not.toBeNull()

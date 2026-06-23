@@ -16,9 +16,12 @@ import type { EventResult } from '../events/types'
 import type { CombatState } from '../combat/types'
 import { FireLevel, TempLevel } from './types'
 import { CONFIG, WORKER_INCOME, shouldKeepOnReturn } from '../config'
-import type { MapDef } from '../world/types'
+import type { MapDef, PlacedEntity, TerrainType, MapTile } from '../world/types'
 import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
 import { generateMap, createNewMask, createMask, lightMap } from '../world/generator'
+import type { EntityCatalog } from '../world/entity/types'
+import { buildEntityCellMap } from '../world/entity/types'
+import { getAllEntities } from '../world/entity/catalog'
 
 // ─── 常量 ────────────────────────────────────────────────
 
@@ -266,6 +269,10 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
     // ── 存档加载（return 替换整个状态） ────────────────
 
     case 'LOAD_SAVE': {
+      // v1.3 → v1.4 migration: tiles → worldMap
+      if (action.state.version < 1.4) {
+        migrateV1_3toV1_4(action.state)
+      }
       return action.state
     }
 
@@ -440,12 +447,12 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
         isAvailable: () => true,
       }
       if (!draft.game.world) {
-        const { tiles, mask, traveled } = generateMap(worldDef)
+        const { worldMap, mask, explored, traveled } = generateMap(worldDef)
         draft.game.world = {
           mapId: 'world',
-          tiles,
+          worldMap,
           mask,
-          explored: createMask(tiles.length),
+          explored,
           traveled,
           usedOutposts: {},
         }
@@ -532,6 +539,8 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       wr.mapStack.push({
         mapId: draft.game.world!.mapId,
         pos: [...wr.curPos],
+        terrainMap: draft.game.world!.worldMap.terrainMap,
+        entityLayer: draft.game.world!.worldMap.entityLayer,
         mask: wr.mask,
         explored: wr.explored.map(row => [...row]),
         traveled: wr.traveled.map(row => [...row]),
@@ -539,9 +548,10 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       })
       draft.game.world!.mapId = action.mapId
       wr.curPos = action.pos ?? [0, 0]
-      wr.mask = createNewMask(draft.game.world!.tiles.length, wr.curPos)
-      wr.explored = createMask(draft.game.world!.tiles.length)
-      wr.traveled = createMask(draft.game.world!.tiles.length)
+      const mapSize = draft.game.world!.worldMap.terrainMap.length
+      wr.mask = createNewMask(mapSize, wr.curPos)
+      wr.explored = createMask(mapSize)
+      wr.traveled = createMask(mapSize)
       wr.usedOutposts = {}
       break
     }
@@ -552,6 +562,15 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       if (wr.mapStack.length > 0) {
         const prev = wr.mapStack.pop()!
         draft.game.world!.mapId = prev.mapId
+        if (draft.game.world) {
+          draft.game.world.worldMap.terrainMap = prev.terrainMap
+          draft.game.world.worldMap.entityLayer = prev.entityLayer
+          const entityCatalog: EntityCatalog = {}
+          for (const e of getAllEntities()) {
+            entityCatalog[e.type] = e
+          }
+          draft.game.world.worldMap.entityCellMap = buildEntityCellMap(prev.entityLayer, entityCatalog)
+        }
         wr.curPos = prev.pos
         wr.mask = prev.mask
         wr.explored = prev.explored
@@ -723,4 +742,115 @@ function getMaxWater(draft: GameState): number {
   if (s.cask > 0) return WORLD.BASE_WATER + 20
   if (s.waterskin > 0) return WORLD.BASE_WATER + 10
   return WORLD.BASE_WATER
+}
+
+// ─── 存档迁移 ──────────────────────────────────────
+
+/**
+ * 从 v1.3 迁移到 v1.4：将旧格式的 tiles (MapTile[][]) 转换为 WorldMap 结构。
+ *
+ * 旧格式：persistentWorldData.tiles — 每个格子包含 terrain + optional landmark
+ * 新格式：persistentWorldData.worldMap — { terrainMap, entityLayer, entityCellMap }
+ *
+ * 迁移步骤：
+ *   1. 扫描 tiles → 提取 terrain → terrainMap
+ *   2. 扫描 tiles → 分组地标 → entityLayer（含多格 footprint 处理）
+ *   3. buildEntityCellMap → entityCellMap
+ *   4. 原子验证：地形维度、地标覆盖完整性
+ *   5. 赋值后删除旧 tiles
+ *
+ * 若验证失败则 throw Error，保留原 tiles 不删除。
+ */
+function migrateV1_3toV1_4(state: GameState): void {
+  const pw = state.game.world
+  if (!pw || !pw.tiles) return
+
+  const tiles: MapTile[][] = pw.tiles
+  const size = tiles.length
+
+  const terrainMap: TerrainType[][] = Array.from({ length: size }, (_, x) =>
+    Array.from({ length: size }, (_, y) => tiles[x][y].terrain),
+  )
+
+  const entityLayer: PlacedEntity[] = []
+  const processed = new Set<string>()
+
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      const tile = tiles[x][y]
+      if (!tile.landmark) continue
+      const key = `${x},${y}`
+      if (processed.has(key)) continue
+
+      const lm = tile.landmark
+      const lmDef = LANDMARKS.find(l => l.type === lm)
+      const fp = lmDef?.footprint ?? { w: 1, h: 1 }
+
+      // 判断是否为多格 footprint 的左上角锚点
+      const isTopLeft =
+        (x === 0 || tiles[x - 1]?.[y]?.landmark !== lm) &&
+        (y === 0 || tiles[x]?.[y - 1]?.landmark !== lm)
+
+      if (isTopLeft) {
+        for (let dx = 0; dx < fp.w; dx++) {
+          for (let dy = 0; dy < fp.h; dy++) {
+            processed.add(`${x + dx},${y + dy}`)
+          }
+        }
+        entityLayer.push({ entityId: lm, anchorX: x, anchorY: y })
+      }
+    }
+  }
+
+  const entityCatalog: EntityCatalog = {}
+  for (const e of getAllEntities()) {
+    entityCatalog[e.type] = e
+  }
+  const entityCellMap = buildEntityCellMap(entityLayer, entityCatalog)
+
+  // 原子验证
+  if (!terrainMap || terrainMap.length !== size) {
+    throw new Error(
+      `v1.3→v1.4 migration: terrainMap dimension mismatch (expected ${size}, got ${terrainMap?.length ?? 0})`,
+    )
+  }
+  for (let x = 0; x < size; x++) {
+    if (!terrainMap[x] || terrainMap[x].length !== size) {
+      throw new Error(`v1.3→v1.4 migration: terrainMap row ${x} dimension mismatch`)
+    }
+  }
+
+  // 验证所有旧地标格都被实体 footprint 覆盖
+  const actualLandmarkCells = new Set<string>()
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      if (tiles[x][y].landmark) {
+        actualLandmarkCells.add(`${x},${y}`)
+      }
+    }
+  }
+  const expectedLandmarkCells = new Set<string>()
+  for (const placed of entityLayer) {
+    const def = LANDMARKS.find(l => l.type === placed.entityId)
+    const fp = def?.footprint ?? { w: 1, h: 1 }
+    for (let dx = 0; dx < fp.w; dx++) {
+      for (let dy = 0; dy < fp.h; dy++) {
+        expectedLandmarkCells.add(`${placed.anchorX + dx},${placed.anchorY + dy}`)
+      }
+    }
+  }
+  for (const cell of actualLandmarkCells) {
+    if (!expectedLandmarkCells.has(cell)) {
+      throw new Error(`v1.3→v1.4 migration: landmark cell ${cell} not covered by entity footprint`)
+    }
+  }
+
+  pw.worldMap = {
+    size,
+    terrainMap,
+    entityLayer,
+    entityCellMap,
+  }
+  delete pw.tiles
+  state.version = 1.4
 }
