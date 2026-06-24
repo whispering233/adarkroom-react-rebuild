@@ -556,6 +556,17 @@
     "need_hull": "Hull must be greater than 0 to lift off",
     "warning": "Make sure the hull is reinforced. There is no turning back."
   },
+  "fabricator": {
+    "intro": "Use alien alloy to craft advanced equipment.",
+    "energy_blade": "Energy Blade",
+    "plasma_rifle": "Plasma Rifle",
+    "disruptor": "Disruptor",
+    "fluid_recycler": "Fluid Recycler",
+    "cargo_drone": "Cargo Drone",
+    "kinetic_armour": "Kinetic Armour",
+    "hypo": "Hypo",
+    "stim": "Stim"
+  },
   "armour": {
     "none": "none",
     "leather": "leather",

@@ -19,6 +19,7 @@ import { Outside } from './rooms/Outside'
 import { Path } from './rooms/Path'
 import { World } from './rooms/World'
 import { Ship } from './rooms/Ship'
+import { Fabricator } from './rooms/Fabricator'
 import { WorldHUD } from './components/WorldHUD'
 import { WorldInfo } from './components/WorldInfo'
 
@@ -29,6 +30,7 @@ const SCENES: Partial<Record<RoomNameType, ComponentType>> = {
   [RoomName.Path]: Path,
   [RoomName.World]: World,
   [RoomName.Ship]: Ship,
+  [RoomName.Fabricator]: Fabricator,
 }
 
 function App() {

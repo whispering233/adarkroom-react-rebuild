@@ -55,9 +55,9 @@ describe('executioner entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('has onEnter that returns eventId executioner', () => {
+  it('has onEnter that returns eventId executioner with executionerFound flag', () => {
     expect(executionerEntity.onEnter).toBeDefined()
     const result = executionerEntity.onEnter!({} as any)
-    expect(result).toEqual({ eventId: 'executioner' })
+    expect(result).toEqual({ eventId: 'executioner', executionerFound: true })
   })
 })

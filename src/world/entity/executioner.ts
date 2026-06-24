@@ -5,10 +5,13 @@
  * 玩家走入时触发 setpiece.executioner 事件。
  */
 
+import type { EntityTriggerContext, EntityTriggerResult } from '../types'
 import { createUniformEntity } from './factory'
 
 export const executionerEntity = createUniformEntity({
   type: 'executioner',
   char: 'X',
-  eventId: 'executioner',
+  onEnter(_ctx: EntityTriggerContext): EntityTriggerResult | null {
+    return { eventId: 'executioner', executionerFound: true }
+  },
 })

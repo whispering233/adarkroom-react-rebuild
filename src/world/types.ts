@@ -96,6 +96,8 @@ export interface EntityTriggerResult {
   clearOutpost?: boolean
   /** 若为 true，表示玩家发现了飞船（WorldRuntimeState.shipFound 同步更新） */
   shipFound?: boolean
+  /** 若为 true，表示玩家发现了刽子手（WorldRuntimeState.executionerFound 同步更新） */
+  executionerFound?: boolean
 }
 
 // ─── 实体渲染接口 ─────────────────────────────────────
@@ -237,6 +239,8 @@ export interface WorldRuntimeState {
   minesFound: Partial<Record<'iron' | 'coal' | 'sulphur', boolean>>
   /** 本次行程是否发现了飞船 */
   shipFound?: boolean
+  /** 本次行程是否发现了刽子手 */
+  executionerFound?: boolean
   /**
    * 地图栈（Portal Landmark 跳转用）。
    *

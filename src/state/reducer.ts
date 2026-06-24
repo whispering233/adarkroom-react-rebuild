@@ -520,6 +520,9 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
           if (wr.shipFound && !draft.features['location.spaceShip']) {
             draft.features['location.spaceShip'] = true
           }
+          if (wr.executionerFound && !draft.features['location.fabricator']) {
+            draft.features['location.fabricator'] = true
+          }
         }
         delete draft.game.worldRuntime
         draft.currentRoom = 'path'

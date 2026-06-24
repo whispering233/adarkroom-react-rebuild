@@ -206,6 +206,11 @@ export function World() {
           }
           if (result.returnHome) { dispatch(returnFromWorld(false)); return }
           if (result.eventId) { dispatch(startEvent(result.eventId)) }
+          if (result.executionerFound) {
+            dispatch(applyRecipe(d => {
+              if (d.game.worldRuntime) d.game.worldRuntime.executionerFound = true
+            }))
+          }
           if (result.skipSupplies) return
         }
       }

@@ -35,7 +35,7 @@
     "path": "小径",
     "world": "世界",
     "space": "太空",
-    "fabricator": "工坊",
+    "fabricator": "制造工坊",
     "ship": "飞船"
   },
   "builder": {
@@ -554,6 +554,17 @@
     "liftoff_warn": "准备起飞？",
     "need_hull": "船体必须大于 0 才能起飞",
     "warning": "请确保船体已加固。起飞后无法回头。"
+  },
+  "fabricator": {
+    "intro": "使用外星合金制造高级装备。",
+    "energy_blade": "能量刃",
+    "plasma_rifle": "等离子步枪",
+    "disruptor": "干扰器",
+    "fluid_recycler": "液体回收器",
+    "cargo_drone": "货运无人机",
+    "kinetic_armour": "动能护甲",
+    "hypo": "强效治疗针",
+    "stim": "战斗强化剂"
   },
   "armour": {
     "none": "无",
