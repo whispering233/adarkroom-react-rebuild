@@ -42,6 +42,9 @@ export function World() {
   const stateRef = useRef(state)
   useEffect(() => { stateRef.current = state })
 
+  // Danger state tracking (no re-render needed)
+  const dangerRef = useRef(false)
+
   const wr = state.game.worldRuntime
   const pw = state.game.world
 
@@ -184,6 +187,37 @@ export function World() {
 
     if (!consumeSupplies()) return
     checkFight()
+
+    // ── Danger check: warn when too far from village without armour ──
+    const villagePos: [number, number] = [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS]
+    const distance = Math.abs(nx - villagePos[0]) + Math.abs(ny - villagePos[1])
+    const iArmour = s.outfit['i armour'] ?? 0
+    const sArmour = s.outfit['s armour'] ?? 0
+    let dangerChanged = false
+
+    if (!dangerRef.current) {
+      if (iArmour === 0 && distance >= 8) {
+        dangerRef.current = true
+        dangerChanged = true
+      } else if (sArmour === 0 && distance >= 18) {
+        dangerRef.current = true
+        dangerChanged = true
+      }
+    } else {
+      if (distance < 8) {
+        dangerRef.current = false
+        dangerChanged = true
+      } else if (distance < 18 && iArmour > 0) {
+        dangerRef.current = false
+        dangerChanged = true
+      }
+    }
+
+    if (dangerChanged) {
+      dispatch(pushNarrative(
+        dangerRef.current ? t('world.danger') : t('world.safer'),
+      ))
+    }
   }, [dispatch, t, consumeSupplies, checkFight])
 
   // ── 键盘监听 ────────────────────────────────────────

@@ -535,6 +535,8 @@
       "weather": "Weather",
       "weather_clear": "Clear"
     },
+    "danger": "dangerous to be this far from the village without proper protection",
+    "safer": "safer here",
     "starvation": "starvation sets in...",
     "thirst": "the thirst becomes unbearable...",
     "narrate": {

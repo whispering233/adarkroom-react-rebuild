@@ -534,6 +534,8 @@
       "weather": "天气",
       "weather_clear": "晴朗"
     },
+    "danger": "危险的——没有合适的防护，离村庄这么远是很危险的。",
+    "safer": "这里安全多了。",
     "starvation": "饥饿袭来...",
     "thirst": "口渴难耐...",
     "narrate": {
