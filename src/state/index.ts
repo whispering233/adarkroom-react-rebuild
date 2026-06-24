@@ -25,6 +25,9 @@ export {
   increasePopulation,
   killVillagers,
   applyRecipe,
+  // ── Prestige ──
+  savePrestige,
+  collectPrestigeStores,
   // ── Perk ──
   addPerk,
   hasPerk,

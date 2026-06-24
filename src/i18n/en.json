@@ -520,6 +520,7 @@
       "ship.text": "A massive starship wreck lies half-buried. Its familiar curves suggest a wanderer vessel—with effort, it might fly again.",
       "cache": "Destroyed Village",
       "cache.text": "The ruins of a destroyed village. Among the debris, you find supplies from a previous journey.",
+      "cache.found": "You find supplies left from a previous journey among the ruins!",
       "village": "The Village",
       "village.text": "You return to the village. Familiar faces greet you.",
       "village.rest": "Well rested at the village.",
@@ -545,7 +546,8 @@
     "embark": "embark",
     "need_meat": "You need cured meat to embark",
     "unlocked": "the old compass points to a dusty path...",
-    "compass": "The compass points southeast — something lies that way..."
+    "compass": "The compass points southeast — something lies that way...",
+    "score": "Score: {{score}}"
   },
   "ship": {
     "hull": "Hull",

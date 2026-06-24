@@ -85,6 +85,21 @@
   color: var(--game-accent);
 }
 
+.compass {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--game-accent);
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.score {
+  font-size: 0.8rem;
+  color: var(--game-text-muted);
+  text-align: right;
+  padding: 0.25rem 0;
+}
+
 .embarkBtn {
   margin-top: 0.5rem;
 }

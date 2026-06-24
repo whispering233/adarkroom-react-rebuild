@@ -18,6 +18,7 @@ import { FireLevel, TempLevel } from './types'
 import { CONFIG, WORKER_INCOME, shouldKeepOnReturn } from '../config'
 import type { MapDef, PlacedEntity, TerrainType, MapTile } from '../world/types'
 import { WORLD, TERRAINS, LANDMARKS } from '../world/constants'
+import { hasPrestigeStores, savePrestigeToState, collectPrestigeStoresToState } from '../system/scoring'
 import { generateMap, createNewMask, createMask, lightMap } from '../world/generator'
 import type { EntityCatalog } from '../world/entity/types'
 import { buildEntityCellMap } from '../world/entity/types'
@@ -445,12 +446,17 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       for (const [key, count] of Object.entries(draft.outfit)) {
         modifyResource(draft, key, -count, 'cost.embark')
       }
+      // Cache 地标仅在存在 prestige 存档时生成
+      const filteredLandmarks = LANDMARKS.filter(lm => {
+        if (lm.type === 'cache') return hasPrestigeStores(draft)
+        return true
+      })
       // 首次生成地图
       const worldDef: MapDef = {
         id: 'world',
         size: WORLD.DEFAULT_MAP_RADIUS,
         terrainTypes: TERRAINS,
-        landmarks: LANDMARKS,
+        landmarks: filteredLandmarks,
         encounterPool: [],
         isAvailable: () => true,
       }
@@ -740,6 +746,26 @@ export const addPerk = (perk: string): GameAction => ({ type: 'ADD_PERK', perk }
 export function hasPerk(state: GameState, perk: string): boolean {
   return state.character.perks[perk] === true
 }
+
+// ── Prestige Action Creators ────────────────────────────
+
+/**
+ * 保存 prestige 数据（资源快照 + 累计积分）。
+ * 在游戏结束时调用（如飞船起飞前）。
+ */
+export const savePrestige = (): GameAction => ({
+  type: 'APPLY_RECIPE' as const,
+  recipe: savePrestigeToState,
+})
+
+/**
+ * 收集上局的 prestige 资源到当前库存。
+ * 由 Cache 地标事件触发。
+ */
+export const collectPrestigeStores = (): GameAction => ({
+  type: 'APPLY_RECIPE' as const,
+  recipe: collectPrestigeStoresToState,
+})
 
 // ── 世界地图 Action Creators ────────────────────────────
 

@@ -10,6 +10,7 @@ import { useGameState, useGameDispatch, applyRecipe, embarkWorld } from '../stat
 import { RESOURCES, ITEM_WEIGHT, BAG_UPGRADES } from '../config'
 import { WORLD } from '../world/constants'
 import { Button } from '../components/Button'
+import { calculateScore } from '../system/scoring'
 import styles from './Path.module.css'
 
 function resourceI18nKey(key: string): string {
@@ -173,6 +174,14 @@ export function Path() {
             ))}
         </div>
       )}
+
+      {/* 指南针提示 */}
+      {(stores.compass ?? 0) > 0 && (
+        <div className={styles.compass}>{t('path.compass')}</div>
+      )}
+
+      {/* 积分显示 */}
+      <div className={styles.score}>{t('path.score', { score: calculateScore(state) })}</div>
 
       {/* 出发按钮 */}
       <div className={styles.embarkBtn}>
