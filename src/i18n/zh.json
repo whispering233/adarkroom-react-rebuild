@@ -96,7 +96,9 @@
     "font_larger": "增大字体（当前 {{size}}px）",
     "font_smaller": "减小字体（当前 {{size}}px）",
     "speed": "游戏速度 {{speed}}×",
-    "width": "界面宽度"
+    "width": "界面宽度",
+    "mute": "静音",
+    "unmute": "取消静音"
   },
   "outside": {
     "title": "寂静的森林",
@@ -556,7 +558,9 @@
     "liftoff": "起飞",
     "liftoff_warn": "准备起飞？",
     "need_hull": "船体必须大于 0 才能起飞",
-    "warning": "请确保船体已加固。起飞后无法回头。"
+    "warning": "请确保船体已加固。起飞后无法回头。",
+    "crash": "飞船坠毁了...",
+    "win": "你成功抵达了太空！"
   },
   "fabricator": {
     "intro": "使用外星合金制造高级装备。",

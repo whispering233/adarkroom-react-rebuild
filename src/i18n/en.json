@@ -96,7 +96,9 @@
     "font_larger": "Increase font size ({{size}}px)",
     "font_smaller": "Decrease font size ({{size}}px)",
     "speed": "Game speed {{speed}}×",
-    "width": "Layout width"
+    "width": "Layout width",
+    "mute": "Mute",
+    "unmute": "Unmute"
   },
   "outside": {
     "title": "A Silent Forest",
@@ -557,7 +559,9 @@
     "liftoff": "Lift Off",
     "liftoff_warn": "Ready to Leave?",
     "need_hull": "Hull must be greater than 0 to lift off",
-    "warning": "Make sure the hull is reinforced. There is no turning back."
+    "warning": "Make sure the hull is reinforced. There is no turning back.",
+    "crash": "The ship has crashed...",
+    "win": "You made it to space!"
   },
   "fabricator": {
     "intro": "Use alien alloy to craft advanced equipment.",

@@ -9,6 +9,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSpeed, type SpeedMultiplier } from '../system/gameSpeed'
+import { toggleMute, isMuted, initAudio } from '../system/audioEngine'
 import { useGameState, useGameDispatch, loadSave, pushNarrative } from '../state'
 import { INITIAL_STATE } from '../state/types'
 import { saveState, clearSave } from '../system/saveManager'
@@ -70,6 +71,8 @@ export function Toolbar() {
   const { t } = useTranslation()
   const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme)
   const [fontSize, setFontSize] = useState<number>(getInitialFontSize)
+  const [muted, setMuted] = useState<boolean>(isMuted)
+  const [audioInited, setAudioInited] = useState(false)
   const [speed, setSpeed] = useSpeed()
   const state = useGameState()
   const dispatch = useGameDispatch()
@@ -180,6 +183,22 @@ export function Toolbar() {
         className={BTN_STYLE}
       >
         {theme === 'light' ? '🌙' : '☀️'}
+      </button>
+
+      {/* 音频静音切换 */}
+      <button
+        type="button"
+        onClick={() => {
+          if (!audioInited) {
+            initAudio()
+            setAudioInited(true)
+          }
+          setMuted(toggleMute())
+        }}
+        title={muted ? t('toolbar.unmute') : t('toolbar.mute')}
+        className={BTN_STYLE}
+      >
+        {muted ? '🔇' : '🔊'}
       </button>
 
       {/* 保存 */}
