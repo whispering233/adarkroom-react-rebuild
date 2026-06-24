@@ -33,10 +33,10 @@ export interface CharacterState {
   health: number
   /** 是否已清除城市 */
   cityCleared?: boolean
-  /** 是否饿死过 */
-  starved?: boolean
-  /** 是否脱水过 */
-  dehydrated?: boolean
+  /** 饥饿死亡累计次数 */
+  starved?: number
+  /** 脱水死亡累计次数 */
+  dehydrated?: number
 }
 
 // ─── 收入配置 ────────────────────────────────────────────

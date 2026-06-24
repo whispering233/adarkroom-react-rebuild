@@ -573,6 +573,8 @@
     "safer": "safer here",
     "starvation": "starvation sets in...",
     "thirst": "the thirst becomes unbearable...",
+    "starvation_death": "You starved to death...",
+    "dehydration_death": "You died of thirst...",
     "narrate": {
       "forest_to_field": "the trees yield to dry grass. the yellowed brush rustles in the wind.",
       "forest_to_barrens": "the trees are gone. parched earth and blowing dust are poor replacements.",

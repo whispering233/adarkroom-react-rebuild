@@ -70,6 +70,10 @@ export function World() {
             id: d._nextNarrativeId++, text: t('world.starvation'), tick: d._globalTick,
           })
         } else if (meat <= 0) {
+          d.character.starved = (d.character.starved ?? 0) + 1
+          d.narrativeLog.unshift({
+            id: d._nextNarrativeId++, text: t('world.starvation_death'), tick: d._globalTick,
+          })
           survived = false
         } else {
           w.starvation = false
@@ -89,6 +93,10 @@ export function World() {
             id: d._nextNarrativeId++, text: t('world.thirst'), tick: d._globalTick,
           })
         } else if (w.water <= 0) {
+          d.character.dehydrated = (d.character.dehydrated ?? 0) + 1
+          d.narrativeLog.unshift({
+            id: d._nextNarrativeId++, text: t('world.dehydration_death'), tick: d._globalTick,
+          })
           survived = false
         } else {
           w.thirst = false

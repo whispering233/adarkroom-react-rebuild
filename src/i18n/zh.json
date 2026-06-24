@@ -572,6 +572,8 @@
     "safer": "这里安全多了。",
     "starvation": "饥饿袭来...",
     "thirst": "口渴难耐...",
+    "starvation_death": "你饿死了...",
+    "dehydration_death": "你渴死了...",
     "narrate": {
       "forest_to_field": "树木渐疏，枯黄的灌木在风中瑟瑟作响。",
       "forest_to_barrens": "树林消失，只剩焦土和漫天尘土。",
