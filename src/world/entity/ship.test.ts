@@ -67,10 +67,10 @@ describe('ship entity (multi-tile 2×2)', () => {
     expect(vySet).toEqual(new Set([7, 8]))
   })
 
-  it('onEnter returns setpiece.ship', () => {
+  it('onEnter returns setpiece.ship eventId with shipFound flag', () => {
     expect(shipEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = shipEntity.onEnter!(ctx)
-    expect(result).toEqual({ eventId: 'setpiece.ship' })
+    expect(result).toEqual({ eventId: 'setpiece.ship', shipFound: true })
   })
 })

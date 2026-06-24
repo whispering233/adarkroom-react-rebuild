@@ -55,7 +55,7 @@ describe('swamp entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('onEnter returns setpiece.swamp', () => {
+  it('onEnter returns setpiece.swamp eventId', () => {
     expect(swampEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = swampEntity.onEnter!(ctx)

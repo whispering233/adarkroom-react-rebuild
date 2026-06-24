@@ -10,6 +10,6 @@ import { createUniformEntity } from './factory'
 export const cityEntity = createUniformEntity({
   type: 'city',
   char: 'Y',
-  eventId: 'setpiece.city',
   footprint: { w: 2, h: 2 },
+  eventId: 'setpiece.city',
 })

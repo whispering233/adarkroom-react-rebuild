@@ -39,7 +39,7 @@ describe('cave entity', () => {
     expect(result.cells[0]!.vy).toBe(3) // 10 - 7
   })
 
-  it('onEnter returns setpiece.cave', () => {
+  it('onEnter returns setpiece.cave eventId', () => {
     expect(caveEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = caveEntity.onEnter!(ctx)

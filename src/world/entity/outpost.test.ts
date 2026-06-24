@@ -23,10 +23,10 @@ describe('outpost entity', () => {
     expect(result.cells).toHaveLength(0)
   })
 
-  it('onEnter returns setpiece.outpost', () => {
+  it('onEnter returns setpiece.outpost eventId with clearOutpost flag', () => {
     expect(outpostEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = outpostEntity.onEnter!(ctx)
-    expect(result).toEqual({ eventId: 'setpiece.outpost' })
+    expect(result).toEqual({ eventId: 'setpiece.outpost', clearOutpost: true })
   })
 })

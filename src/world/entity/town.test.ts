@@ -29,7 +29,7 @@ describe('town entity', () => {
     expect(result.cells).toHaveLength(0)
   })
 
-  it('onEnter returns setpiece.town', () => {
+  it('onEnter returns setpiece.town eventId', () => {
     expect(townEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = townEntity.onEnter!(ctx)

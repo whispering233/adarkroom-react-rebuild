@@ -92,6 +92,10 @@ export interface EntityTriggerResult {
   nextPos?: [number, number]
   returnHome?: boolean
   skipSupplies?: boolean
+  /** 若为 true，World 组件会将该实体从 entityLayer 移除，并绘制道路回村庄 */
+  clearOutpost?: boolean
+  /** 若为 true，表示玩家发现了飞船（WorldRuntimeState.shipFound 同步更新） */
+  shipFound?: boolean
 }
 
 // ─── 实体渲染接口 ─────────────────────────────────────

@@ -55,7 +55,7 @@ describe('battlefield entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('onEnter returns setpiece.battlefield', () => {
+  it('onEnter returns setpiece.battlefield eventId', () => {
     expect(battlefieldEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = battlefieldEntity.onEnter!(ctx)

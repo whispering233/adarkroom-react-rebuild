@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { houseEntity } from './house'
-import type { EntityTriggerContext } from '../types'
 import { makeMask } from './testHelpers'
 
 describe('house entity', () => {
@@ -47,18 +46,10 @@ describe('house entity', () => {
     })
   })
 
-  describe('onEnter', () => {
-    it('returns eventId setpiece.house', () => {
-      const mockCtx: EntityTriggerContext = {
-        pos: [10, 10],
-        state: {} as any,
-        dispatch: () => {},
-        t: () => '',
-        _globalTick: 0,
-      }
-
-      const result = houseEntity.onEnter!(mockCtx)
-      expect(result).toEqual({ eventId: 'setpiece.house' })
-    })
+  it('onEnter returns setpiece.house eventId', () => {
+    expect(houseEntity.onEnter).toBeDefined()
+    const ctx = {} as any
+    const result = houseEntity.onEnter!(ctx)
+    expect(result).toEqual({ eventId: 'setpiece.house' })
   })
 })

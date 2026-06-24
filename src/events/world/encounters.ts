@@ -7,6 +7,7 @@
 import { registerEvent } from '../registry'
 import type { EventDef } from '../types'
 import { WORLD } from '../../world/constants'
+import './setpieces'
 
 function getDistance(state: import('../../state/types').GameState): number {
   const wr = state.game.worldRuntime

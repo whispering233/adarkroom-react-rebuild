@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { sulphurMineEntity } from './sulphurMine'
-import type { EntityTriggerContext } from '../types'
 import { makeMask } from './testHelpers'
 
 describe('sulphurMine entity', () => {
@@ -47,18 +46,10 @@ describe('sulphurMine entity', () => {
     })
   })
 
-  describe('onEnter', () => {
-    it('returns eventId setpiece.sulphurMine', () => {
-      const mockCtx: EntityTriggerContext = {
-        pos: [10, 10],
-        state: {} as any,
-        dispatch: () => {},
-        t: () => '',
-        _globalTick: 0,
-      }
-
-      const result = sulphurMineEntity.onEnter!(mockCtx)
-      expect(result).toEqual({ eventId: 'setpiece.sulphurMine' })
-    })
+  it('onEnter returns setpiece.sulphurMine eventId', () => {
+    expect(sulphurMineEntity.onEnter).toBeDefined()
+    const ctx = {} as any
+    const result = sulphurMineEntity.onEnter!(ctx)
+    expect(result).toEqual({ eventId: 'setpiece.sulphurMine' })
   })
 })

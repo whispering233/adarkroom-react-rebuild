@@ -55,7 +55,7 @@ describe('borehole entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('onEnter returns setpiece.borehole', () => {
+  it('onEnter returns setpiece.borehole eventId', () => {
     expect(boreholeEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = boreholeEntity.onEnter!(ctx)

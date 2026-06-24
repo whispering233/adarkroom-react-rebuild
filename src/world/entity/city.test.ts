@@ -67,7 +67,7 @@ describe('city entity (multi-tile 2×2)', () => {
     expect(vySet).toEqual(new Set([7, 8])) // 10-3, 11-3
   })
 
-  it('onEnter returns setpiece.city', () => {
+  it('onEnter returns setpiece.city eventId', () => {
     expect(cityEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = cityEntity.onEnter!(ctx)

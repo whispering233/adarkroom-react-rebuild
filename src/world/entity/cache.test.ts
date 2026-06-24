@@ -55,7 +55,7 @@ describe('cache entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('onEnter returns setpiece.cache', () => {
+  it('onEnter returns setpiece.cache eventId', () => {
     expect(cacheEntity.onEnter).toBeDefined()
     const ctx = {} as any
     const result = cacheEntity.onEnter!(ctx)
