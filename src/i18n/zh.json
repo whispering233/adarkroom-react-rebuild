@@ -240,6 +240,11 @@
       "desc": "在世界中照亮前方道路。"
     }
   },
+  "trade": {
+    "scales": "鳞片", "teeth": "牙齿", "iron": "铁", "coal": "煤", "steel": "钢",
+    "medicine": "药品", "bullets": "子弹", "compass": "指南针", "energy_cell": "能量电池",
+    "bolas": "流星索", "grenade": "手榴弹", "bayonet": "刺刀", "alien_alloy": "外星合金"
+  },
   "combat": {
     "you": "你",
     "enemy": "敌人",

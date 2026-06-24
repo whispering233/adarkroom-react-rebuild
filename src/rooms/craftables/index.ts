@@ -16,6 +16,7 @@ export const CRAFTABLES: Record<string, CraftableDef> = {
   // ...UPGRADES,  // 后续阶段
 }
 
+export { TRADES, type TradeDef } from './trades'
 export type { CraftableDef, CraftableType, UnlockCondition } from './types'
 export { Effects } from './effects'
 export { evaluateUnlock } from './unlock'

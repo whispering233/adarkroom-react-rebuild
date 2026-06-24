@@ -14,10 +14,12 @@ import {
   lightFire,
   stokeFire,
   FireLevel,
+  applyRecipe,
+  modifyResource,
 } from '../state'
 import { CONFIG } from '../config'
 import { Button } from '../components/Button'
-import { CRAFTABLES, computeButtonState, buildCraftable } from './craftables'
+import { CRAFTABLES, TRADES, computeButtonState, buildCraftable } from './craftables'
 import type { CraftableDef } from './craftables'
 
 export function Room() {
@@ -99,6 +101,41 @@ export function Room() {
                   />
                 )
               })}
+          </div>
+        </div>
+      )}
+
+      {/* 贸易区域 — trading post 解锁后显示 */}
+      {state.features['room.buy'] && (
+        <div className="flex flex-col gap-3">
+          <div className="text-xs uppercase tracking-[0.2em] text-(--game-accent)">
+            {t('trade.header', { defaultValue: '贸易' })}
+          </div>
+          <div className="flex flex-col gap-2">
+            {Object.values(TRADES).map((trade) => {
+              const costEntries = Object.entries(trade.cost)
+              const hasResources = costEntries.every(([k, v]) => (state.stores[k] ?? 0) >= v)
+              const label = t(`trade.${trade.id.replace(/ /g, '_')}`, { defaultValue: trade.id })
+              const costText = costEntries.map(([k, v]) => `${t(`stores.${k.replace(/ /g, '_')}`, { defaultValue: k })}:${v}`).join(' + ')
+              return (
+                <Button
+                  key={`trade_${trade.id}`}
+                  id={`trade_${trade.id.replace(/ /g, '-')}`}
+                  label={label}
+                  count={costText}
+                  onClick={() => dispatch(applyRecipe((d) => {
+                    for (const [k, v] of Object.entries(trade.cost)) {
+                      modifyResource(d, k, -v, `cost.trade.${trade.id}`)
+                    }
+                    for (const [k, v] of Object.entries(trade.reward)) {
+                      modifyResource(d, k, v, `reward.trade.${trade.id}`)
+                    }
+                  }))}
+                  cost={hasResources ? trade.cost : undefined}
+                  disabled={!hasResources}
+                />
+              )
+            })}
           </div>
         </div>
       )}

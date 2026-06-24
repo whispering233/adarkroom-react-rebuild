@@ -386,4 +386,69 @@ describe('craftables 模块', () => {
       expect(s1.features[feature]).toBe(true)
     })
   })
+
+  // ── Trade 系统 ──────────────────────────────────
+
+  describe('TRADES', () => {
+    it('包含 13 个交易品', async () => {
+      const { TRADES } = await import('..')
+      expect(Object.keys(TRADES)).toHaveLength(13)
+    })
+
+    it.each([
+      ['scales', { fur: 150 }, { scales: 1 }],
+      ['teeth', { fur: 300 }, { teeth: 1 }],
+      ['iron', { fur: 200, coal: 100 }, { iron: 1 }],
+      ['coal', { fur: 300 }, { coal: 1 }],
+      ['steel', { fur: 300, coal: 100, iron: 100 }, { steel: 1 }],
+      ['medicine', { fur: 500, scales: 100, teeth: 50 }, { medicine: 1 }],
+      ['bullets', { scales: 500 }, { bullets: 1 }],
+      ['compass', { fur: 400, scales: 100, teeth: 20 }, { compass: 1 }],
+      ['energy cell', { fur: 1000, scales: 500, teeth: 200 }, { 'energy cell': 1 }],
+      ['bolas', { fur: 500 }, { bolas: 1 }],
+      ['grenade', { fur: 1000, scales: 500 }, { grenade: 1 }],
+      ['bayonet', { scales: 500, teeth: 200, iron: 100 }, { bayonet: 1 }],
+      ['alien alloy', { fur: 1500, scales: 750, teeth: 300 }, { 'alien alloy': 1 }],
+    ])('%s: 成本 ↔ 奖励正确', async (id, expectedCost, expectedReward) => {
+      const { TRADES } = await import('..')
+      const trade = TRADES[id]
+      expect(trade).toBeDefined()
+      expect(trade.id).toBe(id)
+      for (const [k, v] of Object.entries(expectedCost)) {
+        expect(trade.cost[k]).toBe(v)
+      }
+      for (const [k, v] of Object.entries(expectedReward)) {
+        expect(trade.reward[k]).toBe(v)
+      }
+    })
+
+    it('交易通过 applyRecipe 正确交换资源', async () => {
+      const { applyRecipe, modifyResource } = await import('../../../state/reducer')
+      const { INITIAL_STATE } = await import('../../../state/types')
+      const { TRADES } = await import('..')
+
+      const s0 = await runReducer(
+        INITIAL_STATE,
+        applyRecipe(d => {
+          d.stores.fur = 200
+        }),
+      )
+
+      const trade = TRADES.scales
+      const s1 = await runReducer(
+        s0,
+        applyRecipe(d => {
+          for (const [k, v] of Object.entries(trade.cost)) {
+            modifyResource(d, k, -v)
+          }
+          for (const [k, v] of Object.entries(trade.reward)) {
+            modifyResource(d, k, v)
+          }
+        }),
+      )
+
+      expect(s1.stores.fur).toBe(50)
+      expect(s1.stores.scales).toBe(1)
+    })
+  })
 })

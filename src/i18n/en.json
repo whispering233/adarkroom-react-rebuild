@@ -240,6 +240,11 @@
       "desc": "Illuminates the path ahead in the world."
     }
   },
+  "trade": {
+    "scales": "Scales", "teeth": "Teeth", "iron": "Iron", "coal": "Coal", "steel": "Steel",
+    "medicine": "Medicine", "bullets": "Bullets", "compass": "Compass", "energy_cell": "Energy Cell",
+    "bolas": "Bolas", "grenade": "Grenade", "bayonet": "Bayonet", "alien_alloy": "Alien Alloy"
+  },
   "combat": {
     "you": "You",
     "enemy": "Enemy",
