@@ -28,6 +28,8 @@ export interface CombatState {
   enemyDamage?: number
   /** 敌人命中率 0~1 */
   enemyHit?: number
+  /** 是否被眩晕（跳过下一次攻击） */
+  enemyStunned?: boolean
 }
 
 /** CombatState 初始值 */

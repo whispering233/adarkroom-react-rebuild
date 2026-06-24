@@ -33,7 +33,22 @@ export function playerAttack(
     cd /= 2
   }
 
-  const hit = weapon.damage > 0 // 非 bolas 类武器必中（简化，原版有命中率）
+  // Stun weapons (bolas, disruptor) always hit and apply stun
+  if (weapon.damage <= 0) {
+    return {
+      combat: {
+        ...combat,
+        enemyStunned: true,
+      },
+      damage: 0,
+      hit: true,
+    }
+  }
+
+  // Hit rate calculation
+  const BASE_HIT_CHANCE = 0.8
+  const hitChance = playerHasPerk?.('precise') ? BASE_HIT_CHANCE + 0.1 : BASE_HIT_CHANCE
+  const hit = Math.random() < hitChance
   const damage = hit ? weapon.damage : 0
   const newEnemyHp = Math.max(0, combat.enemyHp - damage)
 
@@ -53,6 +68,11 @@ export function playerAttack(
 /** 敌人攻击玩家（命中率由 enemyHit 决定） */
 export function enemyAttack(combat: CombatState): AttackResult {
   if (combat.won) return { combat, damage: 0, hit: false }
+
+  // Stun: skip this attack, clear stun
+  if (combat.enemyStunned) {
+    return { combat: { ...combat, enemyStunned: false }, damage: 0, hit: false }
+  }
 
   const hitRoll = Math.random()
   const hit = hitRoll <= (combat.enemyHit ?? 1)

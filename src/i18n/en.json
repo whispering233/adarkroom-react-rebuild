@@ -253,6 +253,7 @@
     "eat_meat": "eat meat",
     "use_meds": "use meds",
     "flee": "flee",
+    "stun": "STUN",
     "fled": "You fled...",
     "continue": "continue",
     "verb": {

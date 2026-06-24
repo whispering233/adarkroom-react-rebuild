@@ -43,6 +43,7 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
     attackDelay: scene.attackDelay ?? 2,
     enemyDamage: scene.damage ?? 4,
     enemyHit: scene.hit ?? 0.8,
+    enemyStunned: false,
   })
 
   const [floatText, setFloatText] = useState<{ text: string; key: number } | null>(null)
@@ -103,7 +104,11 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
       setCombat(result.combat)
 
       if (result.hit) {
-        showFloat(`-${result.damage}`)
+        if (result.damage > 0) {
+          showFloat(`-${result.damage}`)
+        } else {
+          showFloat(t('combat.stun', { defaultValue: 'STUN' }))
+        }
       }
 
       // 敌人死亡 → 结算
