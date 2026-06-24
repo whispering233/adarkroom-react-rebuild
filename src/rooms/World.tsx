@@ -26,12 +26,13 @@ import {
 } from '../state'
 import { WORLD, TERRAINS } from '../world/constants'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
-import { lightMap } from '../world/generator'
+import { lightMap, drawRoadToVillage } from '../world/generator'
 import styles from './World.module.css'
 import { renderViewport, drawComposed } from '../world/renderViewport'
 import { createStyleResolver } from '../world/styleResolver'
 import { createWorldCanvasScene } from '../world/WorldCanvasScene'
 import { getEntity, getEntityCatalog } from '../world/entity/catalog'
+import { buildEntityCellMap } from '../world/entity/types'
 
 export function World() {
   const { t } = useTranslation()
@@ -177,6 +178,23 @@ export function World() {
           // 叙事文本优先分发（确保展示在任何跳转/事件之前）
           if (result.narrations) {
             result.narrations.forEach(n => dispatch(pushNarrative(n)))
+          }
+          // 清除前哨：移除实体 + 绘制道路回村庄
+          if (result.clearOutpost) {
+            dispatch(applyRecipe(d => {
+              const pw = d.game.world
+              if (!pw) return
+              const el = pw.worldMap.entityLayer
+              const idx = el.findIndex(
+                e => e.entityId === 'outpost' && e.anchorX === cell!.anchorX && e.anchorY === cell!.anchorY,
+              )
+              if (idx !== -1) {
+                el.splice(idx, 1)
+                const villagePos: [number, number] = [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS]
+                drawRoadToVillage(pw.worldMap.terrainMap, [cell!.anchorX, cell!.anchorY], villagePos, el)
+                pw.worldMap.entityCellMap = buildEntityCellMap(el, getEntityCatalog())
+              }
+            }))
           }
           if (result.returnHome) { dispatch(returnFromWorld(false)); return }
           if (result.eventId) { dispatch(startEvent(result.eventId)) }

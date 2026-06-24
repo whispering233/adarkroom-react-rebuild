@@ -335,6 +335,50 @@ function drawLShapedRoad(
   }
 }
 
+/** 检查 (x, y) 是否位于 village 的 footprint 内 */
+function isVillageCell(x: number, y: number, villageAnchor: [number, number]): boolean {
+  const villageDef = LANDMARKS.find(l => l.type === 'village')
+  const fp = villageDef?.footprint ?? { w: 1, h: 1 }
+  return (
+    x >= villageAnchor[0] &&
+    x < villageAnchor[0] + fp.w &&
+    y >= villageAnchor[1] &&
+    y < villageAnchor[1] + fp.h
+  )
+}
+
+/**
+ * 从 startPos 螺旋向外搜索最近的 road 或 village 格，
+ * 绘制一条 L 型道路连接两者。
+ * 用于前哨清除后自动修路。
+ */
+export function drawRoadToVillage(
+  terrainMap: TerrainType[][],
+  startPos: [number, number],
+  villagePos: [number, number],
+  entityLayer: PlacedEntity[],
+): void {
+  const size = terrainMap.length
+  const maxRadius = Math.max(startPos[0], startPos[1], size - startPos[0], size - startPos[1])
+
+  for (let r = 1; r <= maxRadius; r++) {
+    for (let dx = -r; dx <= r; dx++) {
+      for (let dy = -r; dy <= r; dy++) {
+        if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue
+
+        const x = startPos[0] + dx
+        const y = startPos[1] + dy
+        if (x < 0 || x >= size || y < 0 || y >= size) continue
+
+        if (terrainMap[x][y] === 'road' || isVillageCell(x, y, villagePos)) {
+          drawLShapedRoad(terrainMap, entityLayer, startPos, [x, y])
+          return
+        }
+      }
+    }
+  }
+}
+
 // ─── Mask 操作 ────────────────────────────────────────
 
 export function createMask(size: number): boolean[][] {

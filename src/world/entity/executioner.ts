@@ -10,5 +10,4 @@ import { createUniformEntity } from './factory'
 export const executionerEntity = createUniformEntity({
   type: 'executioner',
   char: 'X',
-  eventId: 'setpiece.executioner',
 })

@@ -55,10 +55,7 @@ describe('executioner entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('onEnter returns setpiece.executioner', () => {
-    expect(executionerEntity.onEnter).toBeDefined()
-    const ctx = {} as any
-    const result = executionerEntity.onEnter!(ctx)
-    expect(result).toEqual({ eventId: 'setpiece.executioner' })
+  it('has no onEnter (setpiece not yet implemented)', () => {
+    expect(executionerEntity.onEnter).toBeUndefined()
   })
 })
