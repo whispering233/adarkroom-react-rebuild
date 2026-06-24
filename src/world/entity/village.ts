@@ -9,8 +9,7 @@
  * onEnter 返回 returnHome（回到暗室）+ 叙事文本。
  */
 
-import type { WorldEntity, EntityDrawCommand } from './types'
-import type { RenderCell } from '../renderViewport'
+import type { WorldEntity, EntityDrawCommand, EntityCell } from './types'
 import type { EntityTriggerContext, EntityTriggerResult } from '../types'
 import { WORLD } from '../constants'
 
@@ -44,7 +43,7 @@ export const villageEntity: WorldEntity = {
     const vx0 = anchorX - viewportOriginX
     const vy0 = anchorY - viewportOriginY
     const bounds = { vx: vx0, vy: vy0, vw: 3, vh: 3 }
-    const cells: RenderCell[] = []
+    const cells: EntityCell[] = []
 
     for (let dy = 0; dy < 3; dy++) {
       for (let dx = 0; dx < 3; dx++) {
@@ -61,10 +60,11 @@ export const villageEntity: WorldEntity = {
         const isExplored = explored[wx]?.[wy] ?? false
         if (!isVisible && !isExplored) continue
 
-        // isDimmed 时全部用地标字符（无边框细节）
-        const char = isDimmed ? LANDMARK_CHAR : BOX_CHARS[dy][dx]
-
-        cells.push({ vx, vy, char, font: '', fillStyle: '' })
+        if (isDimmed) {
+          cells.push({ vx, vy, output: { char: LANDMARK_CHAR, prominent: false, bold: false } })
+        } else {
+          cells.push({ vx, vy, output: { char: BOX_CHARS[dy][dx], prominent: true, bold: true } })
+        }
       }
     }
 

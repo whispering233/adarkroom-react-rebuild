@@ -1,20 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { coalMineEntity } from './coalMine'
 import type { EntityTriggerContext } from '../types'
-
-const WORLD_SIZE = 61
-
-function fullMask(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(true))
-}
-
-function fullExplored(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(true))
-}
-
-function emptyMask(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(false))
-}
+import { makeMask } from './testHelpers'
 
 describe('coalMine entity', () => {
   it('has 1x1 footprint', () => {
@@ -26,41 +13,37 @@ describe('coalMine entity', () => {
   })
 
   describe('getDrawCommand', () => {
-    it('returns 1 cell with char C', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+    it('returns 1 cell with output.char C', () => {
+      const { mask, explored } = makeMask([[10, 10]], [[10, 10]])
       const cmd = coalMineEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(1)
-      expect(cmd.cells[0].char).toBe('C')
+      expect(cmd.cells[0].output.char).toBe('C')
       expect(cmd.cells[0].vx).toBe(10)
       expect(cmd.cells[0].vy).toBe(10)
       expect(cmd.bounds).toEqual({ vx: 10, vy: 10, vw: 1, vh: 1 })
     })
 
     it('returns 0 cells when outside viewport', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+      const { mask, explored } = makeMask([], [])
       const cmd = coalMineEntity.getDrawCommand(-10, -10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(0)
     })
 
     it('returns 0 cells when not visible nor explored', () => {
-      const mask = emptyMask()
-      const explored = emptyMask()
+      const { mask, explored } = makeMask([], [])
       const cmd = coalMineEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(0)
     })
 
     it('renders explored-but-invisible cells', () => {
-      const mask = emptyMask()
-      const explored = fullExplored()
+      const { mask, explored } = makeMask([[10, 10]], [])
       const cmd = coalMineEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(1)
-      expect(cmd.cells[0].char).toBe('C')
+      expect(cmd.cells[0].output.char).toBe('C')
     })
   })
 

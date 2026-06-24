@@ -1,22 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import { villageEntity } from './village'
 import type { EntityTriggerContext, EntityTriggerResult } from '../types'
+import { makeMask } from './testHelpers'
 
 // ─── 辅助 ──────────────────────────────────────────────
 
-const WORLD_SIZE = 61
+const allVillagePositions: Array<[number, number]> = [
+  [10, 10], [11, 10], [12, 10],
+  [10, 11], [11, 11], [12, 11],
+  [10, 12], [11, 12], [12, 12],
+]
 
-function fullMask(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(true))
-}
-
-function fullExplored(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(true))
-}
-
-function emptyMask(): boolean[][] {
-  return Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(false))
-}
+const fullVillage = () => makeMask(allVillagePositions, allVillagePositions)
+const exploredOnlyVillage = () => makeMask(allVillagePositions, [])
 
 // ─── 测试 ──────────────────────────────────────────────
 
@@ -33,8 +29,7 @@ describe('village entity', () => {
 
   describe('getDrawCommand', () => {
     it('returns 9 cells for fully visible 3x3', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+      const { mask, explored } = fullVillage()
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(9)
@@ -42,14 +37,13 @@ describe('village entity', () => {
     })
 
     it('renders correct box pattern chars', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+      const { mask, explored } = fullVillage()
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       // Build lookup by (vx, vy)
       const cellMap = new Map<string, string>()
       for (const cell of cmd.cells) {
-        cellMap.set(`${cell.vx},${cell.vy}`, cell.char)
+        cellMap.set(`${cell.vx},${cell.vy}`, cell.output.char)
       }
 
       // Row 0: ┌ ─ ┐
@@ -69,19 +63,17 @@ describe('village entity', () => {
     })
 
     it('uses landmark char A for all cells when isDimmed=true', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+      const { mask, explored } = fullVillage()
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, true, mask, explored)
 
       expect(cmd.cells).toHaveLength(9)
       for (const cell of cmd.cells) {
-        expect(cell.char).toBe('A')
+        expect(cell.output.char).toBe('A')
       }
     })
 
     it('returns 0 cells when outside viewport', () => {
-      const mask = fullMask()
-      const explored = fullExplored()
+      const { mask, explored } = makeMask([], [])
       // Place village at (-5, -5) → all cells have vx/vy < 0
       const cmd = villageEntity.getDrawCommand(-5, -5, 0, 0, false, mask, explored)
 
@@ -89,16 +81,14 @@ describe('village entity', () => {
     })
 
     it('skips cells not in mask nor explored', () => {
-      const mask = emptyMask()
-      const explored = emptyMask() // neither visible nor explored
+      const { mask, explored } = makeMask([], [])
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       expect(cmd.cells).toHaveLength(0)
     })
 
     it('renders only explored-but-invisible cells (dimmed per-cell)', () => {
-      const mask = emptyMask()
-      const explored = fullExplored()
+      const { mask, explored } = exploredOnlyVillage()
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       // isDimmed=false passed to entity, but each cell is !visible && explored
@@ -106,16 +96,11 @@ describe('village entity', () => {
       // passed isDimmed=false — so the entity renders normal chars
       expect(cmd.cells).toHaveLength(9)
       // Each cell gets the normal box char since isDimmed is false
-      expect(cmd.cells[0].char).toBe('┌')
+      expect(cmd.cells[0].output.char).toBe('┌')
     })
 
     it('renders only partially when some cells are masked out and not explored', () => {
-      const mask = emptyMask()
-      const explored = Array.from({ length: WORLD_SIZE }, () => Array(WORLD_SIZE).fill(false))
-      // Only the anchor cell is visible and explored
-      mask[10][10] = true
-      explored[10][10] = true
-
+      const { mask, explored } = makeMask([[10, 10]], [[10, 10]])
       const cmd = villageEntity.getDrawCommand(10, 10, 0, 0, false, mask, explored)
 
       // Only 1 cell passes (visible && explored)

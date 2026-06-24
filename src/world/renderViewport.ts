@@ -14,7 +14,7 @@ import type {
   PlacedEntity,
   EntityCellOutput,
 } from './types'
-import type { EntityCatalog, EntityDrawCommand } from './entity/types'
+import type { EntityCatalog } from './entity/types'
 import type { StyleResolver } from './styleResolver'
 import { WORLD, TERRAINS } from './constants'
 
@@ -41,6 +41,12 @@ export interface RenderCell {
   fillStyle: string
 }
 
+/** renderViewport's resolved result of EntityDrawCommand — cells converted from EntityCell to RenderCell */
+export interface ResolvedEntityDrawCommand {
+  bounds: { vx: number; vy: number; vw: number; vh: number }
+  cells: RenderCell[]
+}
+
 // ─── renderViewport — 纯函数 ──────────────────────────
 
 export function renderViewport(
@@ -53,7 +59,7 @@ export function renderViewport(
   explored: boolean[][],
   traveled: boolean[][],
 ): {
-  entityCommands: EntityDrawCommand[]
+  entityCommands: ResolvedEntityDrawCommand[]
   terrainCells: RenderCell[]
   boundaryCells: RenderCell[]
   playerCell: RenderCell | null
@@ -65,7 +71,7 @@ export function renderViewport(
   const viewportOriginY = py - VIEWPORT_RADIUS
 
   const occupiedSet = new Set<string>()
-  const entityCommands: EntityDrawCommand[] = []
+  const entityCommands: ResolvedEntityDrawCommand[] = []
   const terrainCells: RenderCell[] = []
   const boundaryCells: RenderCell[] = []
   let playerCell: RenderCell | null = null
@@ -80,13 +86,13 @@ export function renderViewport(
       placed.anchorY,
       viewportOriginX,
       viewportOriginY,
-      false, // isDimmed —— 由 renderViewport 按格判断并应用 styling
+      false,
       mask,
       explored,
     )
     if (cmd.cells.length === 0) continue
 
-    // 为每个实体格应用 StyleResolver 样式
+    const resolvedCells: RenderCell[] = []
     for (const cell of cmd.cells) {
       const wx = viewportOriginX + cell.vx
       const wy = viewportOriginY + cell.vy
@@ -94,19 +100,19 @@ export function renderViewport(
       const isExploredCell = explored[wx]?.[wy] ?? false
       const isDimmed = !isVisible && isExploredCell
 
-      const cellOutput: EntityCellOutput = {
-        char: cell.char,
-        prominent: true,  // 所有实体地标均为 prominent
-        bold: true,       // 所有实体使用粗体（匹配旧版 FONT_LANDMARK）
-      }
-      const resolved = styleResolver.resolve(cellOutput, { isDimmed })
-      cell.font = resolved.font
-      cell.fillStyle = resolved.fillStyle
+      const resolved = styleResolver.resolve(cell.output, { isDimmed })
+      resolvedCells.push({
+        vx: cell.vx,
+        vy: cell.vy,
+        char: cell.output.char,
+        font: resolved.font,
+        fillStyle: resolved.fillStyle,
+      })
 
       occupiedSet.add(`${wx},${wy}`)
     }
 
-    entityCommands.push(cmd)
+    entityCommands.push({ bounds: cmd.bounds, cells: resolvedCells })
   }
 
   // ── 2. 视口格（地形 / 边界 / 玩家）────────────────

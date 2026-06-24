@@ -1,21 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { makeMask } from './testHelpers'
 import { cityEntity } from './city'
-
-// ─── 辅助 ──────────────────────────────────────────────
-
-function makeMask(exploredPositions: Array<[number, number]>, visiblePositions: Array<[number, number]>): { mask: boolean[][]; explored: boolean[][] } {
-  const mask: boolean[][] = []
-  const explored: boolean[][] = []
-  for (const [x, y] of exploredPositions) {
-    explored[x] ??= []
-    explored[x][y] = true
-  }
-  for (const [x, y] of visiblePositions) {
-    mask[x] ??= []
-    mask[x][y] = true
-  }
-  return { mask, explored }
-}
 
 // ─── 测试 ──────────────────────────────────────────────
 
@@ -50,7 +35,7 @@ describe('city entity (multi-tile 2×2)', () => {
     )
     const result = cityEntity.getDrawCommand(5, 5, 0, 0, false, mask, explored)
     for (const cell of result.cells) {
-      expect(cell.char).toBe('Y')
+      expect(cell.output.char).toBe('Y')
     }
   })
 

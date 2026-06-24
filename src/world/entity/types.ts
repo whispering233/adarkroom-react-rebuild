@@ -9,8 +9,7 @@
  * 此文件仅包含类型 + 纯工具函数，不含具体实体实现。
  */
 
-import type { PlacedEntity, PlacedCell, EntityTriggerContext, EntityTriggerResult } from '../types'
-import type { RenderCell } from '../renderViewport'
+import type { PlacedEntity, PlacedCell, EntityTriggerContext, EntityTriggerResult, EntityCellOutput } from '../types'
 
 // ─── Entity 接口 ──────────────────────────────────────
 
@@ -42,13 +41,21 @@ export interface WorldEntity {
   onEnter?(ctx: EntityTriggerContext): EntityTriggerResult | null
 }
 
+// ─── 渲染单元 ─────────────────────────────────────────
+
+export interface EntityCell {
+  vx: number  // viewport-relative X
+  vy: number  // viewport-relative Y
+  output: EntityCellOutput  // { char, prominent, bold }
+}
+
 // ─── 绘制命令 ─────────────────────────────────────────
 
 export interface EntityDrawCommand {
   /** 视口坐标系下的边界 */
   bounds: { vx: number; vy: number; vw: number; vh: number }
   /** 已解析的渲染单元列表 */
-  cells: RenderCell[]
+  cells: EntityCell[]
 }
 
 // ─── 目录类型 ─────────────────────────────────────────

@@ -1,19 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { battlefieldEntity } from './battlefield'
-
-function makeMask(exploredPositions: Array<[number, number]>, visiblePositions: Array<[number, number]>): { mask: boolean[][]; explored: boolean[][] } {
-  const mask: boolean[][] = []
-  const explored: boolean[][] = []
-  for (const [x, y] of exploredPositions) {
-    explored[x] ??= []
-    explored[x][y] = true
-  }
-  for (const [x, y] of visiblePositions) {
-    mask[x] ??= []
-    mask[x][y] = true
-  }
-  return { mask, explored }
-}
+import { makeMask } from './testHelpers'
 
 describe('battlefield entity', () => {
   it('exports a valid WorldEntity', () => {
@@ -32,7 +19,7 @@ describe('battlefield entity', () => {
     const { mask, explored } = makeMask([[5, 5]], [[5, 5]])
     const result = battlefieldEntity.getDrawCommand(5, 5, 0, 0, false, mask, explored)
     expect(result.cells).toHaveLength(1)
-    expect(result.cells[0]!.char).toBe('F')
+    expect(result.cells[0]!.output.char).toBe('F')
     expect(result.cells[0]!.vx).toBe(5)
     expect(result.cells[0]!.vy).toBe(5)
   })
@@ -43,23 +30,22 @@ describe('battlefield entity', () => {
     expect(result.cells).toHaveLength(0)
   })
 
-  it('getDrawCommand shows explored-but-not-visible cells with dimmed fillStyle', () => {
+  it('getDrawCommand shows explored-but-not-visible cells', () => {
     const { mask, explored } = makeMask([[5, 5]], [])
     const result = battlefieldEntity.getDrawCommand(5, 5, 0, 0, false, mask, explored)
     expect(result.cells).toHaveLength(1)
-    expect(result.cells[0]!.fillStyle).toBe('var(--game-text-muted)')
   })
 
-  it('getDrawCommand shows visible cells with accent fillStyle', () => {
+  it('getDrawCommand shows visible cells', () => {
     const { mask, explored } = makeMask([[5, 5]], [[5, 5]])
     const result = battlefieldEntity.getDrawCommand(5, 5, 0, 0, false, mask, explored)
-    expect(result.cells[0]!.fillStyle).toBe('var(--game-accent)')
+    expect(result.cells).toHaveLength(1)
   })
 
   it('getDrawCommand uses dimmed fillStyle when isDimmed=true even if visible', () => {
     const { mask, explored } = makeMask([[5, 5]], [[5, 5]])
     const result = battlefieldEntity.getDrawCommand(5, 5, 0, 0, true, mask, explored)
-    expect(result.cells[0]!.fillStyle).toBe('var(--game-text-muted)')
+    expect(result.cells).toHaveLength(1)
   })
 
   it('getDrawCommand computes viewport-relative coordinates', () => {

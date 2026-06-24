@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderViewport, drawComposed, type RenderCell } from './renderViewport'
+import { renderViewport, drawComposed, type RenderCell, type ResolvedEntityDrawCommand } from './renderViewport'
 import { WORLD } from './constants'
 import type {
   TerrainType,
@@ -8,7 +8,7 @@ import type {
   EntityRenderInput,
 } from './types'
 import type { StyleResolver } from './styleResolver'
-import type { EntityCatalog, EntityDrawCommand } from './entity/types'
+import type { EntityCatalog } from './entity/types'
 import { villageEntity } from './entity/village'
 import { ironMineEntity } from './entity/ironMine'
 import { cityEntity } from './entity/city'
@@ -415,7 +415,7 @@ describe('drawComposed', () => {
     const cellSize = 16
 
     // Build a minimal result object
-    const entityCmd: EntityDrawCommand = {
+    const entityCmd: ResolvedEntityDrawCommand = {
       bounds: { vx: 0, vy: 0, vw: 1, vh: 1 },
       cells: [{ vx: 0, vy: 0, char: 'I', font: FONT_BOLD, fillStyle: '#fa0' }],
     }
@@ -456,7 +456,7 @@ describe('drawComposed', () => {
     ]
 
     // All terrain cells (same category)
-    const entityCmd: EntityDrawCommand = {
+    const entityCmd: ResolvedEntityDrawCommand = {
       bounds: { vx: 0, vy: 0, vw: 3, vh: 1 },
       cells: multiCells,
     }
