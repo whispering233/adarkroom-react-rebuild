@@ -48,7 +48,7 @@
 | `src/components/WorldInfo.tsx` | World 信息栏（地图名称、天气，World 场景顶部） |
 | `src/i18n/` | i18next 国际化（`zh.json`/`en.json`，默认中文） |
 | `src/world/` | 世界地图生成 + 实体系统 + Canvas 渲染管道（generator / entity/ / renderViewport / StyleResolver） |
-| `src/world/entity/` | 15 个实体定义（WorldEntity 接口实现 + 单元测试） |
+| `src/world/entity/` | 15 个实体定义 + factory.ts（createUniformEntity 工厂 / deriveEntity 派生）+ EntityCell 抽象类型 + 单元测试 |
 | `src/world/styleResolver.ts` | 全局样式映射（EntityCellOutput → fillStyle + font） |
 
 ## Critical gotchas

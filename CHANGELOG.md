@@ -12,6 +12,25 @@
 - Removed
 
 
+## [v0.3.3] - 2026-06-24
+
+### Added
+- EntityCell 抽象接口：entity 只返回 { char, prominent, bold } 视觉意图，不碰 CSS 变量
+- createUniformEntity() 工厂函数：统一 footprint 实体一行配置即可创建
+- deriveEntity() 派生函数：支持实体行为变体但外观复用的派生
+- ResolvedEntityDrawCommand 类型：隔离 entity 层与渲染层
+
+### Changed
+- 15 个 entity 文件：用工厂重写，每文件从 ~60 行缩减为 ~8 行
+- renderViewport 实体渲染段：删除 prominent:true/bold:true 硬编码
+- 18 个测试文件适配 EntityCell 输出格式
+- 提取 makeMask 辅助函数到 testHelpers.ts
+
+### Removed
+- 14 处硬编码 FONT_BOLD 常量
+- 28 处硬编码 var(--game-*) CSS 变量引用
+
+
 ## [v0.3.2] - 2026-06-24
 
 ### Added
