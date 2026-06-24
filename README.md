@@ -14,6 +14,7 @@
 | [CSS Modules](https://github.com/css-modules/css-modules) | 组件级样式隔离 |
 | [Immer](https://immerjs.github.io/immer/) | 不可变状态（draft 模式） |
 | [i18next](https://www.i18next.com/) | 国际化（中/英） |
+| [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) | 音频引擎（BGM/SFX） |
 | [Vitest](https://vitest.dev/) | 单元测试 |
 
 ## 快速开始
@@ -147,6 +148,22 @@ pnpm test
 - 🎨 **主题切换**：浅色/暗色，localStorage 持久化
 - 🔤 **字体缩放**：12–24px，localStorage 持久化
 - 🌐 **国际化**：中/英，自动匹配浏览器语言
+- 🛡️ **制造品扩展**：14 件新制造品——三种护甲、三种水容器、三种背包升级、四种武器、火把
+- 🏪 **交易系统**：建造 trading post 后解锁 13 种资源兑换
+- ⚔️ **战斗增强**：12 把武器 + 命中率 0.8 + Stun 眩晕机制
+- ⚠️ **World Danger**：距离+护甲动态危险警告
+- 🛤️ **动态道路**：清除 outpost 后自动画路回村
+- 🏷️ **12 地标事件**：所有地标触发叙事覆盖层
+- 💀 **Executioner Boss**：多场景 + 战斗 + fleet beacon 掉落
+- 🍖 **生存系统**：Starvation/Dehydration 累积 + 死亡冷却 120s
+- 🧭 **指南针**：持有 compass 时显示飞船方向
+- 🚀 **Ship 飞船**：hull/thrusters 升级 + alien alloy + lift-off
+- 🌌 **Space 太空**：Canvas 实时飞船躲避 mini-game（60s 计时）
+- 🔧 **Fabricator 工坊**：alien alloy 制造 8 件终局装备
+- ⭐ **Perk 系统**：11 项可获取特性（战斗/世界/事件多维度生效）
+- 🏆 **Prestige/Scoring**：声望继承 + 计分 + Cache 地标条件生成
+- 🔊 **音频系统**：Web Audio API + Toolbar 静音开关
+- 🎨 **UI 优化**：建造/贸易两栏布局 + 按钮等宽修复
 - 🛡️ **ErrorBoundary**：顶层错误捕获，防白屏
 
 ## 可参考

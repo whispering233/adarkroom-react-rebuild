@@ -12,6 +12,43 @@
 - Removed
 
 
+## [v0.3.4] - 2026-06-24
+
+### Added
+- 建造品扩展：14 件新制造品（护甲×3、水容器×3、背包升级×3、武器×4、火把）
+- 交易系统：trading post 解锁后 13 种资源兑换
+- 战斗武器补全：bayonet、plasma rifle、energy blade、disruptor（共 12 武器）
+- 命中率系统：BASE_HIT_CHANCE 0.8 + precise perk 加成
+- Stun 机制：bolas/disruptor 眩晕敌人跳过回合
+- World Danger 系统：基于距离和护甲的危险警告
+- World 动态 Road 绘制：清除 outpost 后自动画路回村
+- 地标事件场景：12 个地标 setpiece 事件覆盖层
+- Executioner Boss 战斗事件：多场景 + Combat + fleet beacon 掉落
+- Starvation/Dehydration 累积：重复饥饿/口渴导致死亡 + 死亡冷却
+- Compass 系统：Path 场景指南针方向提示
+- Ship 飞船模块：hull/thrusters 升级 + alien alloy 资源 + lift-off
+- Space 太空终局：Canvas 实时飞船躲避 mini-game + Win/Lose 判定
+- Fabricator 制造工坊：alien alloy 制造 8 件终局装备
+- Perk 系统：11 项特性（boxer/martial artist/unarmed master/barbarian/evasive/precise/scout/stealthy/gastronome/slow metabolism/desert rat）
+- Prestige/Scoring：声望继承 + 计分系统 + Cache 地标条件生成
+- Audio 系统：Web Audio API 引擎 + Toolbar 静音开关
+- 按钮样式修复：wrapper/button/tooltip 等宽 + 两栏布局
+
+### Changed
+- Room.tsx：建造/贸易 grid-cols-2 两栏水平布局
+- World.tsx：Danger 检测 + Starvation/Dehydration 死亡计数
+- CombatManager：命中率 + Stun + Perk 加成一体的伤害计算
+- CombatOverlay：Perk 查询注入 + 徒手攻击里程碑追踪
+- Button.module.css：inline-block → block + 100% 宽度
+- Header.tsx：已有 Space/Fabricator/Ship 导航骨架
+
+### Fixed
+- 按钮宽度不一致：wrapper 使用 block + 固定宽度
+- 按钮 hover 提示与按钮等宽
+- 地标实体走入触发空白事件覆盖层——移除未实现事件 eventId
+- .omo/ 从 git 跟踪中移除
+
+
 ## [v0.3.3] - 2026-06-24
 
 ### Added

@@ -40,8 +40,14 @@
 | `src/state/` | 全局状态：types + Immer reducer + Context + hooks |
 | `src/config.ts` | 游戏数值配置：RESOURCES、WORKER_INCOME、TRAP_DROPS、背包常量 |
 | `src/system/` | GameLoop（100ms 主循环）+ gameSpeed（倍速控制） |
+| `src/system/audioEngine.ts` | Web Audio API 音频引擎 |
+| `src/system/scoring.ts` | 计分 + Prestige 声望系统 |
 | `src/components/` | 通用 UI 组件（Button、Header、NarrativePanel、StoresPanel 等） |
 | `src/rooms/` | 场景组件 + `craftables/` 制造系统（纯数据配置） |
+| `src/rooms/Ship.tsx` | Ship 场景（hull/thrusters 升级、lift-off 进入 Space） |
+| `src/rooms/Space.tsx` | Space 场景（Canvas 太空飞行 mini-game） |
+| `src/rooms/Fabricator.tsx` | Fabricator 场景（alien alloy 制造高级装备） |
+| `src/rooms/craftables/trades.ts` | 交易品配置（13 种资源兑换） |
 | `src/events/` | 随机事件系统（调度器 + 注册表 + 场景数据） |
 | `src/combat/` | 战斗系统（事件驱动，CombatOverlay 自包含） |
 | `src/components/WorldHUD.tsx` | World HUD 面板（状态/装备/治疗，World 场景右栏） |
