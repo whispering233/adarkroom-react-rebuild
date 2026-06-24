@@ -69,6 +69,7 @@
     "medicine": "medicine",
     "hypo": "hypo",
     "stim": "stim",
+    "alien_alloy": "Alien Alloy",
     "population": "population",
     "no_income": "no active income sources"
   },
@@ -542,7 +543,18 @@
     "bag_space": "Bag: {{used}}/{{total}}",
     "embark": "embark",
     "need_meat": "You need cured meat to embark",
-    "unlocked": "the old compass points to a dusty path..."
+    "unlocked": "the old compass points to a dusty path...",
+    "compass": "The compass points southeast — something lies that way..."
+  },
+  "ship": {
+    "hull": "Hull",
+    "engine": "Engine",
+    "reinforce": "Reinforce Hull",
+    "upgrade": "Upgrade Engine",
+    "liftoff": "Lift Off",
+    "liftoff_warn": "Ready to Leave?",
+    "need_hull": "Hull must be greater than 0 to lift off",
+    "warning": "Make sure the hull is reinforced. There is no turning back."
   },
   "armour": {
     "none": "none",

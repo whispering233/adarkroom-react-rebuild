@@ -69,6 +69,7 @@
     "medicine": "药剂",
     "hypo": "注射剂",
     "stim": "兴奋剂",
+    "alien_alloy": "外星合金",
     "population": "人口",
     "no_income": "暂无明显收入来源"
   },
@@ -541,7 +542,18 @@
     "bag_space": "背包：{{used}}/{{total}}",
     "embark": "出发",
     "need_meat": "需要携带肉干才能出发",
-    "unlocked": "旧指南针指向一条尘土飞扬的小径..."
+    "unlocked": "旧指南针指向一条尘土飞扬的小径...",
+    "compass": "指南针指向东南方——那里似乎有什么东西..."
+  },
+  "ship": {
+    "hull": "船体",
+    "engine": "引擎",
+    "reinforce": "加固船体",
+    "upgrade": "升级引擎",
+    "liftoff": "起飞",
+    "liftoff_warn": "准备起飞？",
+    "need_hull": "船体必须大于 0 才能起飞",
+    "warning": "请确保船体已加固。起飞后无法回头。"
   },
   "armour": {
     "none": "无",

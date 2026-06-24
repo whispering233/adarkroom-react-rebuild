@@ -177,6 +177,7 @@ export const RESOURCES: Record<string, ResourceDef> = {
   medicine:  { category: 'advanced', initial: 0 },
   hypo:      { category: 'advanced', initial: 0 },
   stim:      { category: 'advanced', initial: 0 },
+  'alien alloy': { category: 'advanced', initial: 0 },
 }
 
 /** 已知资源 ID 联合类型 */
