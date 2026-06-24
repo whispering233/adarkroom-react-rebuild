@@ -14,6 +14,14 @@ const swampSetpiece: EventDef = {
     start: {
       text: ['events.setpiece.swamp.text'],
       buttons: {
+        explore: {
+          text: 'events.setpiece.swamp.explore',
+          available: (state) => !state.character.perks['gastronome'],
+          nextScene: 'end',
+          onChoose: (dispatch) => {
+            dispatch({ type: 'APPLY_RECIPE', recipe: (d: any) => { d.character.perks['gastronome'] = true } } as any)
+          },
+        },
         leave: {
           text: 'actions.leave',
           nextScene: 'end',

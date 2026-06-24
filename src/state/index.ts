@@ -25,6 +25,9 @@ export {
   increasePopulation,
   killVillagers,
   applyRecipe,
+  // ── Perk ──
+  addPerk,
+  hasPerk,
   // ── 事件 ──
   startEvent,
   goToScene,

@@ -71,13 +71,17 @@ export function World() {
           })
         } else if (meat <= 0) {
           d.character.starved = (d.character.starved ?? 0) + 1
+          if (d.character.starved >= 10 && !d.character.perks['slow metabolism']) {
+            d.character.perks['slow metabolism'] = true
+          }
           d.narrativeLog.unshift({
             id: d._nextNarrativeId++, text: t('world.starvation_death'), tick: d._globalTick,
           })
           survived = false
         } else {
           w.starvation = false
-          w.health = Math.min(w.maxHealth, w.health + WORLD.MEAT_HEAL)
+          const meatHeal = d.character.perks?.gastronome ? WORLD.MEAT_HEAL * 2 : WORLD.MEAT_HEAL
+          w.health = Math.min(w.maxHealth, w.health + meatHeal)
           d.outfit['cured meat'] = meat - 1
         }
       }
@@ -94,6 +98,9 @@ export function World() {
           })
         } else if (w.water <= 0) {
           d.character.dehydrated = (d.character.dehydrated ?? 0) + 1
+          if (d.character.dehydrated >= 10 && !d.character.perks['desert rat']) {
+            d.character.perks['desert rat'] = true
+          }
           d.narrativeLog.unshift({
             id: d._nextNarrativeId++, text: t('world.dehydration_death'), tick: d._globalTick,
           })
@@ -155,8 +162,9 @@ export function World() {
       const prevTerrain = terrainMap[curPos[0]][curPos[1]]
       const newTerrain = terrainMap[nx][ny]
       w.curPos = [nx, ny]
-      lightMap(w.mask, [nx, ny], WORLD.LIGHT_RADIUS)
-      lightMap(w.explored, [nx, ny], WORLD.LIGHT_RADIUS)
+      const scoutRadius = d.character.perks?.scout ? WORLD.LIGHT_RADIUS * 2 : WORLD.LIGHT_RADIUS
+      lightMap(w.mask, [nx, ny], scoutRadius)
+      lightMap(w.explored, [nx, ny], scoutRadius)
       w.traveled[nx][ny] = true
 
       if (prevTerrain !== newTerrain) {

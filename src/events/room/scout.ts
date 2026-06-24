@@ -31,10 +31,9 @@ export const scout: EventDef = {
         learn: {
           text: 'events.scout.learn_scouting',
           cost: { fur: 1000, scales: 50, teeth: 20 },
-          available: () => true, // TODO: !hasPerk('scout')
+          available: (state) => !state.character.perks['scout'],
           onChoose: (dispatch) => {
-            // TODO: $SM.addPerk('scout')
-            dispatch({ type: 'APPLY_RECIPE', recipe: () => {} } as any)
+            dispatch({ type: 'APPLY_RECIPE', recipe: (d: any) => { d.character.perks['scout'] = true } } as any)
           },
         },
         leave: {

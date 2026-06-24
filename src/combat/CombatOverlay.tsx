@@ -6,7 +6,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useGameDispatch, applyRecipe, modifyResource, pushNarrative } from '../state'
+import { useGameState, useGameDispatch, applyRecipe, modifyResource, pushNarrative } from '../state'
 import type { CombatState } from './types'
 import type { SceneDef } from '../events/types'
 import { playerAttack, enemyAttack, healPlayer, isPlayerDead } from './CombatManager'
@@ -32,6 +32,7 @@ interface CombatOverlayProps {
 export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOverlayProps) {
   const { t } = useTranslation()
   const dispatch = useGameDispatch()
+  const gameState = useGameState()
 
   const [combat, setCombat] = useState<CombatState>({
     active: true,
@@ -51,6 +52,8 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
   // ── 敌人攻击计时器 ──
   const combatRef = useRef(combat)
   combatRef.current = combat
+  const perksRef = useRef(gameState.character.perks)
+  perksRef.current = gameState.character.perks
 
   useEffect(() => {
     if (combat.won || isPlayerDead(combat)) return
@@ -61,7 +64,8 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
         clearInterval(id)
         return
       }
-      const result = enemyAttack(curr)
+      const checkPerk = (p: string) => perksRef.current[p] === true
+      const result = enemyAttack(curr, checkPerk)
       setCombat(result.combat)
       if (result.hit) {
         showFloat(`-${result.damage}`)
@@ -100,7 +104,8 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
         }))
       }
 
-      const result = playerAttack(combat, weapon)
+      const hasPerk = (p: string) => gameState.character.perks[p] === true
+      const result = playerAttack(combat, weapon, hasPerk)
       setCombat(result.combat)
 
       if (result.hit) {
@@ -109,6 +114,17 @@ export function CombatOverlay({ scene, onCombatEnd, availableWeapons }: CombatOv
         } else {
           showFloat(t('combat.stun', { defaultValue: 'STUN' }))
         }
+      }
+
+      // Unarmed punch tracking for perk progression
+      if (weapon.type === 'unarmed') {
+        dispatch(applyRecipe(d => {
+          d.character.punches = (d.character.punches ?? 0) + 1
+          const p = d.character.punches
+          if (p >= 300 && !d.character.perks['unarmed master']) d.character.perks['unarmed master'] = true
+          if (p >= 150 && !d.character.perks['martial artist']) d.character.perks['martial artist'] = true
+          if (p >= 50 && !d.character.perks['boxer']) d.character.perks['boxer'] = true
+        }))
       }
 
       // 敌人死亡 → 结算

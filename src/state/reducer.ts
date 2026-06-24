@@ -123,6 +123,8 @@ export type GameAction =
   // ── 战斗系统 ──
   | { type: 'START_COMBAT'; config: CombatState }
   | { type: 'END_COMBAT' }
+  // ── 角色 ──
+  | { type: 'ADD_PERK'; perk: string }
   // ── 世界地图 ──
   | { type: 'EMBARK_WORLD' }
   | { type: 'RETURN_FROM_WORLD'; died: boolean }
@@ -430,6 +432,12 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       break
     }
 
+    // ── 角色 Perk ────────────────────────────────────
+    case 'ADD_PERK': {
+      draft.character.perks[action.perk] = true
+      break
+    }
+
     // ── 世界地图 ──────────────────────────────────────
 
     case 'EMBARK_WORLD': {
@@ -480,7 +488,8 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       }
       draft.features['location.world'] = true
       draft.currentRoom = 'world'
-      const lightRadius = draft.stores.torch > 0 ? WORLD.LIGHT_RADIUS * 2 : WORLD.LIGHT_RADIUS
+      const baseLightRadius = draft.stores.torch > 0 ? WORLD.LIGHT_RADIUS * 2 : WORLD.LIGHT_RADIUS
+      const lightRadius = draft.character.perks?.scout ? baseLightRadius * 2 : baseLightRadius
       lightMap(
         draft.game.worldRuntime.mask,
         embarkSpawnPos,
@@ -720,6 +729,17 @@ export const startCombat = (config: CombatState): GameAction => ({
 })
 
 export const endCombat = (): GameAction => ({ type: 'END_COMBAT' })
+
+// ── Perk Action Creator ────────────────────────────────
+
+export const addPerk = (perk: string): GameAction => ({ type: 'ADD_PERK', perk })
+
+/**
+ * 判断角色是否已拥有指定 perk。
+ */
+export function hasPerk(state: GameState, perk: string): boolean {
+  return state.character.perks[perk] === true
+}
 
 // ── 世界地图 Action Creators ────────────────────────────
 

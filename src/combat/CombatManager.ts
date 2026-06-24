@@ -49,7 +49,18 @@ export function playerAttack(
   const BASE_HIT_CHANCE = 0.8
   const hitChance = playerHasPerk?.('precise') ? BASE_HIT_CHANCE + 0.1 : BASE_HIT_CHANCE
   const hit = Math.random() < hitChance
-  const damage = hit ? weapon.damage : 0
+  let damage = hit ? weapon.damage : 0
+
+  // Perk damage multipliers
+  if (hit && weapon.type === 'unarmed') {
+    if (playerHasPerk?.('boxer')) damage *= 2
+    if (playerHasPerk?.('martial artist')) damage *= 3
+    if (playerHasPerk?.('unarmed master')) damage *= 2
+  }
+  if (hit && weapon.type === 'melee' && playerHasPerk?.('barbarian')) {
+    damage = Math.floor(damage * 1.5)
+  }
+
   const newEnemyHp = Math.max(0, combat.enemyHp - damage)
 
   return {
@@ -66,7 +77,10 @@ export function playerAttack(
 // ─── 敌人攻击 ────────────────────────────────────────────
 
 /** 敌人攻击玩家（命中率由 enemyHit 决定） */
-export function enemyAttack(combat: CombatState): AttackResult {
+export function enemyAttack(
+  combat: CombatState,
+  playerHasPerk?: (perk: string) => boolean,
+): AttackResult {
   if (combat.won) return { combat, damage: 0, hit: false }
 
   // Stun: skip this attack, clear stun
@@ -74,8 +88,9 @@ export function enemyAttack(combat: CombatState): AttackResult {
     return { combat: { ...combat, enemyStunned: false }, damage: 0, hit: false }
   }
 
+  const evasionMultiplier = playerHasPerk?.('evasive') ? 0.8 : 1
   const hitRoll = Math.random()
-  const hit = hitRoll <= (combat.enemyHit ?? 1)
+  const hit = hitRoll <= (combat.enemyHit ?? 1) * evasionMultiplier
   const damage = hit ? (combat.enemyDamage ?? 0) : 0
   const newPlayerHp = Math.max(0, combat.playerHp - damage)
 

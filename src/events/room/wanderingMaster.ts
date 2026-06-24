@@ -35,18 +35,27 @@ export const wanderingMaster: EventDef = {
       buttons: {
         evasion: {
           text: 'events.master.evasion',
-          available: () => true, // TODO: !hasPerk('evasive')
+          available: (state) => !state.character.perks['evasive'],
           nextScene: 'end',
+          onChoose: (dispatch) => {
+            dispatch({ type: 'APPLY_RECIPE', recipe: (d: any) => { d.character.perks['evasive'] = true } } as any)
+          },
         },
         precision: {
           text: 'events.master.precision',
-          available: () => true, // TODO: !hasPerk('precise')
+          available: (state) => !state.character.perks['precise'],
           nextScene: 'end',
+          onChoose: (dispatch) => {
+            dispatch({ type: 'APPLY_RECIPE', recipe: (d: any) => { d.character.perks['precise'] = true } } as any)
+          },
         },
         force: {
           text: 'events.master.force',
-          available: () => true, // TODO: !hasPerk('barbarian')
+          available: (state) => !state.character.perks['barbarian'],
           nextScene: 'end',
+          onChoose: (dispatch) => {
+            dispatch({ type: 'APPLY_RECIPE', recipe: (d: any) => { d.character.perks['barbarian'] = true } } as any)
+          },
         },
         nothing: {
           text: 'events.master.nothing',
