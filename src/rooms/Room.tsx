@@ -75,70 +75,71 @@ export function Room() {
         )}
       </div>
 
-      {/* 建造区域 — grid 分栏 */}
-      {buildables.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <div className="text-xs uppercase tracking-[0.2em] text-(--game-accent)">
-            {t('build.header')}
+      {/* 建造 + 贸易 水平双栏 */}
+      <div className="grid grid-cols-2 gap-6 w-full">
+        {/* 建造区域 — 左栏 */}
+        {buildables.length > 0 && (
+          <div className="flex flex-col gap-3">
+            <div className="text-xs uppercase tracking-[0.2em] text-(--game-accent)">
+              {t('build.header')}
+            </div>
+            <div className="flex flex-col gap-2">
+              {buildables
+                .filter(b => b.btn.visible)
+                .map(({ def, btn }) => {
+                  const current = currentBuildings[def.id] ?? 0
+                  const isMaxed = current >= def.max
+                  const maxKey = `build.${def.id.replace(/ /g, '_')}.max`
+                  return (
+                    <Button
+                      key={def.id}
+                      id={`build_${def.id.replace(/ /g, '-')}`}
+                      label={t(`build.${def.id.replace(/ /g, '_')}.name`)}
+                      count={`${current}/${def.max}`}
+                      onClick={() => handleBuild(def.id)}
+                      cost={isMaxed ? undefined : def.cost(state)}
+                      disabled={btn.disabled}
+                      tooltip={isMaxed ? t(maxKey) : undefined}
+                    />
+                  )
+                })}
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            {buildables
-              .filter(b => b.btn.visible)
-              .map(({ def, btn }) => {
-                const current = currentBuildings[def.id] ?? 0
-                const isMaxed = current >= def.max
-                const maxKey = `build.${def.id.replace(/ /g, '_')}.max`
+        )}
+
+        {/* 贸易区域 — 右栏 */}
+        {state.features['room.buy'] && (
+          <div className="flex flex-col gap-3">
+            <div className="text-xs uppercase tracking-[0.2em] text-(--game-accent)">
+              {t('trade.header', { defaultValue: '贸易' })}
+            </div>
+            <div className="flex flex-col gap-2">
+              {Object.values(TRADES).map((trade) => {
+                const costEntries = Object.entries(trade.cost)
+                const hasResources = costEntries.every(([k, v]) => (state.stores[k] ?? 0) >= v)
+                const label = t(`trade.${trade.id.replace(/ /g, '_')}`, { defaultValue: trade.id })
                 return (
                   <Button
-                    key={def.id}
-                    id={`build_${def.id.replace(/ /g, '-')}`}
-                    label={t(`build.${def.id.replace(/ /g, '_')}.name`)}
-                    count={`${current}/${def.max}`}
-                    onClick={() => handleBuild(def.id)}
-                    cost={isMaxed ? undefined : def.cost(state)}
-                    disabled={btn.disabled}
-                    tooltip={isMaxed ? t(maxKey) : undefined}
+                    key={`trade_${trade.id}`}
+                    id={`trade_${trade.id.replace(/ /g, '-')}`}
+                    label={label}
+                    onClick={() => dispatch(applyRecipe((d) => {
+                      for (const [k, v] of Object.entries(trade.cost)) {
+                        modifyResource(d, k, -v, `cost.trade.${trade.id}`)
+                      }
+                      for (const [k, v] of Object.entries(trade.reward)) {
+                        modifyResource(d, k, v, `reward.trade.${trade.id}`)
+                      }
+                    }))}
+                    cost={trade.cost}
+                    disabled={!hasResources}
                   />
                 )
               })}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* 贸易区域 — trading post 解锁后显示 */}
-      {state.features['room.buy'] && (
-        <div className="flex flex-col gap-3">
-          <div className="text-xs uppercase tracking-[0.2em] text-(--game-accent)">
-            {t('trade.header', { defaultValue: '贸易' })}
-          </div>
-          <div className="flex flex-col gap-2">
-            {Object.values(TRADES).map((trade) => {
-              const costEntries = Object.entries(trade.cost)
-              const hasResources = costEntries.every(([k, v]) => (state.stores[k] ?? 0) >= v)
-              const label = t(`trade.${trade.id.replace(/ /g, '_')}`, { defaultValue: trade.id })
-              const costText = costEntries.map(([k, v]) => `${t(`stores.${k.replace(/ /g, '_')}`, { defaultValue: k })}:${v}`).join(' + ')
-              return (
-                <Button
-                  key={`trade_${trade.id}`}
-                  id={`trade_${trade.id.replace(/ /g, '-')}`}
-                  label={label}
-                  count={costText}
-                  onClick={() => dispatch(applyRecipe((d) => {
-                    for (const [k, v] of Object.entries(trade.cost)) {
-                      modifyResource(d, k, -v, `cost.trade.${trade.id}`)
-                    }
-                    for (const [k, v] of Object.entries(trade.reward)) {
-                      modifyResource(d, k, v, `reward.trade.${trade.id}`)
-                    }
-                  }))}
-                  cost={hasResources ? trade.cost : undefined}
-                  disabled={!hasResources}
-                />
-              )
-            })}
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
