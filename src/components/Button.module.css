@@ -125,7 +125,7 @@
 .wrapper {
   position: relative;
   display: block;
-  width: 100%;
+  width: var(--game-btn-min-width, 10.75rem);
 }
 
 /* Tailwind 无法直接表达的：group hover 触发 tooltip */
