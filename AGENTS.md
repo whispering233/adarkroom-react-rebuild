@@ -153,3 +153,14 @@ In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the re
 
 If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
 <!-- CODEGRAPH_END -->
+
+
+## Development Checklist
+
+当前项目开发进度 checklist 位于 [`doc/dev-plan.md`](doc/dev-plan.md)。
+
+实现顺序：
+1. **Phase 1 — 现有系统扩展**：在已有架构上补配置/补数据/补逻辑，改动范围小
+2. **Phase 2 — 需新建模块**：Ship、Space、Fabricator、Perk、Prestige/Scoring、音频系统
+
+完整差距分析见 [`.omo/plans/gap-analysis-original-vs-rebuild.md`](.omo/plans/gap-analysis-original-vs-rebuild.md)。

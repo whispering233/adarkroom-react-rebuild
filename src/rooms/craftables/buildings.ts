@@ -128,4 +128,140 @@ export const BUILDINGS: Record<string, CraftableDef> = {
       Effects.initWorkers('armourer'),
     ),
   },
+
+  // ── 护甲升级 ──────────────────────────────────────────
+
+  'leather armour': {
+    id: 'leather armour',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4 },
+    cost: () => ({ leather: 5, scales: 10 }),
+    onBuild: Effects.unlockFeature('armour.leather'),
+  },
+
+  'iron armour': {
+    id: 'iron armour',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'iron mine' },
+    cost: () => ({ leather: 10, iron: 10, scales: 20 }),
+    onBuild: Effects.unlockFeature('armour.iron'),
+  },
+
+  'steel armour': {
+    id: 'steel armour',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'armoury' },
+    cost: () => ({ steel: 20, leather: 10, scales: 30 }),
+    onBuild: Effects.unlockFeature('armour.steel'),
+  },
+
+  // ── 水容器升级 ──────────────────────────────────────
+
+  waterskin: {
+    id: 'waterskin',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4 },
+    cost: () => ({ leather: 5 }),
+    onBuild: Effects.unlockFeature('water.waterskin'),
+  },
+
+  cask: {
+    id: 'cask',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'iron mine' },
+    cost: () => ({ leather: 20, iron: 10 }),
+    onBuild: Effects.unlockFeature('water.cask'),
+  },
+
+  'water tank': {
+    id: 'water tank',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'steelworks' },
+    cost: () => ({ iron: 50, steel: 20, leather: 20 }),
+    onBuild: Effects.unlockFeature('water.tank'),
+  },
+
+  // ── 背包升级 ──────────────────────────────────────────
+
+  rucksack: {
+    id: 'rucksack',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4 },
+    cost: () => ({ leather: 5 }),
+    onBuild: Effects.unlockFeature('bag.rucksack'),
+  },
+
+  wagon: {
+    id: 'wagon',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'iron mine' },
+    cost: () => ({ wood: 100, iron: 10, leather: 10 }),
+    onBuild: Effects.unlockFeature('bag.wagon'),
+  },
+
+  convoy: {
+    id: 'convoy',
+    type: 'upgrade',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'steelworks' },
+    cost: () => ({ wood: 200, iron: 30, steel: 20, leather: 20 }),
+    onBuild: Effects.unlockFeature('bag.convoy'),
+  },
+
+  // ── 武器 ──────────────────────────────────────
+
+  'bone spear': {
+    id: 'bone spear',
+    type: 'weapon',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'workshop' },
+    cost: () => ({ wood: 100, leather: 5, teeth: 10 }),
+    onBuild: Effects.unlockFeature('weapon.bone_spear'),
+  },
+
+  'iron sword': {
+    id: 'iron sword',
+    type: 'weapon',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'workshop', minResources: { iron: 1 } },
+    cost: () => ({ wood: 200, leather: 10, iron: 10, teeth: 10 }),
+    onBuild: Effects.unlockFeature('weapon.iron_sword'),
+  },
+
+  'steel sword': {
+    id: 'steel sword',
+    type: 'weapon',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'steelworks', minResources: { steel: 1 } },
+    cost: () => ({ wood: 500, leather: 20, steel: 20, teeth: 10 }),
+    onBuild: Effects.unlockFeature('weapon.steel_sword'),
+  },
+
+  rifle: {
+    id: 'rifle',
+    type: 'weapon',
+    max: 1,
+    unlock: { builderLevel: 4, building: 'armoury', minResources: { bullets: 1 } },
+    cost: () => ({ wood: 200, steel: 50, sulphur: 50 }),
+    onBuild: Effects.unlockFeature('weapon.rifle'),
+  },
+
+  // ── 工具 ──────────────────────────────────────
+
+  torch: {
+    id: 'torch',
+    type: 'tool',
+    max: 1,
+    unlock: { builderLevel: 4 },
+    cost: () => ({ wood: 1, cloth: 1 }),
+    onBuild: Effects.unlockFeature('tool.torch'),
+  },
 }

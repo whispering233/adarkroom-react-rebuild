@@ -480,15 +480,16 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       }
       draft.features['location.world'] = true
       draft.currentRoom = 'world'
+      const lightRadius = draft.stores.torch > 0 ? WORLD.LIGHT_RADIUS * 2 : WORLD.LIGHT_RADIUS
       lightMap(
         draft.game.worldRuntime.mask,
         embarkSpawnPos,
-        WORLD.LIGHT_RADIUS,
+        lightRadius,
       )
       lightMap(
         draft.game.worldRuntime.explored,
         embarkSpawnPos,
-        WORLD.LIGHT_RADIUS,
+        lightRadius,
       )
       break
     }

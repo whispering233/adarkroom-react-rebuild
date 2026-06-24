@@ -182,6 +182,62 @@
       "available": "建造者说有稳定的子弹供应会很有用",
       "build": "军械库建好了，迎接着过去的武器回归",
       "max": "你已经有一个军械库了"
+    },
+    "leather_armour": {
+      "name": "皮甲",
+      "desc": "基础防护，用于世界探索。"
+    },
+    "iron_armour": {
+      "name": "铁甲",
+      "desc": "中级防护，支持更深入探索。"
+    },
+    "steel_armour": {
+      "name": "钢甲",
+      "desc": "终极防护，可抵达最远处。"
+    },
+    "waterskin": {
+      "name": "水袋",
+      "desc": "远征时可携带更多水源。"
+    },
+    "cask": {
+      "name": "水桶",
+      "desc": "更大容量的水容器。"
+    },
+    "water_tank": {
+      "name": "水罐",
+      "desc": "最大水容量。"
+    },
+    "rucksack": {
+      "name": "背包",
+      "desc": "携带更多物资。"
+    },
+    "wagon": {
+      "name": "马车",
+      "desc": "结实的远征载具。"
+    },
+    "convoy": {
+      "name": "车队",
+      "desc": "最大载重能力。"
+    },
+    "bone_spear": {
+      "name": "骨矛",
+      "desc": "基础近战武器。"
+    },
+    "iron_sword": {
+      "name": "铁剑",
+      "desc": "锋利的铁制剑刃。"
+    },
+    "steel_sword": {
+      "name": "钢剑",
+      "desc": "强力的钢制剑刃。"
+    },
+    "rifle": {
+      "name": "步枪",
+      "desc": "消耗子弹的远程武器。"
+    },
+    "torch": {
+      "name": "火把",
+      "desc": "在世界中照亮前方道路。"
     }
   },
   "combat": {

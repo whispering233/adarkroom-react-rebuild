@@ -182,6 +182,62 @@
       "available": "builder says it'd be useful to have a steady source of bullets",
       "build": "armoury's done, welcoming back the weapons of the past.",
       "max": "you already have an armoury"
+    },
+    "leather_armour": {
+      "name": "Leather Armour",
+      "desc": "Basic protection for world exploration."
+    },
+    "iron_armour": {
+      "name": "Iron Armour",
+      "desc": "Improved protection for deeper exploration."
+    },
+    "steel_armour": {
+      "name": "Steel Armour",
+      "desc": "Maximum protection for the farthest reaches."
+    },
+    "waterskin": {
+      "name": "Waterskin",
+      "desc": "Carry more water on expeditions."
+    },
+    "cask": {
+      "name": "Cask",
+      "desc": "A larger water container."
+    },
+    "water_tank": {
+      "name": "Water Tank",
+      "desc": "Maximum water capacity."
+    },
+    "rucksack": {
+      "name": "Rucksack",
+      "desc": "Carry more supplies."
+    },
+    "wagon": {
+      "name": "Wagon",
+      "desc": "A sturdy cart for expeditions."
+    },
+    "convoy": {
+      "name": "Convoy",
+      "desc": "Maximum carrying capacity."
+    },
+    "bone_spear": {
+      "name": "Bone Spear",
+      "desc": "A basic melee weapon."
+    },
+    "iron_sword": {
+      "name": "Iron Sword",
+      "desc": "A sharp iron blade."
+    },
+    "steel_sword": {
+      "name": "Steel Sword",
+      "desc": "A powerful steel blade."
+    },
+    "rifle": {
+      "name": "Rifle",
+      "desc": "A ranged weapon using bullets."
+    },
+    "torch": {
+      "name": "Torch",
+      "desc": "Illuminates the path ahead in the world."
     }
   },
   "combat": {
