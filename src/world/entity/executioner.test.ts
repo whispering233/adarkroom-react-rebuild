@@ -55,7 +55,9 @@ describe('executioner entity', () => {
     expect(result.cells[0]!.vy).toBe(3)
   })
 
-  it('has no onEnter (setpiece not yet implemented)', () => {
-    expect(executionerEntity.onEnter).toBeUndefined()
+  it('has onEnter that returns eventId executioner', () => {
+    expect(executionerEntity.onEnter).toBeDefined()
+    const result = executionerEntity.onEnter!({} as any)
+    expect(result).toEqual({ eventId: 'executioner' })
   })
 })

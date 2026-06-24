@@ -524,6 +524,16 @@
       "outpost": "Outpost",
       "outpost.text": "A lone outpost stands in the wasteland. There's clean water inside.",
       "outpost.rest": "Water replenished."
+    },
+    "executioner": {
+      "title": "Ravaged Battleship",
+      "start.0": "A massive battleship wreck lies ahead, its hull torn open.",
+      "start.1": "The air smells of ozone and scorched metal.",
+      "enter": "Enter",
+      "antechamber.0": "The dim corridor is stained with dried blood. Heavy footsteps echo from deep within.",
+      "fight": "Face the threat",
+      "retreat": "Retreat",
+      "combat": "A towering figure emerges from the shadows—the legendary Executioner."
     }
   },
   "path": {
