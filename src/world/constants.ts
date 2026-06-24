@@ -59,7 +59,7 @@ export const TERRAINS: TerrainDef[] = [
   {
     type: 'barrens',
     weight: 0.5,
-    char: '░',
+    char: '.',
     cssClass: 'barrens',
     passable: true,
     narrateOnEnter: {
