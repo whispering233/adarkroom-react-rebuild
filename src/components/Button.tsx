@@ -70,7 +70,7 @@ export function Button({
   const alignClass = label != null ? 'text-left' : 'text-center'
 
   return (
-    <div className={`${styles.wrapper} relative inline-block`}>
+    <div className={`${styles.wrapper} relative`}>
       <button
         type="button"
         id={`btn-${id}`}

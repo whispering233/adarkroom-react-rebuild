@@ -120,6 +120,14 @@
   white-space: nowrap;
 }
 
+/* ── 按钮外部包装容器 ───────────────────────────────────── */
+
+.wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
 /* Tailwind 无法直接表达的：group hover 触发 tooltip */
 .wrapper:hover .tooltip {
   opacity: 1;
