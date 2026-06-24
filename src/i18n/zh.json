@@ -263,7 +263,11 @@
       "shoot": "射击",
       "blast": "轰击",
       "lob": "投弹",
-      "tangle": "缠绕"
+      "tangle": "缠绕",
+      "thrust": "突刺",
+      "disintegrate": "分解",
+      "stun": "眩晕",
+      "slice": "切割"
     }
   },
   "narrative": {

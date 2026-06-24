@@ -263,7 +263,11 @@
       "shoot": "shoot",
       "blast": "blast",
       "lob": "lob",
-      "tangle": "tangle"
+      "tangle": "tangle",
+      "thrust": "thrust",
+      "disintegrate": "disintegrate",
+      "stun": "stun",
+      "slice": "slice"
     }
   },
   "narrative": {

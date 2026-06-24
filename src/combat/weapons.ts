@@ -87,4 +87,33 @@ export const WEAPONS: Record<string, WeaponDef> = {
     damage: 0,
     cooldown: 15,
   },
+  bayonet: {
+    id: 'bayonet',
+    verb: 'combat.verb.thrust',
+    type: 'melee',
+    damage: 8,
+    cooldown: 2,
+  },
+  'plasma rifle': {
+    id: 'plasma rifle',
+    verb: 'combat.verb.disintegrate',
+    type: 'ranged',
+    damage: 12,
+    cooldown: 1,
+    cost: { 'energy cell': 1 },
+  },
+  'energy blade': {
+    id: 'energy blade',
+    verb: 'combat.verb.slice',
+    type: 'melee',
+    damage: 10,
+    cooldown: 2,
+  },
+  disruptor: {
+    id: 'disruptor',
+    verb: 'combat.verb.stun',
+    type: 'ranged',
+    damage: 0,
+    cooldown: 15,
+  },
 }
