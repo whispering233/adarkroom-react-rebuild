@@ -11,8 +11,16 @@
 - Fixed
 - Removed
 
+### Added
+- 全图渲染模式：Toolbar 一键切换世界地图的视口模式（玩家居中 21×21）与全图模式（完整 61×61），Canvas 持久化存档
+
 ### Changed
 - 合并 14 个重复结构的 WorldEntity 工厂实体文件为单一 `landmarks.ts`（减少 28 个文件）
+- 重构世界渲染管道：抽取 `renderGrid(input, mode)` 统一循环函数，`renderViewport` 和 `renderFullMap` 简化为 wrapper 调用，消除 ~90 行重复代码
+- WorldCanvasScene 新增 `setGridSize()` 方法，支持运行时零重建切换网格尺寸
+
+### Fixed
+- village 实体裁剪：移除 3×3 实体硬编码的 `VIEWPORT_TOTAL=21` 边界检查，避免全图模式下错误裁剪
 
 
 ## [v0.3.4] - 2026-06-24

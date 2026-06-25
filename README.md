@@ -141,7 +141,7 @@ pnpm test
 - 📊 **趋势面板**：资源分类 + 纯箭头（↑/↓）趋势 + 固定占位防跳变
 - 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
 - 🚶 **小径（Path）**：出发准备场景，从仓库选择装备装入背包（受容量/重量/库存约束），护甲/水量展示
-- 🗺️ **世界（World）**：通过小径出发进入，Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport 纯函数 + StyleResolver + drawComposed 批量绘制，31×31 视口，EntityCell 抽象接口 + createUniformEntity 工厂 + deriveEntity 派生）。右栏切换为 WorldHUD（状态/装备/治疗），顶部 WorldInfo 栏显示地图名称和天气。四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，地标事件触发。导航栏隐藏 World 标签，只能通过小径→出发进入
+- 🗺️ **世界（World）**：通过小径出发进入，Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport / renderFullMap 纯函数 + renderGrid 统一循环 + StyleResolver + drawComposed 批量绘制，21×21 视口 / 61×61 全图双模式，EntityCell 抽象接口 + createUniformEntity 工厂 + deriveEntity 派生）。右栏切换为 WorldHUD（状态/装备/治疗），顶部 WorldInfo 栏显示地图名称和天气。四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，地标事件触发。导航栏隐藏 World 标签，只能通过小径→出发进入
 - 🎲 **随机事件**：Room（商人/乞丐/流浪者...）+ Outside（陷阱被毁/火灾/瘟疫/袭击...）+ World（野兽/枯瘦男/异鸟遭遇战），纯数据配置，isAvailable 条件 + DAG 场景图
 - ⚔️ **战斗系统**：CombatOverlay 自包含（HP 条/武器网格/敌攻定时器/治疗/掉落），事件场景声明 `combat: true` 即可触发
 - 🎨 **主题切换**：浅色/暗色，localStorage 持久化
@@ -164,6 +164,7 @@ pnpm test
 - 🔊 **音频系统**：Web Audio API + Toolbar 静音开关
 - 🎨 **UI 优化**：建造/贸易两栏布局 + 按钮等宽修复
 - 🛡️ **ErrorBoundary**：顶层错误捕获，防白屏
+- 🔲 **全图 / 视口切换**：Toolbar 按钮一键切换玩家居中 21×21 视口与完整 61×61 全图，地图容器有可见边框，Canvas 自适应容器尺寸
 
 ## 可参考
 rot.js、libtcod、Brogue、Cogmind

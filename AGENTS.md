@@ -29,7 +29,7 @@
 - **DESIGN.md**: 项目根目录 DESIGN.md 文件记录了完整的 UI 设计规范，所有 UI 开发前应先阅读
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
-- **世界地图渲染**：WorldCanvasScene 作为独立模块（零 React 依赖，rAF 循环）。renderViewport 为纯函数（注入 StyleResolver，零 DOM 访问），返回 { entityCommands, terrainCells, boundaryCells, playerCell, occupiedSet }。drawComposed 按 (font, fillStyle) 分组批量绘制。Entity 通过 getDrawCommand() 统一返回多格图案数据。
+- **世界地图渲染**：WorldCanvasScene 作为独立模块（零 React 依赖，rAF 循环，支持 `setGridSize()` 运行时零重建切换网格尺寸）。renderGrid(input, mode) 为共享循环引擎——renderViewport 与 renderFullMap 均为其 thin wrapper，通过 `GridInput`（8 项地图数据）和 `GridMode`（originX / originY / hasBoundaries）参数化差异。全图模式渲染 61×61 地图（origin=0,0，无边界墙），视口模式渲染玩家居中 21×21（origin=player-10,player-10，含边界墙）。renderViewport/renderFullMap 均为纯函数（注入 StyleResolver，零 DOM 访问），返回 { entityCommands, terrainCells, boundaryCells, playerCell, occupiedSet }。drawComposed 按 (font, fillStyle) 分组批量绘制。Entity 通过 getDrawCommand() 统一返回多格图案数据，接口零修改——viewportOrigin 的值变化即可适配双模式。
 - **世界实体系统**：14 个 factory-based 实体已合并为 `landmarks.ts`，village.ts 保持独立 3×3 自定义实现。WorldEntity 实现 getDrawCommand() 纯函数 + 可选 onEnter() 触发。Entity 仅表达视觉意图（prominent / bold），不碰 CSS 变量——映射由 StyleResolver 全局处理。地图数据为 terrainMap（TerrainType[][]）+ entityLayer（PlacedEntity[]）分离存储。entityCellMap（"x,y" 键）提供 O(1) 空间查询。
 - **右栏条件切换**：当 `currentRoom === 'world'` 时，右栏渲染 WorldHUD（状态/装备/治疗）代替 StoresPanel
 
