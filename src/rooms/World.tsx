@@ -28,7 +28,7 @@ import { WORLD, TERRAINS } from '../world/constants'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
 import { lightMap, drawRoadToVillage } from '../world/generator'
 import styles from './World.module.css'
-import { renderViewport, drawComposed } from '../world/renderViewport'
+import { renderViewport, renderFullMap, drawComposed } from '../world/renderViewport'
 import { createStyleResolver } from '../world/styleResolver'
 import { createWorldCanvasScene } from '../world/WorldCanvasScene'
 import { getEntity, getEntityCatalog } from '../world/entity/catalog'
@@ -304,16 +304,28 @@ export function World() {
         }
         const styleResolver = createStyleResolver(cssVars)
 
-        const result = renderViewport(
-          pw.worldMap.terrainMap,
-          pw.worldMap.entityLayer,
-          getEntityCatalog(),
-          styleResolver,
-          wr.curPos,
-          wr.mask,
-          wr.explored,
-          wr.traveled,
-        )
+        const viewportMode = s.config.viewportMode
+        const result = viewportMode === 'fullmap'
+          ? renderFullMap(
+              pw.worldMap.terrainMap,
+              pw.worldMap.entityLayer,
+              getEntityCatalog(),
+              styleResolver,
+              wr.curPos,
+              wr.mask,
+              wr.explored,
+              wr.traveled,
+            )
+          : renderViewport(
+              pw.worldMap.terrainMap,
+              pw.worldMap.entityLayer,
+              getEntityCatalog(),
+              styleResolver,
+              wr.curPos,
+              wr.mask,
+              wr.explored,
+              wr.traveled,
+            )
         return (ctx: CanvasRenderingContext2D, cellSize: number) => {
           drawComposed(ctx, result, cellSize)
         }
@@ -327,6 +339,16 @@ export function World() {
     if (!canvasRef.current || !wr || !sceneRef.current) return
     return sceneRef.current.mount(canvasRef.current)
   }, [wr])
+
+  // viewportMode 变化时更新 gridSize
+  useEffect(() => {
+    if (!sceneRef.current || !wr || !pw) return
+    const mapSize = pw.worldMap.terrainMap.length
+    const gs = state.config.viewportMode === 'fullmap'
+      ? mapSize
+      : WORLD.VIEWPORT_RADIUS * 2 + 1
+    sceneRef.current.setGridSize(gs)
+  }, [state.config.viewportMode, wr, pw])
 
   return (
     <div className={styles.worldPanel}>
