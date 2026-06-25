@@ -11,6 +11,9 @@
 - Fixed
 - Removed
 
+### Changed
+- 合并 14 个重复结构的 WorldEntity 工厂实体文件为单一 `landmarks.ts`（减少 28 个文件）
+
 
 ## [v0.3.4] - 2026-06-24
 

@@ -11,22 +11,25 @@
  */
 
 import type { WorldEntity, EntityCatalog } from './types'
-// 15 个已实现的正式实体
+// village stays separate (custom rendering)
 import { villageEntity } from './village'
-import { ironMineEntity } from './ironMine'
-import { coalMineEntity } from './coalMine'
-import { sulphurMineEntity } from './sulphurMine'
-import { houseEntity } from './house'
-import { caveEntity } from './cave'
-import { townEntity } from './town'
-import { cityEntity } from './city'
-import { outpostEntity } from './outpost'
-import { shipEntity } from './ship'
-import { boreholeEntity } from './borehole'
-import { battlefieldEntity } from './battlefield'
-import { swampEntity } from './swamp'
-import { cacheEntity } from './cache'
-import { executionerEntity } from './executioner'
+// all 14 factory-based landmarks
+import {
+  ironMineEntity,
+  coalMineEntity,
+  sulphurMineEntity,
+  houseEntity,
+  caveEntity,
+  townEntity,
+  cityEntity,
+  outpostEntity,
+  shipEntity,
+  boreholeEntity,
+  battlefieldEntity,
+  swampEntity,
+  cacheEntity,
+  executionerEntity,
+} from './landmarks'
 
 // ─── 内部状态 ─────────────────────────────────────────
 

@@ -108,8 +108,7 @@ pnpm test
 │   │   ├── WorldCanvasScene.ts # 独立 Canvas 渲染场景（rAF + SceneState）
 │   │   ├── renderViewport.ts  # 纯函数视口渲染
 │   │   ├── renderViewport.test.ts
-│   │   ├── entity/            # 15 个实体定义（WorldEntity 接口实现 + 单元测试）
-│   │   │   └── index.ts
+│   │   ├── entity/            # entity definitions: landmarks.ts (14 factory landmarks), village.ts (custom 3×3 box), factory.ts, types.ts, catalog.ts, testHelpers.ts; parametrized tests
 │   │   ├── styleResolver.ts  # 全局样式映射（EntityCellOutput → fillStyle + font）
 │   │   ├── WorldGen.ts        # 世界地图生成器
 │   │   ├── WorldGen.test.ts

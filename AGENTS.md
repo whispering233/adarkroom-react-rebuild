@@ -30,7 +30,7 @@
 - **Tailwind v4 插件**：使用 `@tailwindcss/vite` Vite 插件，无需 PostCSS 配置
 - **原始项目参考**：`origin-adarkroom/`（只读，git-ignored）；架构分析在 `doc/原始ADarkRoom架构分析.md`
 - **世界地图渲染**：WorldCanvasScene 作为独立模块（零 React 依赖，rAF 循环）。renderViewport 为纯函数（注入 StyleResolver，零 DOM 访问），返回 { entityCommands, terrainCells, boundaryCells, playerCell, occupiedSet }。drawComposed 按 (font, fillStyle) 分组批量绘制。Entity 通过 getDrawCommand() 统一返回多格图案数据。
-- **世界实体系统**：15 个 WorldEntity 实现 getDrawCommand() 纯函数 + 可选 onEnter() 触发。Entity 仅表达视觉意图（prominent / bold），不碰 CSS 变量——映射由 StyleResolver 全局处理。地图数据为 terrainMap（TerrainType[][]）+ entityLayer（PlacedEntity[]）分离存储。entityCellMap（"x,y" 键）提供 O(1) 空间查询。
+- **世界实体系统**：14 个 factory-based 实体已合并为 `landmarks.ts`，village.ts 保持独立 3×3 自定义实现。WorldEntity 实现 getDrawCommand() 纯函数 + 可选 onEnter() 触发。Entity 仅表达视觉意图（prominent / bold），不碰 CSS 变量——映射由 StyleResolver 全局处理。地图数据为 terrainMap（TerrainType[][]）+ entityLayer（PlacedEntity[]）分离存储。entityCellMap（"x,y" 键）提供 O(1) 空间查询。
 - **右栏条件切换**：当 `currentRoom === 'world'` 时，右栏渲染 WorldHUD（状态/装备/治疗）代替 StoresPanel
 
 ## Key module map
@@ -54,7 +54,7 @@
 | `src/components/WorldInfo.tsx` | World 信息栏（地图名称、天气，World 场景顶部） |
 | `src/i18n/` | i18next 国际化（`zh.json`/`en.json`，默认中文） |
 | `src/world/` | 世界地图生成 + 实体系统 + Canvas 渲染管道（generator / entity/ / renderViewport / StyleResolver） |
-| `src/world/entity/` | 15 个实体定义 + factory.ts（createUniformEntity 工厂 / deriveEntity 派生）+ EntityCell 抽象类型 + 单元测试 |
+| `src/world/entity/` | entity definitions: landmarks.ts (14 factory-based), village.ts (custom 3×3 box), factory.ts + types.ts + catalog.ts + testHelpers.ts; parametrized test coverage |
 | `src/world/styleResolver.ts` | 全局样式映射（EntityCellOutput → fillStyle + font） |
 
 ## Critical gotchas

@@ -10,8 +10,7 @@ import type {
 import type { StyleResolver } from './styleResolver'
 import type { EntityCatalog } from './entity/types'
 import { villageEntity } from './entity/village'
-import { ironMineEntity } from './entity/ironMine'
-import { cityEntity } from './entity/city'
+import { ironMineEntity, cityEntity } from './entity/landmarks'
 
 // ─── 常量 ──────────────────────────────────────────────
 
