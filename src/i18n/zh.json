@@ -98,7 +98,9 @@
     "speed": "游戏速度 {{speed}}×",
     "width": "界面宽度",
     "mute": "静音",
-    "unmute": "取消静音"
+    "unmute": "取消静音",
+    "fullmap_on": "全图模式",
+    "fullmap_off": "视口模式"
   },
   "outside": {
     "title": "寂静的森林",

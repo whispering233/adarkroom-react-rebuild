@@ -98,7 +98,9 @@
     "speed": "Game speed {{speed}}×",
     "width": "Layout width",
     "mute": "Mute",
-    "unmute": "Unmute"
+    "unmute": "Unmute",
+    "fullmap_on": "Full Map",
+    "fullmap_off": "Viewport"
   },
   "outside": {
     "title": "A Silent Forest",

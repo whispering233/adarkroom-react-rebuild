@@ -10,7 +10,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSpeed, type SpeedMultiplier } from '../system/gameSpeed'
 import { toggleMute, isMuted, initAudio } from '../system/audioEngine'
-import { useGameState, useGameDispatch, loadSave, pushNarrative } from '../state'
+import { useGameState, useGameDispatch, loadSave, pushNarrative, setViewportMode } from '../state'
 import { INITIAL_STATE } from '../state/types'
 import { saveState, clearSave } from '../system/saveManager'
 import { SaveModal } from './SaveModal'
@@ -75,6 +75,7 @@ export function Toolbar() {
   const [audioInited, setAudioInited] = useState(false)
   const [speed, setSpeed] = useSpeed()
   const state = useGameState()
+  const viewportMode = state.config.viewportMode
   const dispatch = useGameDispatch()
   const [modalMode, setModalMode] = useState<'export' | 'import' | null>(null)
 
@@ -199,6 +200,19 @@ export function Toolbar() {
         className={BTN_STYLE}
       >
         {muted ? '🔇' : '🔊'}
+      </button>
+
+      {/* 全图/视口切换 */}
+      <button
+        type="button"
+        onClick={() => {
+          const next = viewportMode === 'fullmap' ? 'normal' : 'fullmap'
+          dispatch(setViewportMode(next))
+        }}
+        title={viewportMode === 'fullmap' ? t('toolbar.fullmap_off') : t('toolbar.fullmap_on')}
+        className={viewportMode === 'fullmap' ? BTN_ACTIVE : BTN_STYLE}
+      >
+        {viewportMode === 'fullmap' ? '🔍' : '🗺️'}
       </button>
 
       {/* 保存 */}
