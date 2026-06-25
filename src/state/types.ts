@@ -145,6 +145,7 @@ export interface ConfigData {
   soundOn: boolean
   lightsOff: boolean
   hyperMode: boolean
+  viewportMode: 'normal' | 'fullmap'
 }
 
 // ─── 叙事日志 ────────────────────────────────────────────
@@ -273,6 +274,7 @@ export const INITIAL_STATE: GameState = {
     soundOn: true,
     lightsOff: false,
     hyperMode: false,
+    viewportMode: 'normal',
   },
   wait: {},
   cooldown: {},

@@ -45,6 +45,8 @@ export {
   returnFromWorld,
   enterMap,
   leaveMap,
+  // ── 配置 ──
+  setViewportMode,
   MAX_STORE,
 } from './reducer'
 export type { GameAction } from './reducer'

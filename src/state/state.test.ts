@@ -624,4 +624,25 @@ describe('state 模块 (useImmerReducer 版)', () => {
       expect(s1.combat).toBeNull()
     })
   })
+
+  // ── 视图模式 ──────────────────────────────────────────
+
+  describe('SET_VIEWPORT_MODE', () => {
+    it('sets viewportMode to fullmap', async () => {
+      const { setViewportMode } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      const s1 = await runReducer(INITIAL_STATE, setViewportMode('fullmap'))
+      expect(s1.config.viewportMode).toBe('fullmap')
+    })
+
+    it('sets viewportMode to normal', async () => {
+      const { setViewportMode } = await import('./reducer')
+      const { INITIAL_STATE } = await import('./types')
+      // Start from fullmap to verify the transition
+      const s0 = await runReducer(INITIAL_STATE, setViewportMode('fullmap'))
+      expect(s0.config.viewportMode).toBe('fullmap')
+      const s1 = await runReducer(s0, setViewportMode('normal'))
+      expect(s1.config.viewportMode).toBe('normal')
+    })
+  })
 })

@@ -131,6 +131,8 @@ export type GameAction =
   | { type: 'RETURN_FROM_WORLD'; died: boolean }
   | { type: 'ENTER_MAP'; mapId: string; pos?: [number, number] }
   | { type: 'LEAVE_MAP' }
+  // ── 配置 ──
+  | { type: 'SET_VIEWPORT_MODE'; mode: 'normal' | 'fullmap' }
 
 // ─── Reducer（draft recipe，供 useImmerReducer 使用）───────
 
@@ -599,6 +601,12 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       break
     }
 
+    // ── 配置 ──
+    case 'SET_VIEWPORT_MODE': {
+      draft.config.viewportMode = action.mode
+      break
+    }
+
     default:
       break
   }
@@ -773,6 +781,12 @@ export const embarkWorld = (): GameAction => ({ type: 'EMBARK_WORLD' })
 export const returnFromWorld = (died: boolean): GameAction => ({ type: 'RETURN_FROM_WORLD', died })
 export const enterMap = (mapId: string, pos?: [number, number]): GameAction => ({ type: 'ENTER_MAP', mapId, pos })
 export const leaveMap = (): GameAction => ({ type: 'LEAVE_MAP' })
+
+// ── 配置 Action Creator ────────────────────────────────
+export const setViewportMode = (mode: 'normal' | 'fullmap'): GameAction => ({
+  type: 'SET_VIEWPORT_MODE',
+  mode,
+})
 
 // ─── World 辅助函数 ────────────────────────────────────
 
