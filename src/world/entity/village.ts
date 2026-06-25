@@ -11,11 +11,7 @@
 
 import type { WorldEntity, EntityDrawCommand, EntityCell } from './types'
 import type { EntityTriggerContext, EntityTriggerResult } from '../types'
-import { WORLD } from '../constants'
-
 // ─── 常量 ──────────────────────────────────────────────
-
-const VIEWPORT_TOTAL = WORLD.VIEWPORT_RADIUS * 2 + 1
 const LANDMARK_CHAR = 'A'
 
 /** 3×3 盒子模式的字符映射：chars[dy][dx] */
@@ -49,9 +45,6 @@ export const villageEntity: WorldEntity = {
       for (let dx = 0; dx < 3; dx++) {
         const vx = vx0 + dx
         const vy = vy0 + dy
-
-        // 视口边界检查
-        if (vx < 0 || vx >= VIEWPORT_TOTAL || vy < 0 || vy >= VIEWPORT_TOTAL) continue
 
         // 可见性检查
         const wx = anchorX + dx
