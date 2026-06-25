@@ -31,8 +31,8 @@
   --game-btn-hover-bg: rgba(0, 0, 0, 0.1);
 
   /* 边框（仅用于按钮 tooltip 等，不用作布局分隔） */
-  --game-border: rgba(0, 0, 0, 0.1);
-  --game-border-accent: rgba(0, 0, 0, 0.25);
+  --game-border: rgba(0, 0, 0, 0.5);
+  --game-border-accent: rgba(0, 0, 0, 1);
 
   /* 字体 */
   --game-font: "Courier New", Courier, monospace;
