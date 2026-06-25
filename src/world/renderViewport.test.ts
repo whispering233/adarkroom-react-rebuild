@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { renderViewport, drawComposed, type RenderCell, type ResolvedEntityDrawCommand } from './renderViewport'
+import { renderViewport, renderFullMap, drawComposed, type RenderCell, type ResolvedEntityDrawCommand } from './renderViewport'
 import { WORLD } from './constants'
 import type {
   TerrainType,
@@ -390,6 +390,125 @@ describe('renderViewport', () => {
     const originalTerrainMap = terrainMap.map(row => [...row])
 
     renderViewport(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, allFalse,
+    )
+
+    expect(terrainMap).toEqual(originalTerrainMap)
+  })
+})
+
+// ─── renderFullMap ──────────────────────────────────────
+
+describe('renderFullMap', () => {
+  it('returns correct shape with entityCommands/terrainCells/boundaryCells/playerCell/occupiedSet', () => {
+    const size = 25
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [12, 12]
+    const allTrue = createAllTrueArray(size)
+
+    const result = renderFullMap(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result).toHaveProperty('entityCommands')
+    expect(result).toHaveProperty('terrainCells')
+    expect(result).toHaveProperty('boundaryCells')
+    expect(result).toHaveProperty('playerCell')
+    expect(result).toHaveProperty('occupiedSet')
+    // No boundary cells in full map mode
+    expect(result.boundaryCells).toEqual([])
+    // Player at world coordinates (origin=0,0)
+    expect(result.playerCell).not.toBeNull()
+    expect(result.playerCell!.vx).toBe(12)
+    expect(result.playerCell!.vy).toBe(12)
+    // All map cells minus player = terrain cells
+    expect(result.terrainCells.length).toBe(size * size - 1)
+  })
+
+  it('boundaryCells always empty regardless of player position', () => {
+    const size = 25
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [0, 0]
+    const allTrue = createAllTrueArray(size)
+
+    const result = renderFullMap(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.boundaryCells.length).toBe(0)
+  })
+
+  it('player @ at world coordinates — vx=px, vy=py since origin is 0,0', () => {
+    const size = 30
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [15, 20]
+    const allTrue = createAllTrueArray(size)
+
+    const result = renderFullMap(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.playerCell).not.toBeNull()
+    expect(result.playerCell!.vx).toBe(15)
+    expect(result.playerCell!.vy).toBe(20)
+  })
+
+  it('visibility mask respected — cells outside mask not rendered', () => {
+    const size = 25
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [12, 12]
+    const allFalse = createAllFalseArray(size)
+
+    const result = renderFullMap(
+      terrainMap, [], {}, mockStyleResolver, playerPos,
+      allFalse, allFalse, createAllFalseArray(size),
+    )
+
+    // No terrain cells — mask=false, explored=false
+    expect(result.terrainCells.length).toBe(0)
+    // Player cell is always visible
+    expect(result.playerCell).not.toBeNull()
+  })
+
+  it('entity rendering works — village entity 3×3 renders correctly in full map', () => {
+    const size = 30
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [15, 15]
+    const allTrue = createAllTrueArray(size)
+
+    const entityLayer: PlacedEntity[] = [
+      { entityId: 'village', anchorX: 5, anchorY: 5 },
+    ]
+    const catalog = makeCatalog(villageEntity)
+
+    const result = renderFullMap(
+      terrainMap, entityLayer, catalog, mockStyleResolver, playerPos,
+      allTrue, allTrue, createAllFalseArray(size),
+    )
+
+    expect(result.entityCommands.length).toBe(1)
+    // Village is 3×3 = 9 cells with allTrue mask/explored
+    expect(result.entityCommands[0].cells.length).toBe(9)
+    // Occupied cells: (5,5) through (7,7)
+    expect(result.occupiedSet.has('5,5')).toBe(true)
+    expect(result.occupiedSet.has('6,6')).toBe(true)
+    expect(result.occupiedSet.has('7,7')).toBe(true)
+  })
+
+  it('does not mutate input arrays', () => {
+    const size = 10
+    const terrainMap = createTerrainMap(size, 'field')
+    const playerPos: [number, number] = [5, 5]
+    const allTrue = createAllTrueArray(size)
+    const allFalse = createAllFalseArray(size)
+
+    const originalTerrainMap = terrainMap.map(row => [...row])
+
+    renderFullMap(
       terrainMap, [], {}, mockStyleResolver, playerPos,
       allTrue, allTrue, allFalse,
     )

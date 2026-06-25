@@ -22,6 +22,8 @@ export interface WorldCanvasSceneOptions {
   draw: () => WorldCanvasSceneDrawFn
   /** 容器元素（用于 ResizeObserver，默认取 canvas.parentElement） */
   container?: HTMLElement
+  /** 初始网格尺寸（默认 VIEWPORT_TOTAL = 21） */
+  gridSize?: number
 }
 
 interface SceneState {
@@ -31,6 +33,7 @@ interface SceneState {
   rafId: number
   resizeObserver: ResizeObserver | null
   mutationObserver: MutationObserver | null
+  gridSize: number
 }
 
 // ─── 常量 ──────────────────────────────────────────────
@@ -39,18 +42,18 @@ const VIEWPORT_TOTAL = WORLD.VIEWPORT_RADIUS * 2 + 1
 
 // ─── 内部纯函数 ────────────────────────────────────────
 
-function calcCellSize(w: number, h: number): number {
-  return Math.max(6, Math.floor(Math.min(w, h) / VIEWPORT_TOTAL))
+function calcCellSize(w: number, h: number, gridSize: number): number {
+  return Math.max(4, Math.floor(Math.min(w, h) / gridSize))
 }
 
 function applySize(st: SceneState, container: HTMLElement): boolean {
   const { width: w, height: h } = container.getBoundingClientRect()
-  const next = calcCellSize(w, h)
+  const next = calcCellSize(w, h, st.gridSize)
   if (next === st.cellSize && st.canvasReady) return false
 
   st.cellSize = next
   const dpr = window.devicePixelRatio || 1
-  const logicalSize = next * VIEWPORT_TOTAL
+  const logicalSize = next * st.gridSize
 
   st.canvas.width = Math.round(logicalSize * dpr)
   st.canvas.height = Math.round(logicalSize * dpr)
@@ -126,6 +129,7 @@ export function createWorldCanvasScene(options: WorldCanvasSceneOptions) {
       rafId: 0,
       resizeObserver: null,
       mutationObserver: null,
+      gridSize: options.gridSize ?? VIEWPORT_TOTAL,
     }
     state = st
 
@@ -150,5 +154,14 @@ export function createWorldCanvasScene(options: WorldCanvasSceneOptions) {
     drawFrame(state, options)
   }
 
-  return { mount, requestDraw }
+  function setGridSize(gs: number): void {
+    if (!state || state.gridSize === gs) return
+    state.gridSize = gs
+    state.canvasReady = false
+    const cont = options.container ?? state.canvas.parentElement
+    if (cont) applySize(state, cont as HTMLElement)
+    drawFrame(state, options)
+  }
+
+  return { mount, requestDraw, setGridSize }
 }

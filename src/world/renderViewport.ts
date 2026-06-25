@@ -3,9 +3,10 @@
  *
  * renderViewport() 以玩家位置为中心截取 VIEWPORT_TOTAL 范围的地图可见区域，
  * 将实体层（entityLayer）、地形层（terrainMap）、边界墙、玩家位置分别归类。
+ * renderFullMap() 渲染整个地图，视口原点固定为 (0,0)，无边界墙。
  * 纯函数 —— 零 DOM 访问，所有样式通过 StyleResolver 注入。
  *
- * drawComposed() 将 renderViewport 的分组结果批量绘制到 Canvas，
+ * drawComposed() 将 renderViewport/renderFullMap 的分组结果批量绘制到 Canvas，
  * 按 (font, fillStyle) 分组减少 ctx state 切换。
  */
 
@@ -47,36 +48,43 @@ export interface ResolvedEntityDrawCommand {
   cells: RenderCell[]
 }
 
-// ─── renderViewport — 纯函数 ──────────────────────────
+/** 地图数据 — 渲染什么 */
+interface GridInput {
+  terrainMap: TerrainType[][]
+  entityLayer: PlacedEntity[]
+  entities: EntityCatalog
+  styleResolver: StyleResolver
+  playerPos: [number, number]
+  mask: boolean[][]
+  explored: boolean[][]
+  traveled: boolean[][]
+}
 
-export function renderViewport(
-  terrainMap: TerrainType[][],
+/** 渲染模式 — 怎么渲染 */
+interface GridMode {
+  originX: number     // viewport: px - VIEWPORT_RADIUS  |  fullmap: 0
+  originY: number     // viewport: py - VIEWPORT_RADIUS  |  fullmap: 0
+  hasBoundaries: boolean  // true | false
+}
+
+// ─── resolveEntityLayer — 实体层解析共享逻辑 ────────
+
+/**
+ * 遍历 entityLayer 解析实体绘制命令，返回已解析的绘制命令列表与 occupiedSet。
+ * 被 renderViewport() 和 renderFullMap() 共用。
+ */
+function resolveEntityLayer(
   entityLayer: PlacedEntity[],
   entities: EntityCatalog,
-  styleResolver: StyleResolver,
-  playerPos: [number, number],
+  viewportOriginX: number,
+  viewportOriginY: number,
   mask: boolean[][],
   explored: boolean[][],
-  traveled: boolean[][],
-): {
-  entityCommands: ResolvedEntityDrawCommand[]
-  terrainCells: RenderCell[]
-  boundaryCells: RenderCell[]
-  playerCell: RenderCell | null
-  occupiedSet: Set<string>
-} {
-  const [px, py] = playerPos
-  const mapSize = terrainMap.length
-  const viewportOriginX = px - VIEWPORT_RADIUS
-  const viewportOriginY = py - VIEWPORT_RADIUS
-
+  styleResolver: StyleResolver,
+): { entityCommands: ResolvedEntityDrawCommand[]; occupiedSet: Set<string> } {
   const occupiedSet = new Set<string>()
   const entityCommands: ResolvedEntityDrawCommand[] = []
-  const terrainCells: RenderCell[] = []
-  const boundaryCells: RenderCell[] = []
-  let playerCell: RenderCell | null = null
 
-  // ── 1. 实体层 ──────────────────────────────────────
   for (const placed of entityLayer) {
     const entity = entities[placed.entityId]
     if (!entity) continue
@@ -115,26 +123,48 @@ export function renderViewport(
     entityCommands.push({ bounds: cmd.bounds, cells: resolvedCells })
   }
 
-  // ── 2. 视口格（地形 / 边界 / 玩家）────────────────
-  for (let vy = 0; vy < VIEWPORT_TOTAL; vy++) {
-    for (let vx = 0; vx < VIEWPORT_TOTAL; vx++) {
-      const wx = viewportOriginX + vx
-      const wy = viewportOriginY + vy
+  return { entityCommands, occupiedSet }
+}
+
+// ─── renderGrid — 统一栅格渲染（renderViewport / renderFullMap 共享逻辑） ──
+
+function renderGrid(
+  input: GridInput,
+  mode: GridMode,
+): {
+  entityCommands: ResolvedEntityDrawCommand[]
+  terrainCells: RenderCell[]
+  boundaryCells: RenderCell[]
+  playerCell: RenderCell | null
+  occupiedSet: Set<string>
+} {
+  const { terrainMap, entityLayer, entities, styleResolver, playerPos, mask, explored, traveled } = input
+  const { originX, originY, hasBoundaries } = mode
+  const [px, py] = playerPos
+  const mapSize = terrainMap.length
+  const gridSize = hasBoundaries ? VIEWPORT_TOTAL : mapSize
+
+  const { entityCommands, occupiedSet } = resolveEntityLayer(
+    entityLayer, entities, originX, originY, mask, explored, styleResolver,
+  )
+
+  const terrainCells: RenderCell[] = []
+  const boundaryCells: RenderCell[] = []
+  let playerCell: RenderCell | null = null
+
+  for (let vy = 0; vy < gridSize; vy++) {
+    for (let vx = 0; vx < gridSize; vx++) {
+      const wx = originX + vx
+      const wy = originY + vy
       const cellKey = `${wx},${wy}`
 
-      // 跳过实体占用的格
       if (occupiedSet.has(cellKey)) continue
 
-      // 边界墙：超出地图范围
-      if (wx < 0 || wx >= mapSize || wy < 0 || wy >= mapSize) {
+      // 边界墙
+      if (hasBoundaries && (wx < 0 || wx >= mapSize || wy < 0 || wy >= mapSize)) {
         const cellOutput: EntityCellOutput = { char: BOUNDARY_CHAR, prominent: false, bold: false }
         const resolved = styleResolver.resolve(cellOutput, { isDimmed: true })
-        boundaryCells.push({
-          vx, vy,
-          char: BOUNDARY_CHAR,
-          font: resolved.font,
-          fillStyle: resolved.fillStyle,
-        })
+        boundaryCells.push({ vx, vy, char: BOUNDARY_CHAR, font: resolved.font, fillStyle: resolved.fillStyle })
         continue
       }
 
@@ -142,12 +172,7 @@ export function renderViewport(
       if (wx === px && wy === py) {
         const cellOutput: EntityCellOutput = { char: '@', prominent: true, bold: false }
         const resolved = styleResolver.resolve(cellOutput, { isDimmed: false })
-        playerCell = {
-          vx, vy,
-          char: '@',
-          font: resolved.font,
-          fillStyle: resolved.fillStyle,
-        }
+        playerCell = { vx, vy, char: '@', font: resolved.font, fillStyle: resolved.fillStyle }
         continue
       }
 
@@ -171,16 +196,59 @@ export function renderViewport(
 
       const cellOutput: EntityCellOutput = { char, prominent: false, bold: false }
       const resolved = styleResolver.resolve(cellOutput, { isDimmed })
-      terrainCells.push({
-        vx, vy,
-        char,
-        font: resolved.font,
-        fillStyle: resolved.fillStyle,
-      })
+      terrainCells.push({ vx, vy, char, font: resolved.font, fillStyle: resolved.fillStyle })
     }
   }
 
   return { entityCommands, terrainCells, boundaryCells, playerCell, occupiedSet }
+}
+
+// ─── renderFullMap — 全图渲染 ────────────────────────
+
+export function renderFullMap(
+  terrainMap: TerrainType[][],
+  entityLayer: PlacedEntity[],
+  entities: EntityCatalog,
+  styleResolver: StyleResolver,
+  playerPos: [number, number],
+  mask: boolean[][],
+  explored: boolean[][],
+  traveled: boolean[][],
+): {
+  entityCommands: ResolvedEntityDrawCommand[]
+  terrainCells: RenderCell[]
+  boundaryCells: RenderCell[]
+  playerCell: RenderCell | null
+  occupiedSet: Set<string>
+} {
+  return renderGrid(
+    { terrainMap, entityLayer, entities, styleResolver, playerPos, mask, explored, traveled },
+    { originX: 0, originY: 0, hasBoundaries: false },
+  )
+}
+
+// ─── renderViewport — 纯函数视口渲染 ─────────────────
+
+export function renderViewport(
+  terrainMap: TerrainType[][],
+  entityLayer: PlacedEntity[],
+  entities: EntityCatalog,
+  styleResolver: StyleResolver,
+  playerPos: [number, number],
+  mask: boolean[][],
+  explored: boolean[][],
+  traveled: boolean[][],
+): {
+  entityCommands: ResolvedEntityDrawCommand[]
+  terrainCells: RenderCell[]
+  boundaryCells: RenderCell[]
+  playerCell: RenderCell | null
+  occupiedSet: Set<string>
+} {
+  return renderGrid(
+    { terrainMap, entityLayer, entities, styleResolver, playerPos, mask, explored, traveled },
+    { originX: playerPos[0] - VIEWPORT_RADIUS, originY: playerPos[1] - VIEWPORT_RADIUS, hasBoundaries: true },
+  )
 }
 
 // ─── drawComposed — 批量渲染 ─────────────────────────
