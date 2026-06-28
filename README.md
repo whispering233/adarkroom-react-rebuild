@@ -88,14 +88,19 @@ pnpm test
 │   │       ├── unlock.ts       # evaluateUnlock 解锁评估器
 │   │       ├── buttonState.ts  # computeButtonState 统一可访问性
 │   │       └── __tests__/      # 11 项单元测试
-│   ├── events/               # 随机事件系统
-│   │   ├── types.ts           # EventDef/SceneDef/场景按钮 类型
-│   │   ├── scheduler.ts       # 调度器（GameLoop 驱动）
-│   │   ├── registry.ts        # 事件注册表
-│   │   ├── utils.ts           # 概率解析（权重/累积双格式）
+│   ├── events/               # 事件系统（EventRegistry 统一注册 34 事件）
+│   │   ├── EventRegistry.ts   # 统一注册入口
+│   │   ├── types.ts           # EventDef + EventId 联合类型
+│   │   ├── scheduler.ts       # 事件调度器
+│   │   ├── registry.ts        # 兼容重导出层
+│   │   ├── utils.ts           # 概率解析
 │   │   ├── room/              # 10 个 Room 事件
 │   │   ├── outside/           # 6 个 Outside 事件
-│   │   └── world/             # World 事件（3 遭遇战 + 2 setpiece）
+│   │   └── world/             # World 事件（3 遭遇战 + 1 刽子手 + 14 setpiece）
+│   ├── triggers/             # 触发系统（空间触发 + 效果分发 + 配置表）
+│   │   ├── TriggerManager.ts  # Enter/Stay/Exit 三阶段触发
+│   │   ├── EffectDispatcher.ts # 声明式效果分发
+│   │   └── triggerConfig.ts   # entityType→effect 映射
 │   ├── combat/               # 战斗系统
 │   │   ├── types.ts           # CombatState
 │   │   ├── weapons.ts         # 武器配置（8 把）
@@ -141,7 +146,7 @@ pnpm test
 - 📊 **趋势面板**：资源分类 + 纯箭头（↑/↓）趋势 + 固定占位防跳变
 - 🎛️ **右栏面板**：人口独立行 + 三块折叠区（建筑/库存/武器）
 - 🚶 **小径（Path）**：出发准备场景，从仓库选择装备装入背包（受容量/重量/库存约束），护甲/水量展示
-- 🗺️ **世界（World）**：通过小径出发进入，Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport / renderFullMap 纯函数 + renderGrid 统一循环 + StyleResolver + drawComposed 批量绘制，21×21 视口 / 61×61 全图双模式，EntityCell 抽象接口 + createUniformEntity 工厂 + deriveEntity 派生）。右栏切换为 WorldHUD（状态/装备/治疗），顶部 WorldInfo 栏显示地图名称和天气。四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，地标事件触发。导航栏隐藏 World 标签，只能通过小径→出发进入
+- 🗺️ **世界（World）**：通过小径出发进入，Canvas 渲染地图（WorldCanvasScene 独立模块 + renderViewport / renderFullMap 纯函数 + renderGrid 统一循环 + StyleResolver + drawComposed 批量绘制，21×21 视口 / 61×61 全图双模式，EntityCell 抽象接口 + createUniformEntity 工厂 + deriveEntity 派生）。右栏切换为 WorldHUD（状态/装备/治疗），顶部 WorldInfo 栏显示地图名称和天气。四向行走（WASD/方向键/点击），食物/水源消耗，随机遭遇战，TriggerManager 空间触发（15 地标）。导航栏隐藏 World 标签，只能通过小径→出发进入
 - 🎲 **随机事件**：Room（商人/乞丐/流浪者...）+ Outside（陷阱被毁/火灾/瘟疫/袭击...）+ World（野兽/枯瘦男/异鸟遭遇战），纯数据配置，isAvailable 条件 + DAG 场景图
 - ⚔️ **战斗系统**：CombatOverlay 自包含（HP 条/武器网格/敌攻定时器/治疗/掉落），事件场景声明 `combat: true` 即可触发
 - 🎨 **主题切换**：浅色/暗色，localStorage 持久化
@@ -152,7 +157,7 @@ pnpm test
 - ⚔️ **战斗增强**：12 把武器 + 命中率 0.8 + Stun 眩晕机制
 - ⚠️ **World Danger**：距离+护甲动态危险警告
 - 🛤️ **动态道路**：清除 outpost 后自动画路回村
-- 🏷️ **12 地标事件**：所有地标触发叙事覆盖层
+- 🏷️ **15 地标事件**：TriggerManager Enter/Stay/Exit 生命周期 + TRIGGER_CONFIG 声明式映射
 - 💀 **Executioner Boss**：多场景 + 战斗 + fleet beacon 掉落
 - 🍖 **生存系统**：Starvation/Dehydration 累积 + 死亡冷却 120s
 - 🧭 **指南针**：持有 compass 时显示飞船方向

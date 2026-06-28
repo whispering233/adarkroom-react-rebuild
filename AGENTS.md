@@ -48,8 +48,9 @@
 | `src/rooms/Space.tsx` | Space 场景（Canvas 太空飞行 mini-game） |
 | `src/rooms/Fabricator.tsx` | Fabricator 场景（alien alloy 制造高级装备） |
 | `src/rooms/craftables/trades.ts` | 交易品配置（13 种资源兑换） |
-| `src/events/` | 随机事件系统（调度器 + 注册表 + 场景数据） |
+| `src/events/` | 事件系统（EventRegistry 统一注册 34 事件 + 调度器 + EventId 类型安全） |
 | `src/combat/` | 战斗系统（事件驱动，CombatOverlay 自包含） |
+| `src/triggers/` | 触发系统（TriggerManager Enter/Stay/Exit + EffectDispatcher + TRIGGER_CONFIG 配置表） |
 | `src/components/WorldHUD.tsx` | World HUD 面板（状态/装备/治疗，World 场景右栏） |
 | `src/components/WorldInfo.tsx` | World 信息栏（地图名称、天气，World 场景顶部） |
 | `src/i18n/` | i18next 国际化（`zh.json`/`en.json`，默认中文） |

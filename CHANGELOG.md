@@ -6,21 +6,28 @@
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
 ## [Unreleased]
-- Added
-- Changed
-- Fixed
-- Removed
 
 ### Added
-- 全图渲染模式：Toolbar 一键切换世界地图的视口模式（玩家居中 21×21）与全图模式（完整 61×61），Canvas 持久化存档
+- 全图渲染模式：Toolbar 一键切换世界地图的视口模式与全图模式，Canvas 持久化存档
+- 事件系统重构：`EventRegistry.registerAll()` 统一注册全部 34 个事件，消除副作用导入链
+- `EventId` 联合类型（`as const`）：编译时校验事件 ID，替代裸 `string`
+- `TriggerManager` 空间触发管线：Enter/Stay/Exit 三阶段生命周期
+- `EffectDispatcher` 声明式效果分发器：替代 World.tsx 27 行内联 onEnter 分支
+- `TRIGGER_CONFIG` 配置表：声明式映射 entityType → effect，entity 剥离事件耦合
 
 ### Changed
-- 合并 14 个重复结构的 WorldEntity 工厂实体文件为单一 `landmarks.ts`（减少 28 个文件）
-- 重构世界渲染管道：抽取 `renderGrid(input, mode)` 统一循环函数，`renderViewport` 和 `renderFullMap` 简化为 wrapper 调用，消除 ~90 行重复代码
-- WorldCanvasScene 新增 `setGridSize()` 方法，支持运行时零重建切换网格尺寸
+- 合并 14 个重复结构的 WorldEntity 工厂实体文件为单一 `landmarks.ts`
+- 重构世界渲染管道：抽取 `renderGrid` 统一循环函数，消除 ~90 行重复代码
+- WorldCanvasScene 新增 `setGridSize()` 方法
+- 重构事件注册架构：移除 `registerEvent()` 模块级副作用，统一由 `EventRegistry.registerAll()` 管理
+- 剥离 `WorldEntity` 事件语义：移除 `UniformEntityConfig.eventId` 和自动生成 `onEnter` fallback
+- `entityCellMap` 从 `Map` 改为 `Record<string, PlacedCell>`（JSON 原生序列化）
 
 ### Fixed
-- village 实体裁剪：移除 3×3 实体硬编码的 `VIEWPORT_TOTAL=21` 边界检查，避免全图模式下错误裁剪
+- village 实体裁剪：移除硬编码边界检查
+- 修复 `entityCellMap` 序列化丢失：Map→Record + `LOAD_SAVE` 自动重建
+- 修复 `checkFight` 中 `stateRef` 过时读取：draft 内计算 + draft 外 dispatch
+- 修复 GameLoop 调度器竞态：`scheduleTick` 延迟至微任务
 
 
 ## [v0.3.4] - 2026-06-24
