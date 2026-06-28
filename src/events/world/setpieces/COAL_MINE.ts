@@ -3,7 +3,6 @@
  *
  * 煤矿地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const coalMineSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const coalMineSetpiece: EventDef = {
     },
   },
 }
-registerEvent(coalMineSetpiece)
 export { coalMineSetpiece }

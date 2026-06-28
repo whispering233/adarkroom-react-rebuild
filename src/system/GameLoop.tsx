@@ -133,9 +133,11 @@ export function GameLoop() {
       accum.event += dt
       while (accum.event >= CONFIG.INCOME_TICK_INTERVAL) {
         accum.event -= CONFIG.INCOME_TICK_INTERVAL
-        if (!stateRef.current.game.activeEvent) {
-          schedulingRef = scheduleTick(schedulingRef, stateRef.current, dispatch, getAllEvents())
-        }
+        Promise.resolve().then(() => {
+          if (!stateRef.current.game.activeEvent) {
+            schedulingRef = scheduleTick(schedulingRef, stateRef.current, dispatch, getAllEvents())
+          }
+        })
       }
 
       const s = stateRef.current

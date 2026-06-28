@@ -7,7 +7,7 @@
 
 import type { ResourceId } from '../config'
 import type { CombatState } from '../combat/types'
-import type { EventResult } from '../events/types'
+import type { EventId, EventResult } from '../events/types'
 import type { PersistentWorldData, WorldRuntimeState } from '../world/types'
 import { getInitialStores } from '../config'
 
@@ -86,7 +86,7 @@ export interface GameData {
   /** 当前进行中的事件（null = 无） */
   activeEvent: {
     /** 事件唯一标识 */
-    eventId: string
+    eventId: EventId
     /** 当前场景 ID */
     currentScene: string
     /** 场景历史（用于回溯或剧情依赖） */

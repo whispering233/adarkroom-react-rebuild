@@ -4,11 +4,8 @@
  * 每个 encounter 是标准 EventDef，combat: true 触发 CombatOverlay。
  * Tier 1 (<10 步) enemies，后续可扩展 Tier 2/3。
  */
-import { registerEvent } from '../registry'
 import type { EventDef } from '../types'
 import { WORLD } from '../../world/constants'
-import './setpieces'
-import './executioner'
 
 function getDistance(state: import('../../state/types').GameState): number {
   const wr = state.game.worldRuntime
@@ -101,8 +98,5 @@ const strangeBird: EventDef = {
   },
 }
 
-registerEvent(snarlingBeast)
-registerEvent(gauntMan)
-registerEvent(strangeBird)
-
+export { snarlingBeast, gauntMan, strangeBird }
 export const WORLD_ENCOUNTERS: EventDef[] = [snarlingBeast, gauntMan, strangeBird]

@@ -49,7 +49,7 @@ describe('generateMap', () => {
 
     // Count keys in the village footprint range [s, s+2] × [s, s+2]
     let villageCellCount = 0
-    for (const [key, cell] of worldMap.entityCellMap) {
+    for (const [key, cell] of Object.entries(worldMap.entityCellMap)) {
       const [x, y] = key.split(',').map(Number)
       if (
         cell.entityId === 'village' &&
@@ -65,7 +65,7 @@ describe('generateMap', () => {
     for (let dx = 0; dx < 3; dx++) {
       for (let dy = 0; dy < 3; dy++) {
         const key = `${s + dx},${s + dy}`
-        const cell = worldMap.entityCellMap.get(key)
+        const cell = worldMap.entityCellMap[key]
         expect(cell).toBeDefined()
         expect(cell!.entityId).toBe('village')
         expect(cell!.anchorX).toBe(s)
@@ -244,10 +244,10 @@ describe('generateMap', () => {
     const { worldMap } = generateMap(mapDef)
 
     // entityCellMap should not be empty
-    expect(worldMap.entityCellMap.size).toBeGreaterThan(0)
+    expect(Object.keys(worldMap.entityCellMap).length).toBeGreaterThan(0)
 
     // Each key in entityCellMap should point to a valid entity
-    for (const [key, cell] of worldMap.entityCellMap) {
+    for (const [key, cell] of Object.entries(worldMap.entityCellMap)) {
       expect(key).toMatch(/^\d+,\d+$/) // "x,y" format
       expect(key).not.toContain(' ')   // no spaces
 

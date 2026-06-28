@@ -4,7 +4,6 @@
  * 玩家回到村庄后触发。回村逻辑由 World 组件的 goHome 处理（dispatches RETURN_FROM_WORLD），
  * 此事件提供叙事展示。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const villageSetpiece: EventDef = {
@@ -25,5 +24,4 @@ const villageSetpiece: EventDef = {
   },
 }
 
-registerEvent(villageSetpiece)
 export { villageSetpiece }

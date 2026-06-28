@@ -97,26 +97,15 @@ describe('createUniformEntity', () => {
   })
 
   describe('onEnter', () => {
-    it('eventId shortcut returns { eventId }', () => {
-      const entity = createUniformEntity({ type: 'test', char: 'X', eventId: 'test_event' })
-      expect(entity.onEnter).toBeDefined()
-      const result = entity.onEnter!({} as any)
-      expect(result).toEqual({ eventId: 'test_event' })
-    })
-
-    it('manual onEnter takes priority over eventId', () => {
-      const manualOnEnter = () => ({ eventId: 'manual_event' })
-      const entity = createUniformEntity({
-        type: 'test', char: 'X',
-        eventId: 'default_event',
-        onEnter: manualOnEnter,
-      })
+    it('has onEnter when manually provided', () => {
+      const manualOnEnter = () => ({ narrations: ['test'] })
+      const entity = createUniformEntity({ type: 'test', char: 'X', onEnter: manualOnEnter })
       expect(entity.onEnter).toBe(manualOnEnter)
       const result = entity.onEnter!({} as any)
-      expect(result).toEqual({ eventId: 'manual_event' })
+      expect(result).toEqual({ narrations: ['test'] })
     })
 
-    it('has no onEnter when neither eventId nor manual onEnter provided', () => {
+    it('has no onEnter when not provided', () => {
       const entity = createUniformEntity({ type: 'test', char: 'X' })
       expect(entity.onEnter).toBeUndefined()
     })
@@ -141,7 +130,6 @@ describe('createUniformEntity', () => {
 describe('deriveEntity', () => {
   const baseEntity = createUniformEntity({
     type: 'base', char: 'B', footprint: { w: 2, h: 2 },
-    eventId: 'base_event',
   })
 
   it('derives new type from base entity', () => {
@@ -160,10 +148,10 @@ describe('deriveEntity', () => {
   })
 
   it('overrides onEnter', () => {
-    const derivedOnEnter = () => ({ eventId: 'derived_event' })
+    const derivedOnEnter = () => ({ narrations: ['derived'] })
     const derived = deriveEntity(baseEntity, { type: 'derived', onEnter: derivedOnEnter })
     const result = derived.onEnter!({} as any)
-    expect(result).toEqual({ eventId: 'derived_event' })
+    expect(result).toEqual({ narrations: ['derived'] })
   })
 
   it('overrides getDrawCommand entirely when provided', () => {

@@ -5,7 +5,6 @@
  * 通过执行者地标实体（eventId: 'executioner'）触发。
  */
 
-import { registerEvent } from '../registry'
 import type { EventDef } from '../types'
 
 const executionerEvent: EventDef = {
@@ -60,5 +59,4 @@ const executionerEvent: EventDef = {
   },
 }
 
-registerEvent(executionerEvent)
 export { executionerEvent }

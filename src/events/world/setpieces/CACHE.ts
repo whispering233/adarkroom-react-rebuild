@@ -4,7 +4,6 @@
  * 废墟村庄（藏匿处）地标事件。
  * 进入时自动收集上局遗留的 prestige 资源。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const cacheSetpiece: EventDef = {
@@ -49,5 +48,4 @@ const cacheSetpiece: EventDef = {
     },
   },
 }
-registerEvent(cacheSetpiece)
 export { cacheSetpiece }

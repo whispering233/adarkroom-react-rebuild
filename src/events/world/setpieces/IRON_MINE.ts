@@ -3,7 +3,6 @@
  *
  * 铁矿地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const ironMineSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const ironMineSetpiece: EventDef = {
     },
   },
 }
-registerEvent(ironMineSetpiece)
 export { ironMineSetpiece }

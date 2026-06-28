@@ -3,7 +3,6 @@
  *
  * 战场地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const battlefieldSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const battlefieldSetpiece: EventDef = {
     },
   },
 }
-registerEvent(battlefieldSetpiece)
 export { battlefieldSetpiece }

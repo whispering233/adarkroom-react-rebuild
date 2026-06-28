@@ -64,10 +64,10 @@ export const villageEntity: WorldEntity = {
     return { bounds, cells }
   },
 
-  onEnter(ctx: EntityTriggerContext): EntityTriggerResult | null {
+  onEnter(_ctx: EntityTriggerContext): EntityTriggerResult | null {
     return {
       returnHome: true,
-      narrations: [ctx.t('world.landmark.village')],
+      narrations: [_ctx.t('world.landmark.village')],
     }
   },
 }

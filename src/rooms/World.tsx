@@ -23,16 +23,18 @@ import {
   applyRecipe,
   pushNarrative,
   returnFromWorld,
+  type GameState,
 } from '../state'
 import { WORLD, TERRAINS } from '../world/constants'
 import { WORLD_ENCOUNTERS } from '../events/world/encounters'
-import { lightMap, drawRoadToVillage } from '../world/generator'
+import { lightMap } from '../world/generator'
 import styles from './World.module.css'
 import { renderViewport, renderFullMap, drawComposed } from '../world/renderViewport'
 import { createStyleResolver } from '../world/styleResolver'
 import { createWorldCanvasScene } from '../world/WorldCanvasScene'
 import { getEntity, getEntityCatalog } from '../world/entity/catalog'
-import { buildEntityCellMap } from '../world/entity/types'
+import * as TriggerManager from '../triggers/TriggerManager'
+import * as EffectDispatcher from '../triggers/EffectDispatcher'
 
 export function World() {
   const { t } = useTranslation()
@@ -121,6 +123,7 @@ export function World() {
 
   // ── 随机遭遇战 ──────────────────────────────────────
   const checkFight = useCallback(() => {
+    let shouldFight: string | null = null
     dispatch(applyRecipe(d => {
       const w = d.game.worldRuntime
       if (!w) return
@@ -129,14 +132,14 @@ export function World() {
       const chance = WORLD.FIGHT_CHANCE * (d.character.perks?.stealthy ? 0.5 : 1)
       if (Math.random() < chance) {
         w.fightCounter = 0
-        const available = WORLD_ENCOUNTERS.filter(e => e.isAvailable(stateRef.current))
+        const available = WORLD_ENCOUNTERS.filter(e => e.isAvailable(d as GameState))
         if (available.length > 0) {
           const enc = available[Math.floor(Math.random() * available.length)]
-          // Defer dispatch outside draft
-          setTimeout(() => dispatch(startEvent(enc.id)), 0)
+          shouldFight = enc.id
         }
       }
     }))
+    if (shouldFight) dispatch(startEvent(shouldFight))
   }, [dispatch])
 
   // ── 移动逻辑 ────────────────────────────────────────
@@ -161,6 +164,7 @@ export function World() {
       if (!w) return
       const prevTerrain = terrainMap[curPos[0]][curPos[1]]
       const newTerrain = terrainMap[nx][ny]
+      w.prevPos = w.curPos
       w.curPos = [nx, ny]
       const scoutRadius = d.character.perks?.scout ? WORLD.LIGHT_RADIUS * 2 : WORLD.LIGHT_RADIUS
       lightMap(w.mask, [nx, ny], scoutRadius)
@@ -178,49 +182,12 @@ export function World() {
       }
     }))
 
-    // 实体触发检查（entityCellMap 查找替代旧 tile.landmark）
-    const cell = entityCellMap.get(`${nx},${ny}`)
-    if (cell) {
-      const entity = getEntity(cell.entityId)
-      if (entity?.onEnter) {
-        const result = entity.onEnter({
-          pos: [nx, ny],
-          state: s,
-          dispatch,
-          t,
-          _globalTick: s._globalTick,
-        })
-        if (result) {
-          // 叙事文本优先分发（确保展示在任何跳转/事件之前）
-          if (result.narrations) {
-            result.narrations.forEach(n => dispatch(pushNarrative(n)))
-          }
-          // 清除前哨：移除实体 + 绘制道路回村庄
-          if (result.clearOutpost) {
-            dispatch(applyRecipe(d => {
-              const pw = d.game.world
-              if (!pw) return
-              const el = pw.worldMap.entityLayer
-              const idx = el.findIndex(
-                e => e.entityId === 'outpost' && e.anchorX === cell!.anchorX && e.anchorY === cell!.anchorY,
-              )
-              if (idx !== -1) {
-                el.splice(idx, 1)
-                const villagePos: [number, number] = [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS]
-                drawRoadToVillage(pw.worldMap.terrainMap, [cell!.anchorX, cell!.anchorY], villagePos, el)
-                pw.worldMap.entityCellMap = buildEntityCellMap(el, getEntityCatalog())
-              }
-            }))
-          }
-          if (result.returnHome) { dispatch(returnFromWorld(false)); return }
-          if (result.eventId) { dispatch(startEvent(result.eventId)) }
-          if (result.executionerFound) {
-            dispatch(applyRecipe(d => {
-              if (d.game.worldRuntime) d.game.worldRuntime.executionerFound = true
-            }))
-          }
-          if (result.skipSupplies) return
-        }
+    const triggerResult = TriggerManager.check([nx, ny], wr.prevPos ?? null, entityCellMap, {})
+    if (triggerResult) {
+      const entity = getEntity(triggerResult.entityType)
+      const onEnterResult = entity?.onEnter?.({ pos: [nx, ny], state: s, dispatch, t, _globalTick: s._globalTick })
+      if (onEnterResult) {
+        EffectDispatcher.dispatchEffect({ entityType: triggerResult.entityType, result: onEnterResult, pos: [nx, ny] }, s, dispatch, t)
       }
     }
 

@@ -3,7 +3,6 @@
  *
  * 前哨站：补水 + 休息。由 dungeons cleared 后在地图上生成。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const outpostSetpiece: EventDef = {
@@ -24,5 +23,4 @@ const outpostSetpiece: EventDef = {
   },
 }
 
-registerEvent(outpostSetpiece)
 export { outpostSetpiece }

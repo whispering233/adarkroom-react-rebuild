@@ -3,7 +3,6 @@
  *
  * 旧房屋地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const houseSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const houseSetpiece: EventDef = {
     },
   },
 }
-registerEvent(houseSetpiece)
 export { houseSetpiece }

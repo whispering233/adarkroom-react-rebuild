@@ -3,7 +3,6 @@
  *
  * 钻井地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const boreholeSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const boreholeSetpiece: EventDef = {
     },
   },
 }
-registerEvent(boreholeSetpiece)
 export { boreholeSetpiece }

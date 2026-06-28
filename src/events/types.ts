@@ -19,6 +19,51 @@ export type EventResult = 'seen' | 'completed' | 'refused' | 'failed'
 /** 场景标识符 */
 export type SceneId = string
 
+/** 全部 34 个事件 ID */
+export const EVENT_IDS = {
+  // Room 事件（10）
+  nomad: 'nomad',
+  beggar: 'beggar',
+  noises_outside: 'noises_outside',
+  noises_inside: 'noises_inside',
+  mysterious_wanderer_wood: 'mysterious_wanderer_wood',
+  mysterious_wanderer_fur: 'mysterious_wanderer_fur',
+  shady_builder: 'shady_builder',
+  scout: 'scout',
+  wandering_master: 'wandering_master',
+  sick_man: 'sick_man',
+  // Outside 事件（6）
+  ruined_trap: 'ruined_trap',
+  hut_fire: 'hut_fire',
+  sickness: 'sickness',
+  plague: 'plague',
+  beast_attack: 'beast_attack',
+  soldier_attack: 'soldier_attack',
+  // Setpieces（14）
+  'setpiece.battlefield': 'setpiece.battlefield',
+  'setpiece.borehole': 'setpiece.borehole',
+  'setpiece.cache': 'setpiece.cache',
+  'setpiece.cave': 'setpiece.cave',
+  'setpiece.city': 'setpiece.city',
+  'setpiece.coalMine': 'setpiece.coalMine',
+  'setpiece.house': 'setpiece.house',
+  'setpiece.ironMine': 'setpiece.ironMine',
+  'setpiece.sulphurMine': 'setpiece.sulphurMine',
+  'setpiece.swamp': 'setpiece.swamp',
+  'setpiece.town': 'setpiece.town',
+  'setpiece.ship': 'setpiece.ship',
+  'setpiece.outpost': 'setpiece.outpost',
+  'setpiece.village': 'setpiece.village',
+  // Encounters（3）
+  'encounter.snarlingBeast': 'encounter.snarlingBeast',
+  'encounter.gauntMan': 'encounter.gauntMan',
+  'encounter.strangeBird': 'encounter.strangeBird',
+  // Executioner（1）
+  executioner: 'executioner',
+} as const
+
+export type EventId = (typeof EVENT_IDS)[keyof typeof EVENT_IDS]
+
 /** Dispatch 类型（避免回调签名中循环 import） */
 type DispatchFn = (action: import('../state/reducer').GameAction) => void
 
@@ -57,7 +102,7 @@ export interface SceneButtonDef {
   nextScene?: SceneId | ProbabilityMap
 
   /** 跳转到另一个事件（事件嵌套，如 setpiece 接入） */
-  nextEvent?: string
+  nextEvent?: EventId
 
   /** 按钮冷却（秒），缺省无冷却 */
   cooldown?: number
@@ -134,7 +179,7 @@ export interface SceneDef {
 
 export interface EventDef {
   /** 唯一标识（用于 eventsCompleted 记录） */
-  id: string
+  id: EventId
 
   /** 标题显示文本（i18n key） */
   title: string

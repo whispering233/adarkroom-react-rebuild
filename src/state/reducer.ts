@@ -12,7 +12,7 @@
  * INCOME_TICK 时 flush 为单条 ResourceTickLog（每个 tick 一条，避免高频 key 挤占）。
  */
 import type { GameState, IncomeConfig } from './types'
-import type { EventResult } from '../events/types'
+import type { EventId, EventResult } from '../events/types'
 import type { CombatState } from '../combat/types'
 import { FireLevel, TempLevel } from './types'
 import { CONFIG, WORKER_INCOME, shouldKeepOnReturn } from '../config'
@@ -22,7 +22,7 @@ import { hasPrestigeStores, savePrestigeToState, collectPrestigeStoresToState } 
 import { generateMap, createNewMask, createMask, lightMap } from '../world/generator'
 import type { EntityCatalog } from '../world/entity/types'
 import { buildEntityCellMap } from '../world/entity/types'
-import { getAllEntities } from '../world/entity/catalog'
+import { getAllEntities, getEntityCatalog } from '../world/entity/catalog'
 
 // ─── 常量 ────────────────────────────────────────────────
 
@@ -116,10 +116,10 @@ export type GameAction =
   // ── 通用草稿回调（一次性操作，不需要新建 action 类型） ──
   | { type: 'APPLY_RECIPE'; recipe: (draft: GameState) => void }
   // ── 事件系统 ──
-  | { type: 'START_EVENT'; eventId: string; sceneId?: string }
+  | { type: 'START_EVENT'; eventId: EventId; sceneId?: string }
   | { type: 'GO_TO_SCENE'; sceneId: string }
   | { type: 'END_EVENT' }
-  | { type: 'COMPLETE_EVENT'; eventId: string; result: EventResult }
+  | { type: 'COMPLETE_EVENT'; eventId: EventId; result: EventResult }
   | { type: 'SET_NARRATIVE_FLAG'; key: string; value: boolean }
   // ── 战斗系统 ──
   | { type: 'START_COMBAT'; config: CombatState }
@@ -277,6 +277,13 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       // v1.3 → v1.4 migration: tiles → worldMap
       if (action.state.version < 1.4) {
         migrateV1_3toV1_4(action.state)
+      }
+      const pw = action.state.game?.world
+      if (pw?.worldMap && pw.worldMap.entityLayer?.length) {
+        const ecm = pw.worldMap.entityCellMap
+        if (!ecm || Object.keys(ecm).length === 0) {
+          pw.worldMap.entityCellMap = buildEntityCellMap(pw.worldMap.entityLayer, getEntityCatalog())
+        }
       }
       return action.state
     }
@@ -479,6 +486,7 @@ export function gameReducer(draft: GameState, action: GameAction): GameState | v
       const embarkSpawnPos: [number, number] = worldDef.spawnPos ?? [WORLD.DEFAULT_MAP_RADIUS, WORLD.DEFAULT_MAP_RADIUS]
       draft.game.worldRuntime = {
         curPos: embarkSpawnPos,
+        prevPos: undefined,
         water: maxW,
         health: maxH,
         maxHealth: maxH,
@@ -710,7 +718,7 @@ export const applyRecipe = (
 
 // ── 事件 Action Creator ──────────────────────────────────
 
-export const startEvent = (eventId: string, sceneId?: string): GameAction => ({
+export const startEvent = (eventId: EventId, sceneId?: string): GameAction => ({
   type: 'START_EVENT',
   eventId,
   sceneId,
@@ -723,7 +731,7 @@ export const goToScene = (sceneId: string): GameAction => ({
 
 export const endEvent = (): GameAction => ({ type: 'END_EVENT' })
 
-export const completeEvent = (eventId: string, result: EventResult): GameAction => ({
+export const completeEvent = (eventId: EventId, result: EventResult): GameAction => ({
   type: 'COMPLETE_EVENT',
   eventId,
   result,

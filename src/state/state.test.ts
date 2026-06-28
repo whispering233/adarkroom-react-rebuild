@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { produce } from 'immer'
 import type { GameState } from './types'
 import type { GameAction } from './reducer'
+import type { PlacedCell, TerrainType } from '../world/types'
 
 /**
  * 测试辅助：将 draft-recipe 形式的 gameReducer 包装为
@@ -183,6 +184,85 @@ describe('state 模块 (useImmerReducer 版)', () => {
     const next = await runReducer(INITIAL_STATE, loadSave(saved))
     expect(next.stores.wood).toBe(42)
     expect(next.game.fire).toBe(4)
+  })
+
+  it('LOAD_SAVE: rebuilds empty entityCellMap from entityLayer', async () => {
+    const { loadSave } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+
+    const size = 61
+    const corrupted: GameState = JSON.parse(JSON.stringify(INITIAL_STATE))
+    corrupted.version = 1.4
+    const terrainMap: TerrainType[][] = Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => 'field'),
+    )
+    corrupted.game.world = {
+      mapId: 'test',
+      worldMap: {
+        size,
+        terrainMap,
+        entityLayer: [
+          { entityId: 'village', anchorX: 30, anchorY: 30 },
+          { entityId: 'ironMine', anchorX: 10, anchorY: 10 },
+        ],
+        entityCellMap: {},
+      },
+      mask: Array.from({ length: size }, () => Array(size).fill(true)),
+      explored: Array.from({ length: size }, () => Array(size).fill(true)),
+      traveled: Array.from({ length: size }, () => Array(size).fill(true)),
+      usedOutposts: {},
+    }
+
+    const next = await runReducer(INITIAL_STATE, loadSave(corrupted))
+    const ecm = next.game.world!.worldMap.entityCellMap
+
+    expect(Object.keys(ecm).length).toBeGreaterThan(0)
+    expect(ecm['30,30']).toBeDefined()
+    expect(ecm['30,30']!.entityId).toBe('village')
+    expect(ecm['10,10']).toBeDefined()
+    expect(ecm['10,10']!.entityId).toBe('ironMine')
+  })
+
+  it('LOAD_SAVE: preserves valid entityCellMap', async () => {
+    const { loadSave } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+
+    const size = 61
+    const baseCellMap: Record<string, PlacedCell> = {
+      '30,30': { entityId: 'village', anchorX: 30, anchorY: 30, dx: 0, dy: 0 },
+    }
+    const validState: GameState = JSON.parse(JSON.stringify(INITIAL_STATE))
+    validState.version = 1.4
+    validState.game.world = {
+      mapId: 'test',
+      worldMap: {
+        size,
+        terrainMap: Array.from({ length: size }, () =>
+          Array.from({ length: size }, () => 'field'),
+        ),
+        entityLayer: [{ entityId: 'village', anchorX: 30, anchorY: 30 }],
+        entityCellMap: baseCellMap,
+      },
+      mask: Array.from({ length: size }, () => Array(size).fill(true)),
+      explored: Array.from({ length: size }, () => Array(size).fill(true)),
+      traveled: Array.from({ length: size }, () => Array(size).fill(true)),
+      usedOutposts: {},
+    }
+
+    const before = { ...validState.game.world.worldMap.entityCellMap }
+    const next = await runReducer(INITIAL_STATE, loadSave(validState))
+    expect(next.game.world!.worldMap.entityCellMap).toEqual(before)
+  })
+
+  it('LOAD_SAVE: no world data → no crash', async () => {
+    const { loadSave } = await import('./reducer')
+    const { INITIAL_STATE } = await import('./types')
+
+    const noWorld: GameState = JSON.parse(JSON.stringify(INITIAL_STATE))
+    noWorld.version = 1.4
+    delete (noWorld.game as { world?: unknown }).world
+
+    await expect(runReducer(INITIAL_STATE, loadSave(noWorld))).resolves.toBeDefined()
   })
 
   // ── 不可变性 ─────────────────────────────────────────

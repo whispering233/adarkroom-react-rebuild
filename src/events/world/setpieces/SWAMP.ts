@@ -3,7 +3,6 @@
  *
  * 沼泽地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const swampSetpiece: EventDef = {
@@ -30,5 +29,4 @@ const swampSetpiece: EventDef = {
     },
   },
 }
-registerEvent(swampSetpiece)
 export { swampSetpiece }

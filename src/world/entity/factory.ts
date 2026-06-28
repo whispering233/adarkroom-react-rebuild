@@ -5,7 +5,6 @@ export interface UniformEntityConfig {
   char: string
   footprint?: { w: number; h: number }
   onEnter?: WorldEntity['onEnter']
-  eventId?: string
   prominent?: boolean
   bold?: boolean
 }
@@ -55,13 +54,11 @@ export function createUniformEntity(config: UniformEntityConfig): WorldEntity {
     }
   }
 
-  const onEnter = config.onEnter ?? (config.eventId ? () => ({ eventId: config.eventId! }) : undefined)
-
   return {
     type: config.type,
     footprint,
     getDrawCommand,
-    ...(onEnter ? { onEnter } : {}),
+    ...(config.onEnter ? { onEnter: config.onEnter } : {}),
   }
 }
 

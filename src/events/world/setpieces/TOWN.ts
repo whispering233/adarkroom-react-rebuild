@@ -3,7 +3,6 @@
  *
  * 废弃城镇地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const townSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const townSetpiece: EventDef = {
     },
   },
 }
-registerEvent(townSetpiece)
 export { townSetpiece }

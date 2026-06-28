@@ -10,6 +10,7 @@
 
 import type { GameState } from '../state/types'
 import type { GameAction } from '../state/reducer'
+import type { EventId } from '../events/types'
 import { TERRAINS } from './constants'
 
 // ─── Dispatch 类型别名（避免循环 import）───────────────
@@ -70,7 +71,7 @@ export interface WorldMap {
   /** 实体层 — 所有已放置实体的列表 */
   entityLayer: PlacedEntity[]
   /** 实体格查找表 — key = "${x},${y}"，value = PlacedCell */
-  entityCellMap: Map<string, PlacedCell>
+  entityCellMap: Record<string, PlacedCell>
 }
 
 // ─── 实体触发上下文 ───────────────────────────────────
@@ -84,7 +85,7 @@ export interface EntityTriggerContext {
 }
 
 export interface EntityTriggerResult {
-  eventId?: string
+  eventId?: EventId
   narrations?: string[]
   encounters?: string[]
   modifiers?: Record<string, number>
@@ -219,6 +220,7 @@ export interface WorldMapStackEntry {
 
 export interface WorldRuntimeState {
   curPos: [number, number]
+  prevPos?: [number, number]
   water: number
   health: number
   maxHealth: number

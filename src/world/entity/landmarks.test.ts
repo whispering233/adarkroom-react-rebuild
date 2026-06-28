@@ -192,47 +192,5 @@ describe.each(multiCases)('multi-tile: %s', (name, char) => {
 })
 
 // ─── Block C — 自定义 onEnter 测试 ──────────────────
-
-const customOnEnterCases: Array<[string, Record<string, unknown>]> = [
-  ['executioner', { eventId: 'executioner', executionerFound: true }],
-  ['outpost', { eventId: 'setpiece.outpost', clearOutpost: true }],
-  ['ship', { eventId: 'setpiece.ship', shipFound: true }],
-]
-
-describe.each(customOnEnterCases)('custom onEnter: %s', (name, expectedResult) => {
-  const entity = entities[name]
-
-  it('onEnter returns the expected result object', () => {
-    expect(entity.onEnter).toBeDefined()
-    const ctx = {} as any
-    const result = entity.onEnter!(ctx)
-    expect(result).toEqual(expectedResult)
-  })
-})
-
-// ─── 默认 onEnter（eventId only）测试 ───────────────
-
-const defaultOnEnterCases: Array<[string, string]> = [
-  ['battlefield', 'setpiece.battlefield'],
-  ['borehole', 'setpiece.borehole'],
-  ['cache', 'setpiece.cache'],
-  ['cave', 'setpiece.cave'],
-  ['city', 'setpiece.city'],
-  ['coalMine', 'setpiece.coalMine'],
-  ['house', 'setpiece.house'],
-  ['ironMine', 'setpiece.ironMine'],
-  ['sulphurMine', 'setpiece.sulphurMine'],
-  ['swamp', 'setpiece.swamp'],
-  ['town', 'setpiece.town'],
-]
-
-describe.each(defaultOnEnterCases)('default onEnter: %s', (name, expectedEventId) => {
-  const entity = entities[name]
-
-  it('onEnter returns eventId only', () => {
-    expect(entity.onEnter).toBeDefined()
-    const ctx = {} as any
-    const result = entity.onEnter!(ctx)
-    expect(result).toEqual({ eventId: expectedEventId })
-  })
-})
+// 所有工厂实体的 onEnter 均在 triggerConfig 中声明式配置，
+// 实体本身不再携带 onEnter 逻辑。

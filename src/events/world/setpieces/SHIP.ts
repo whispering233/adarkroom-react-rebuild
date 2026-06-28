@@ -3,7 +3,6 @@
  *
  * 坠毁星舰地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const shipSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const shipSetpiece: EventDef = {
     },
   },
 }
-registerEvent(shipSetpiece)
 export { shipSetpiece }

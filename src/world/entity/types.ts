@@ -76,8 +76,8 @@ export type EntityCatalog = Record<string, WorldEntity>
 export function buildEntityCellMap(
   entityLayer: PlacedEntity[],
   catalog: EntityCatalog,
-): Map<string, PlacedCell> {
-  const map = new Map<string, PlacedCell>()
+): Record<string, PlacedCell> {
+  const map: Record<string, PlacedCell> = {}
 
   for (const placed of entityLayer) {
     const entity = catalog[placed.entityId]
@@ -89,13 +89,13 @@ export function buildEntityCellMap(
         const gx = placed.anchorX + dx
         const gy = placed.anchorY + dy
         const key = `${gx},${gy}`
-        map.set(key, {
+        map[key] = {
           entityId: placed.entityId,
           anchorX: placed.anchorX,
           anchorY: placed.anchorY,
           dx,
           dy,
-        })
+        }
       }
     }
   }

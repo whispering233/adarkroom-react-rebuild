@@ -3,7 +3,6 @@
  *
  * 硫磺矿地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const sulphurMineSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const sulphurMineSetpiece: EventDef = {
     },
   },
 }
-registerEvent(sulphurMineSetpiece)
 export { sulphurMineSetpiece }

@@ -38,13 +38,13 @@ describe('buildEntityCellMap', () => {
     ]
 
     const result = buildEntityCellMap(entityLayer, catalog)
-    expect(result.size).toBe(10)
+    expect(Object.keys(result).length).toBe(10)
 
     // Village 覆盖 (10,10) 到 (12,12) — 9 个键
     for (let dx = 0; dx < 3; dx++) {
       for (let dy = 0; dy < 3; dy++) {
         const key = `${10 + dx},${10 + dy}`
-        const cell = result.get(key)
+        const cell = result[key]
         expect(cell).toBeDefined()
         expect(cell!.entityId).toBe('village')
         expect(cell!.anchorX).toBe(10)
@@ -56,17 +56,17 @@ describe('buildEntityCellMap', () => {
 
     // ironMine 占据 (5,5) — 1 个键
     const ironKey = '5,5'
-    expect(result.get(ironKey)).toBeDefined()
-    expect(result.get(ironKey)!.entityId).toBe('ironMine')
-    expect(result.get(ironKey)!.anchorX).toBe(5)
-    expect(result.get(ironKey)!.anchorY).toBe(5)
-    expect(result.get(ironKey)!.dx).toBe(0)
-    expect(result.get(ironKey)!.dy).toBe(0)
+    expect(result[ironKey]).toBeDefined()
+    expect(result[ironKey]!.entityId).toBe('ironMine')
+    expect(result[ironKey]!.anchorX).toBe(5)
+    expect(result[ironKey]!.anchorY).toBe(5)
+    expect(result[ironKey]!.dx).toBe(0)
+    expect(result[ironKey]!.dy).toBe(0)
   })
 
   it('returns empty map for empty entity layer', () => {
     const result = buildEntityCellMap([], {})
-    expect(result.size).toBe(0)
+    expect(Object.keys(result).length).toBe(0)
   })
 
   it('later entity overwrites overlapping cell (key collision behavior)', () => {
@@ -83,7 +83,7 @@ describe('buildEntityCellMap', () => {
 
     // (6,5) should be entity b's cell (later entity overwrites)
     const key = '6,5'
-    const cell = result.get(key)
+    const cell = result[key]
     expect(cell).toBeDefined()
     expect(cell!.entityId).toBe('b')
     expect(cell!.anchorX).toBe(6)
@@ -102,9 +102,9 @@ describe('buildEntityCellMap', () => {
     ]
 
     const result = buildEntityCellMap(entityLayer, catalog)
-    expect(result.size).toBe(1)
-    expect(result.has('0,0')).toBe(true)
-    expect(result.has('1,1')).toBe(false)
+    expect(Object.keys(result).length).toBe(1)
+    expect('0,0' in result).toBe(true)
+    expect('1,1' in result).toBe(false)
   })
 
   it('key format is "x,y" (comma-separated, no spaces)', () => {
@@ -116,7 +116,7 @@ describe('buildEntityCellMap', () => {
     ]
 
     const result = buildEntityCellMap(entityLayer, catalog)
-    const key = result.keys().next().value as string
+    const key = Object.keys(result)[0] as string
     expect(key).toBe('42,17')
     expect(key).not.toContain(' ')
   })

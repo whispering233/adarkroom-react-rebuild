@@ -3,7 +3,6 @@
  *
  * 洞穴地标事件。
  */
-import { registerEvent } from '../../registry'
 import type { EventDef } from '../../types'
 
 const caveSetpiece: EventDef = {
@@ -22,5 +21,4 @@ const caveSetpiece: EventDef = {
     },
   },
 }
-registerEvent(caveSetpiece)
 export { caveSetpiece }

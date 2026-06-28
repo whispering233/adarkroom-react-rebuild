@@ -46,16 +46,16 @@ function buildWorldState(): Record<string, unknown> {
   ]
 
   // 手动构建 entityCellMap（3×3 footprint）
-  const entityCellMap = new Map<string, PlacedCell>()
+  const entityCellMap: Record<string, PlacedCell> = {}
   for (let dx = 0; dx < 3; dx++) {
     for (let dy = 0; dy < 3; dy++) {
-      entityCellMap.set(`${3 + dx},${3 + dy}`, {
+      entityCellMap[`${3 + dx},${3 + dy}`] = {
         entityId: 'village',
         anchorX: 3,
         anchorY: 3,
         dx,
         dy,
-      })
+      }
     }
   }
 
