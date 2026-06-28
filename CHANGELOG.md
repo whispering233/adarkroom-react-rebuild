@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+
+## [v0.3.5] - 2026-06-28
+
 ### Added
 - 全图渲染模式：Toolbar 一键切换世界地图的视口模式与全图模式，Canvas 持久化存档
 - 事件系统重构：`EventRegistry.registerAll()` 统一注册全部 34 个事件，消除副作用导入链
